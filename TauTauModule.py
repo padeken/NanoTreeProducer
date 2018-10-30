@@ -27,7 +27,8 @@ class TauTauProducer(Module):
             self.isData = False
 
 
-        self.tauSFs = getTauTriggerSFs('vtight')
+        self.tauSFs   = getTauTriggerSFs('tight')
+        self.tauSFsVT = getTauTriggerSFs('vtight')
 
         self.Nocut = 0
         self.Trigger = 1
@@ -47,7 +48,7 @@ class TauTauProducer(Module):
     def endJob(self):
         self.out.outputfile.Write()
         self.out.outputfile.Close()
-#        pass
+        #pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -331,9 +332,8 @@ class TauTauProducer(Module):
         self.out.idMVAoldDM_1[0]               = ord(event.Tau_idMVAoldDM[dilepton.tau1_idx])
         self.out.idMVAoldDM2017v1_1[0]         = ord(event.Tau_idMVAoldDM2017v1[dilepton.tau1_idx])
         self.out.idMVAoldDM2017v2_1[0]         = ord(event.Tau_idMVAoldDM2017v2[dilepton.tau1_idx])
-
-
-
+        
+        
         if not self.isData:
             self.out.genPartFlav_1[0]              = ord(event.Tau_genPartFlav[dilepton.tau1_idx])
 
@@ -396,7 +396,7 @@ class TauTauProducer(Module):
 #        print type(event.Tau_genPartFlav[dilepton.tau2_idx])
 
         if not self.isData:
-            self.out.genPartFlav_2[0]              = ord(event.Tau_genPartFlav[dilepton.tau2_idx])
+            self.out.genPartFlav_2[0]          = ord(event.Tau_genPartFlav[dilepton.tau2_idx])
 
             genvistau = Collection(event, "GenVisTau")
 
@@ -487,6 +487,7 @@ class TauTauProducer(Module):
             self.out.jdeepb_2[0]                   = event.Jet_btagDeepB[jetIds[1]]
 
         self.out.njets[0]                      = len(jetIds)
+        self.out.njets50[0]                    = len([j for j in jetIds if event.Jet_pt[j]>50])
         self.out.nfjets[0]                     = nfjets
         self.out.ncjets[0]                     = ncjets
         self.out.nbtag[0]                      = nbtag
@@ -522,27 +523,29 @@ class TauTauProducer(Module):
         pZetaVis_ = leg1*zetaAxis + leg2*zetaAxis
         pZetaMET_ = metleg*zetaAxis
         
-#        print 'pZetaVis = ', pZetaVis_, ' pZetaMET = ', pZetaMET_                                                                                           
-
+        #print 'pZetaVis = ', pZetaVis_, ' pZetaMET = ', pZetaMET_                                                                                           
+        
         self.out.pzetamiss[0]  = pZetaMET_
         self.out.pzetavis[0]   = pZetaVis_
         self.out.pzeta_disc[0] = pZetaMET_ - 0.5*pZetaVis_
-
+        
         ############ extra lepton vetos
         self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0]  = extraLeptonVetos(event, [-1], [-1], self.name)
-
+        
         self.out.isData[0] = self.isData
-
-
-        diTauLeg1SF = self.tauSFs.getDiTauScaleFactor( self.out.pt_1, self.out.eta_1, self.out.phi_1 )
-        diTauLeg2SF = self.tauSFs.getDiTauScaleFactor( self.out.pt_2, self.out.eta_2, self.out.phi_2 )
+        
+        
+        diTauLeg1SF   = self.tauSFs.getDiTauScaleFactor(   self.out.pt_1, self.out.eta_1, self.out.phi_1 )
+        diTauLeg2SF   = self.tauSFs.getDiTauScaleFactor(   self.out.pt_2, self.out.eta_2, self.out.phi_2 )
+        diTauLeg1SFVT = self.tauSFsVT.getDiTauScaleFactor( self.out.pt_1, self.out.eta_1, self.out.phi_1 )
+        diTauLeg2SFVT = self.tauSFsVT.getDiTauScaleFactor( self.out.pt_2, self.out.eta_2, self.out.phi_2 )
         
         self.out.ngentauhads[0] = ngentauhads
-        self.out.ngentaus[0] = ngentaus
-        self.out.weight[0]  =  diTauLeg1SF*diTauLeg2SF
-
-    
-
+        self.out.ngentaus[0]    = ngentaus
+        self.out.weight[0]      = diTauLeg1SF*diTauLeg2SF
+        self.out.weightVT[0]    = diTauLeg1SFVT*diTauLeg2SFVT
+        
+        
         self.out.tree.Fill() 
         return True
 
