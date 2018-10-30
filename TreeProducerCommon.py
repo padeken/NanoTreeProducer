@@ -195,6 +195,7 @@ class TreeProducerCommon(object):
 
 
         self.njets                      = num.zeros(1, dtype=int)
+        self.njets50                    = num.zeros(1, dtype=int)
         self.nfjets                     = num.zeros(1, dtype=int)
         self.ncjets                     = num.zeros(1, dtype=int)
         self.nbtag                      = num.zeros(1, dtype=int)
@@ -232,6 +233,7 @@ class TreeProducerCommon(object):
 
 
         self.tree.Branch('njets'                       , self.njets, 'njets/I')
+        self.tree.Branch('njets50'                     , self.njets50, 'njets50/I')
         self.tree.Branch('ncjets'                      , self.ncjets, 'ncjets/I')
         self.tree.Branch('nfjets'                      , self.nfjets, 'nfjets/I')
         self.tree.Branch('nbtag'                       , self.nbtag, 'nbtag/I')

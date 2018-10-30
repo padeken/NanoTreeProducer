@@ -335,6 +335,7 @@ class MuTauProducer(Module):
 
 
         self.out.njets[0]                      = len(jetIds)
+        self.out.njets50[0]                    = len([j for j in jetIds if event.Jet_pt[j]>50])
         self.out.nfjets[0]                     = nfjets
         self.out.ncjets[0]                     = ncjets
         self.out.nbtag[0]                      = nbtag
