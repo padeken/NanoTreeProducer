@@ -70,21 +70,21 @@ _postfix = outputDir + '/' + name + '_' + chunck + '_' + channel + '.root'
 
 module2run = None
 
-if channel == 'tautau':
+if channel=='tautau':
 
     from TauTauModule import *
 #    from TauTauModule_sync import *
 
     module2run = lambda : TauTauProducer(_postfix, DataType)
 
-elif channel == 'mutau':
+elif channel=='mutau':
 
     from MuTauModule import *
 #    from MuTauModule_sync import *
 
     module2run = lambda : MuTauProducer(_postfix, DataType)
 
-elif channel == 'eletau':
+elif channel=='eletau' or channel=='etau':
 
     from EleTauModule import *
 #    from EleTauModule_sync import *
@@ -92,13 +92,13 @@ elif channel == 'eletau':
     module2run = lambda : EleTauProducer(_postfix, DataType)
 
 
-elif channel == 'mumu':
+elif channel=='mumu':
 
     from MuMuModule import *
 
     module2run = lambda : MuMuProducer(_postfix, DataType)
 
-elif channel == 'muele':
+elif channel=='muele':
 
     from MuEleModule import *
 
