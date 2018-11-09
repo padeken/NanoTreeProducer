@@ -2,6 +2,7 @@
 
 import os
 from commands import getoutput
+from fnmatch import fnmatch
 import itertools
 import optparse
 
@@ -10,7 +11,7 @@ parser = optparse.OptionParser()
 parser.add_option('-f', '--force', action="store_true", default=False, dest='force')
 parser.add_option('-c', '--channel', action="store", type=str, default="mutau", dest='channel')
 parser.add_option('-s', '--sample', action="store", type=str, default=None, dest='sample')
-parser.add_option('-n', '--njob', action="store", type=int, default=10, dest='njob')
+parser.add_option('-n', '--njob', action="store", type=int, default=4, dest='njob')
 
 (options, args) = parser.parse_args() 
 
@@ -67,10 +68,10 @@ def createJobs(f, outfolder,name,nchunks, channel, pattern):
   
   for files in f:
       
-       #if pattern.find('pnfs')!=-1:
-       #    infiles.append("dcap://t3se01.psi.ch:22125/"+ pattern + '/' + files)
-       #    infiles.append("root://cms-xrd-global.cern.ch/"+ pattern.replace('/pnfs/psi.ch/cms/trivcat','') + '/' + files)
-       #else:
+      #if pattern.find('pnfs')!=-1:
+      #    infiles.append("dcap://t3se01.psi.ch:22125/"+ pattern + '/' + files)
+      #    infiles.append("root://cms-xrd-global.cern.ch/"+ pattern.replace('/pnfs/psi.ch/cms/trivcat','') + '/' + files)
+      #else:
 
       if files.find('LQ')!=-1:
           infiles.append("dcap://t3se01.psi.ch:22125/"+files)
@@ -87,26 +88,26 @@ def submitJobs(jobList, nchunks, outfolder, batchSystem):
     print 'Reading joblist'
     jobListName = jobList
     print jobList
-#    subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobListName)
+    #subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobListName)
     subCmd = 'qsub -t 1-%s -o %s/logs/ %s %s' %(nchunks,outfolder,batchSystem,jobListName)
     print 'Going to submit', nchunks, 'jobs with', subCmd
     os.system(subCmd)
-
+    
     return 1
 
 
 if __name__ == "__main__":
-
+    
     batchSystem = 'psibatch_runner.sh'
-
-        # read samples
+    
+    # read samples
     patterns = []
-        
+    
     for line in open('samples.cfg', 'r'):
         if line.find('#')!=-1: continue
         if line.rstrip()=='': continue
-#        if line.count('/')!=3:
-#            continue 
+        #if line.count('/')!=3:
+        #    continue 
         patterns.append(line.rstrip())
     
     print patterns
@@ -127,7 +128,9 @@ if __name__ == "__main__":
             if pattern.find('/SingleMuon')!=-1 or pattern.find('/Tau')!=-1: continue
         
         if options.sample!=None:
-            if pattern.find(options.sample)==-1: continue
+            if '*' in options.sample or '?' in options.sample:
+              if not fnmatch(pattern,'*'+options.sample+'*'): continue
+            elif pattern.find(options.sample)==-1: continue
 
         files = None
         name = None
@@ -161,10 +164,10 @@ if __name__ == "__main__":
         except: os.mkdir(outfolder+'/logs/')
         
         filelists = list(split_seq(files, options.njob))
-#		filelists = list(split_seq(files,1))
+        #filelists = list(split_seq(files,1))
         
         for f in filelists:
-#			print "FILES = ",f
+        #print "FILES = ",f
             createJobs(f,outfolder,name,nChunks, options.channel, pattern)
             nChunks = nChunks+1
             
