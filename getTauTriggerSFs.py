@@ -19,7 +19,7 @@ base = '/shome/ineuteli/analysis/LQ_2017/NanoTreeProducer/TauTriggerSFs2017/data
 
 class getTauTriggerSFs :
     
-
+    
     def __init__( self, tauWP='medium', wpType='MVA' ):
         
         # Default to loading the Tau MVA Medium ID based WPs

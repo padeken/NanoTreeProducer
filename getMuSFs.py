@@ -1,7 +1,9 @@
 import ROOT
 import math
 
-path = '/mnt/t3nfs01/data01/shome/ytakahas/work/Leptoquark/CMSSW_9_4_4/src/PhysicsTools/NanoAODTools/NanoTreeProducer/leptonSF'
+#/shome/ineuteli/analysis/LQ_2017/NanoTreeProducer/leptonSF
+#/shome/ytakahas/work/Leptoquark/CMSSW_9_4_4/src/PhysicsTools/NanoAODTools/NanoTreeProducer/leptonSF
+path = 'leptonSF'
 
 class getMuSFs :
     
