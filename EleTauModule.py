@@ -67,9 +67,11 @@ class EleTauProducer(Module):
             self.out.h_cutflow.Fill(self.TotalWeighted, 1.)
         #####################################
 
-        if not event.HLT_Ele35_WPTight_Gsf:
+        # HLT_Ele32_WPTight_Gsf_L1DoubleEG
+        # HLT_Ele32_WPTight_Gsf
+        if not (event.HLT_Ele35_WPTight_Gsf or event.HLT_Ele32_WPTight_Gsf):
             return False
-
+        
         #####################################
         self.out.h_cutflow.Fill(self.Trigger)
         #####################################
@@ -194,9 +196,7 @@ class EleTauProducer(Module):
 
             if event.Jet_btagCSVV2[ijet] > 0.8838:
                 nbtag += 1
-            
-            
-
+        
 #        eventSum = ROOT.TLorentzVector()
 #
 #        for lep in electrons :
@@ -205,8 +205,7 @@ class EleTauProducer(Module):
 #            eventSum += lep.p4()
 #        for j in filter(self.jetSel,jets):
 #            eventSum += j.p4()
-
-
+        
         # electron
         self.out.pt_1[0]                       = event.Electron_pt[dilepton.tau1_idx]
         self.out.eta_1[0]                      = event.Electron_eta[dilepton.tau1_idx]

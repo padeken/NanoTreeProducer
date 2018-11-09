@@ -354,19 +354,19 @@ class TauTauProducer(Module):
 #            print self.out.LHE_Njets[0], event.LHE_Njets, int(event.LHE_Njets)
 #            print event.LHE_NpNLO
 #            print self.out.Pileup_nPU, event.Pileup_nPU
-
+        
         self.out.jpt_1[0]                      = -9.
         self.out.jeta_1[0]                     = -9.
         self.out.jphi_1[0]                     = -9.
         self.out.jcsvv2_1[0]                   = -9.
         self.out.jdeepb_1[0]                   = -9.
-
+        
         self.out.jpt_2[0]                      = -9.
         self.out.jeta_2[0]                     = -9.
         self.out.jphi_2[0]                     = -9.
         self.out.jcsvv2_2[0]                   = -9.
         self.out.jdeepb_2[0]                   = -9.
-
+        
         if len(jetIds)>0:
             self.out.jpt_1[0]                      = event.Jet_pt[jetIds[0]]
             self.out.jeta_1[0]                     = event.Jet_eta[jetIds[0]]
@@ -382,6 +382,7 @@ class TauTauProducer(Module):
             self.out.jdeepb_2[0]                   = event.Jet_btagDeepB[jetIds[1]]
 
         self.out.njets[0]                      = len(jetIds)
+        self.out.njets50[0]                    = len([j for j in jetIds if event.Jet_pt[j]>50])
         self.out.nfjets[0]                     = nfjets
         self.out.ncjets[0]                     = ncjets
         self.out.nbtag[0]                      = nbtag

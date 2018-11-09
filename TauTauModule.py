@@ -70,9 +70,9 @@ class TauTauProducer(Module):
         print '-'*80
 
         ngentaus = 0
-
+        
         if not self.isData:
-
+            
             for igp in range(event.nGenPart):
 
                 if abs(event.GenPart_pdgId[igp])==15 and event.GenPart_status[igp]==2:
@@ -147,8 +147,8 @@ class TauTauProducer(Module):
 #                ngentauhads += 1
                 
 
-        if ngentaus != 2:
-           print 'WOW!!!!!!!!!!!!!!!'
+            if ngentaus != 2:
+               print 'WOW!!! ngentaus = %d != 2'%(ngentaus)
 
 #        print ngentaus
 

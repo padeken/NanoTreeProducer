@@ -18,17 +18,17 @@ class declareVariables(TreeProducerMuTau):
 class MuTauProducer(Module):
 
     def __init__(self, name, DataType):
-
+        
         self.name = name
         self.out = declareVariables(name)
-
+        
         if DataType=='data':
             self.isData = True
         else:
             self.isData = False
-
+        
         self.muSFs = getMuSFs()
-
+        
         self.Nocut = 0
         self.Trigger = 1
         self.GoodMuons = 2
@@ -67,7 +67,7 @@ class MuTauProducer(Module):
             self.out.h_cutflow.Fill(self.TotalWeighted, 1.)
         #####################################
 
-        if not event.HLT_IsoMu27:
+        if not event.HLT_IsoMu27: # TODO: add lower-pT trigger!
             return False
 
         #####################################
@@ -120,11 +120,11 @@ class MuTauProducer(Module):
 
         
         # to check dR matching
-
+        
         muons = Collection(event, "Muon")
         taus = Collection(event, "Tau")
         dileptons = []
-
+        
         for idx1 in idx_goodmuons:
             for idx2 in idx_goodtaus:
                 
@@ -192,7 +192,7 @@ class MuTauProducer(Module):
                 nfjets += 1
             else:
                 ncjets += 1
-
+            
             if event.Jet_btagCSVV2[ijet] > 0.8838:
                 nbtag += 1
             
@@ -255,15 +255,15 @@ class MuTauProducer(Module):
         if not self.isData:
             self.out.genPartFlav_1[0]              = ord(event.Muon_genPartFlav[dilepton.tau1_idx])
             self.out.genPartFlav_2[0]              = ord(event.Tau_genPartFlav[dilepton.tau2_idx])
-
+            
             genvistau = Collection(event, "GenVisTau")
-
+            
             _drmax_ = 1000
             gendm = -1
             genpt = -1
             geneta = -1
             genphi = -1
-
+            
             for igvt in range(event.nGenVisTau):
 
                 _dr_ = genvistau[igvt].p4().DeltaR(taus[dilepton.tau2_idx].p4())
@@ -274,7 +274,7 @@ class MuTauProducer(Module):
                     genpt = event.GenVisTau_pt[igvt]
                     geneta = event.GenVisTau_eta[igvt]
                     genphi = event.GenVisTau_phi[igvt]
-
+            
             self.out.gendecayMode_2[0]         = gendm
             self.out.genvistaupt_2[0]          = genpt
             self.out.genvistaueta_2[0]         = geneta
