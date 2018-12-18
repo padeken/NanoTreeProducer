@@ -56,12 +56,10 @@ DataType = 'mc'
 if infile[0].find("/SingleMuon/")!=-1 or infile[0].find("/Tau/")!=-1 or infile[0].find("/SingleElectron/")!=-1:
     DataType = 'data'
 
-json='/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
 
 ensureDir(outputDir)
-
 _postfix = outputDir + '/' + name + '_' + chunck + '_' + channel + '.root'
-
 module2run = None
 
 if channel=='tautau':
