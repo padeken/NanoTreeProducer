@@ -74,7 +74,6 @@ class TreeProducerCommon(object):
         self.tree.Branch('isisoweight_2'             , self.isisoweight_2, 'isisoweight_2/D')
         
         
-        
         self.njets                      = num.zeros(1, dtype=int)
         self.njets50                    = num.zeros(1, dtype=int)
         self.nfjets                     = num.zeros(1, dtype=int)
@@ -99,56 +98,62 @@ class TreeProducerCommon(object):
         self.pt_tt                      = num.zeros(1, dtype=float)
         self.dR_ll                      = num.zeros(1, dtype=float)
         self.dphi_ll                    = num.zeros(1, dtype=float)
-
+        
         self.pzetamiss                  = num.zeros(1, dtype=float)
         self.pzetavis                   = num.zeros(1, dtype=float)
         self.pzeta_disc                 = num.zeros(1, dtype=float)
-
+        
         self.dilepton_veto              = num.zeros(1, dtype=int)
         self.extraelec_veto             = num.zeros(1, dtype=int)
         self.extramuon_veto             = num.zeros(1, dtype=int)
-
+        
         self.ngentauhads                = num.zeros(1, dtype=int)
         self.ngentaus                   = num.zeros(1, dtype=int)
-        
         
         self.tree.Branch('njets'                       , self.njets, 'njets/I')
         self.tree.Branch('njets50'                     , self.njets50, 'njets50/I')
         self.tree.Branch('ncjets'                      , self.ncjets, 'ncjets/I')
         self.tree.Branch('nfjets'                      , self.nfjets, 'nfjets/I')
         self.tree.Branch('nbtag'                       , self.nbtag, 'nbtag/I')
-
+        
         self.tree.Branch('pfmt_1'                      , self.pfmt_1, 'pfmt_1/D')
         self.tree.Branch('pfmt_2'                      , self.pfmt_2, 'pfmt_2/D')
-
+        
         self.tree.Branch('jpt_1'                       , self.jpt_1, 'jpt_1/D')
         self.tree.Branch('jeta_1'                      , self.jeta_1, 'jeta_1/D')
         self.tree.Branch('jphi_1'                      , self.jphi_1, 'jphi_1/D')
         self.tree.Branch('jcsvv2_1'                    , self.jcsvv2_1, 'jcsvv2_1/D')
         self.tree.Branch('jdeepb_1'                    , self.jdeepb_1, 'jdeepb_1/D')
-
+        
         self.tree.Branch('jpt_2'                       , self.jpt_2, 'jpt_2/D')
         self.tree.Branch('jeta_2'                      , self.jeta_2, 'jeta_2/D')
         self.tree.Branch('jphi_2'                      , self.jphi_2, 'jphi_2/D')
         self.tree.Branch('jcsvv2_2'                    , self.jcsvv2_2, 'jcsvv2_2/D')
         self.tree.Branch('jdeepb_2'                    , self.jdeepb_2, 'jdeepb_2/D')
-
+        
         self.tree.Branch('m_vis'                       , self.m_vis, 'm_vis/D')
         self.tree.Branch('pt_tt'                       , self.pt_tt, 'pt_tt/D')
         self.tree.Branch('dR_ll'                       , self.dR_ll, 'dR_ll/D')
         self.tree.Branch('dphi_ll'                     , self.dphi_ll, 'dphi_ll/D')
-
+        
         self.tree.Branch('pzetamiss'                   , self.pzetamiss, 'pzetamiss/D')
         self.tree.Branch('pzetavis'                    , self.pzetavis, 'pzetavis/D')
         self.tree.Branch('pzeta_disc'                  , self.pzeta_disc, 'pzeta_disc/D')
-
+        
         self.tree.Branch('dilepton_veto'               , self.dilepton_veto, 'dilepton_veto/I')
         self.tree.Branch('extraelec_veto'              , self.extraelec_veto, 'extraelec_veto/I')
         self.tree.Branch('extramuon_veto'              , self.extramuon_veto, 'extramuon_veto/I')
-
+        
         self.tree.Branch('ngentauhads'                 , self.ngentauhads, 'ngentauhads/I')
         self.tree.Branch('ngentaus'                    , self.ngentaus, 'ngentaus/I')
-
+        
+        self.GenMET_pt[0]  = -1
+        self.GenMET_phi[0] = -9
+        self.nPU[0]        = -1
+        self.nTrueInt[0]   = -1
+        self.genWeight[0]  =  1
+        self.LHE_Njets[0]  = -1
+        
 
 
 class DiLeptonBasicClass:
@@ -220,71 +225,54 @@ def deltaPhi( p1, p2):
     
 
 def extraLeptonVetos(event, muon_idxs, electron_idxs, name):
-  
-  b_dilepton_veto_  = False;
-  b_extraelec_veto_ = False;
-  b_extramuon_veto_ = False;
-  
-  LooseMuons = []
-  
-  for imuon in range(event.nMuon):
-
-      if event.Muon_pt[imuon] < 10: continue
-      if abs(event.Muon_eta[imuon]) > 2.4: continue
-      if abs(event.Muon_dz[imuon]) > 0.2: continue
-      if abs(event.Muon_dxy[imuon]) > 0.045: continue
-      if event.Muon_pfRelIso04_all[imuon] > 0.3: continue
-      if event.Muon_mediumId[imuon] > 0.5 and (imuon not in muon_idxs):
-          b_extramuon_veto_ = True
-      
-      if event.Muon_pt[imuon] > 15 and event.Muon_isPFcand[imuon] > 0.5:
-          LooseMuons.append(imuon)
-
-
-  LooseElectrons = []
-
-  for ielectron in range(event.nElectron):
-      
-      if event.Electron_pt[ielectron] < 10: continue
-      if abs(event.Electron_eta[ielectron]) > 2.5: continue
-      if abs(event.Electron_dz[ielectron]) > 0.2: continue
-      if abs(event.Electron_dxy[ielectron]) > 0.045: continue
-      if event.Electron_pfRelIso03_all[ielectron] > 0.3: continue
-      
-      if event.Electron_convVeto[ielectron] ==1 and ord(event.Electron_lostHits[ielectron]) <= 1 and event.Electron_mvaFall17Iso_WP90[ielectron] > 0.5 and (ielectron not in electron_idxs):
-          b_extraelec_veto_ = True
-
-      if event.Electron_pt[ielectron] > 15 and event.Electron_mvaFall17Iso_WPL[ielectron] > 0.5:
-          LooseElectrons.append(ielectron)
-
-
-  if name.find('mutau')!=-1:
-
+    
+    b_dilepton_veto_  = False;
+    b_extraelec_veto_ = False;
+    b_extramuon_veto_ = False;
+    
+    LooseMuons = [ ]
+    for imuon in range(event.nMuon):
+        if event.Muon_pt[imuon] < 10: continue
+        if abs(event.Muon_eta[imuon]) > 2.4: continue
+        if abs(event.Muon_dz[imuon]) > 0.2: continue
+        if abs(event.Muon_dxy[imuon]) > 0.045: continue
+        if event.Muon_pfRelIso04_all[imuon] > 0.3: continue
+        if event.Muon_mediumId[imuon] > 0.5 and (imuon not in muon_idxs):
+            b_extramuon_veto_ = True
+        if event.Muon_pt[imuon] > 15 and event.Muon_isPFcand[imuon] > 0.5:
+            LooseMuons.append(imuon)
+    
+    LooseElectrons = [ ]
+    for ielectron in range(event.nElectron):
+        if event.Electron_pt[ielectron] < 10: continue
+        if abs(event.Electron_eta[ielectron]) > 2.5: continue
+        if abs(event.Electron_dz[ielectron]) > 0.2: continue
+        if abs(event.Electron_dxy[ielectron]) > 0.045: continue
+        if event.Electron_pfRelIso03_all[ielectron] > 0.3: continue
+        if event.Electron_convVeto[ielectron] ==1 and ord(event.Electron_lostHits[ielectron]) <= 1 and event.Electron_mvaFall17Iso_WP90[ielectron] > 0.5 and (ielectron not in electron_idxs):
+            b_extraelec_veto_ = True
+        if event.Electron_pt[ielectron] > 15 and event.Electron_mvaFall17Iso_WPL[ielectron] > 0.5:
+            LooseElectrons.append(ielectron)
+    
+    if name.find('mutau')!=-1:
       for idx1 in LooseMuons:
-          for idx2 in LooseMuons:
-              if idx1 >= idx2: continue 
-
-              dR = deltaR(event.Muon_eta[idx1], event.Muon_phi[idx1], 
-                          event.Muon_eta[idx2], event.Muon_phi[idx2])
-
-              if event.Muon_charge[idx1] * event.Muon_charge[idx2] < 0 and dR > 0.15:
-                  b_dilepton_veto_ = True
-
-
-  if name.find('eletau')!=-1:                  
-
+        for idx2 in LooseMuons:
+            if idx1 >= idx2: continue 
+            dR = deltaR(event.Muon_eta[idx1], event.Muon_phi[idx1], 
+                        event.Muon_eta[idx2], event.Muon_phi[idx2])
+            if event.Muon_charge[idx1] * event.Muon_charge[idx2] < 0 and dR > 0.15:
+                b_dilepton_veto_ = True
+    
+    if name.find('eletau')!=-1:
       for idx1 in LooseElectrons:
-          for idx2 in LooseElectrons:
-              if idx1 >= idx2: continue 
-
-              dR = deltaR(event.Electron_eta[idx1], event.Electron_phi[idx1], 
-                          event.Electron_eta[idx2], event.Electron_phi[idx2])
-
-              if event.Electron_charge[idx1] * event.Electron_charge[idx2] < 0 and dR > 0.15:
-                  b_dilepton_veto_ = True
-                  
-
-  return b_extramuon_veto_, b_extraelec_veto_, b_dilepton_veto_
+        for idx2 in LooseElectrons:
+            if idx1 >= idx2: continue 
+            dR = deltaR(event.Electron_eta[idx1], event.Electron_phi[idx1], 
+                        event.Electron_eta[idx2], event.Electron_phi[idx2])
+            if event.Electron_charge[idx1] * event.Electron_charge[idx2] < 0 and dR > 0.15:
+                b_dilepton_veto_ = True
+    
+    return b_extramuon_veto_, b_extraelec_veto_, b_dilepton_veto_
 
 #  b_dilepton_veto[ch]                   = (int) b_dilepton_veto_;
 #  b_extraelec_veto[ch]                  = (int) b_extraelec_veto_;
