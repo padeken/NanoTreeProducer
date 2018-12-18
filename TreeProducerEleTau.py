@@ -17,7 +17,7 @@ class TreeProducerEleTau(TreeProducerCommon):
         ##################
         # electron
         ##################
-
+        
         self.pt_1                       = num.zeros(1, dtype=float)
         self.eta_1                      = num.zeros(1, dtype=float)
         self.phi_1                      = num.zeros(1, dtype=float)
@@ -31,7 +31,7 @@ class TreeProducerEleTau(TreeProducerCommon):
         self.mvaFall17Iso_1             = num.zeros(1, dtype=float)
         self.mvaFall17Iso_WP80_1        = num.zeros(1, dtype=int)
         self.mvaFall17Iso_WP90_1        = num.zeros(1, dtype=int)
-        self.mvaFall17Iso_WPL_1        = num.zeros(1, dtype=int)
+        self.mvaFall17Iso_WPL_1         = num.zeros(1, dtype=int)
 
         self.tree.Branch('pt_1'                      , self.pt_1, 'pt_1/D')
         self.tree.Branch('eta_1'                     , self.eta_1, 'eta_1/D')
@@ -46,7 +46,7 @@ class TreeProducerEleTau(TreeProducerCommon):
         self.tree.Branch('mvaFall17Iso_1'            , self.mvaFall17Iso_1, 'mvaFall17Iso_1/D')
         self.tree.Branch('mvaFall17Iso_WP80_1'       , self.mvaFall17Iso_WP80_1, 'mvaFall17Iso_WP80_1/I')
         self.tree.Branch('mvaFall17Iso_WP90_1'       , self.mvaFall17Iso_WP90_1, 'mvaFall17Iso_WP90_1/I')
-        self.tree.Branch('mvaFall17Iso_WPL_1'       , self.mvaFall17Iso_WPL_1, 'mvaFall17Iso_WPL_1/I')
+        self.tree.Branch('mvaFall17Iso_WPL_1'        , self.mvaFall17Iso_WPL_1, 'mvaFall17Iso_WPL_1/I')
 
         ##################
         # tau 2

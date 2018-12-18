@@ -37,11 +37,11 @@ class TreeProducerMuTau(TreeProducerCommon):
         self.tree.Branch('q_1'                       , self.q_1, 'q_1/I')
         self.tree.Branch('pfRelIso04_all_1'          , self.pfRelIso04_all_1, 'pfRelIso04_all_1/D')
         self.tree.Branch('genPartFlav_1'             , self.genPartFlav_1, 'genPartFlav_1/I')
-
+        
         ##################
         # tau 2
         ##################
-
+        
         self.pt_2                       = num.zeros(1, dtype=float)
         self.eta_2                      = num.zeros(1, dtype=float)
         self.phi_2                      = num.zeros(1, dtype=float)
@@ -55,10 +55,10 @@ class TreeProducerMuTau(TreeProducerCommon):
         self.puCorr_2                   = num.zeros(1, dtype=float)
         self.rawAntiEle_2               = num.zeros(1, dtype=float)
         self.rawIso_2                   = num.zeros(1, dtype=float)
-        self.rawMVAnewDM2017v2_2              = num.zeros(1, dtype=float)
+        self.rawMVAnewDM2017v2_2        = num.zeros(1, dtype=float)
         self.rawMVAoldDM_2              = num.zeros(1, dtype=float)
-        self.rawMVAoldDM2017v1_2              = num.zeros(1, dtype=float)
-        self.rawMVAoldDM2017v2_2              = num.zeros(1, dtype=float)
+        self.rawMVAoldDM2017v1_2        = num.zeros(1, dtype=float)
+        self.rawMVAoldDM2017v2_2        = num.zeros(1, dtype=float)
         self.q_2                        = num.zeros(1, dtype=int)
         self.decayMode_2                = num.zeros(1, dtype=int)
         self.rawAntiEleCat_2            = num.zeros(1, dtype=float)
@@ -66,10 +66,10 @@ class TreeProducerMuTau(TreeProducerCommon):
         self.idAntiMu_2                 = num.zeros(1, dtype=int)
         self.idDecayMode_2              = num.zeros(1, dtype=int)
         self.idDecayModeNewDMs_2        = num.zeros(1, dtype=int)
-        self.idMVAnewDM2017v2_2               = num.zeros(1, dtype=int)
+        self.idMVAnewDM2017v2_2         = num.zeros(1, dtype=int)
         self.idMVAoldDM_2               = num.zeros(1, dtype=int)
-        self.idMVAoldDM2017v1_2               = num.zeros(1, dtype=int)
-        self.idMVAoldDM2017v2_2               = num.zeros(1, dtype=int)
+        self.idMVAoldDM2017v1_2         = num.zeros(1, dtype=int)
+        self.idMVAoldDM2017v2_2         = num.zeros(1, dtype=int)
         self.genPartFlav_2              = num.zeros(1, dtype=int)
         self.gendecayMode_2             = num.zeros(1, dtype=int)
         self.genvistaupt_2              = num.zeros(1, dtype=float)

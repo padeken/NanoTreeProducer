@@ -124,7 +124,7 @@ class TreeProducerTauTau(TreeProducerCommon):
         self.genvistaupt_2              = num.zeros(1, dtype=float)
         self.genvistaueta_2             = num.zeros(1, dtype=float)
         self.genvistauphi_2             = num.zeros(1, dtype=float)
-        self.weightVT                   = num.zeros(1, dtype=float)
+        self.trigweightVT               = num.zeros(1, dtype=float)
 
 
         self.tree.Branch('pt_2'                      , self.pt_2, 'pt_2/D')
@@ -160,12 +160,9 @@ class TreeProducerTauTau(TreeProducerCommon):
         self.tree.Branch('genvistaupt_2'             , self.genvistaupt_2, 'genvistaupt_2/D')
         self.tree.Branch('genvistaueta_2'            , self.genvistaueta_2, 'genvistaueta_2/D')
         self.tree.Branch('genvistauphi_2'            , self.genvistauphi_2, 'genvistauphi_2/D')
-        self.tree.Branch('weightVT'                  , self.weightVT, 'weightVT/D')
+        self.tree.Branch('trigweightVT'              , self.trigweightVT, 'trigweightVT/D')
 
 
-
-
-    
 #        self.m_taub
 #        self.m_taumub
 #        self.m_tauj
