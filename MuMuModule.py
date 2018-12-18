@@ -202,8 +202,8 @@ class MuMuProducer(Module):
         self.out.pfRelIso04_all_2[0]           = event.Muon_pfRelIso04_all[dilepton.tau2_idx]
 
         if not self.isData:
-            self.out.genPartFlav_1[0]              = ord(event.Muon_genPartFlav[dilepton.tau1_idx])
-            self.out.genPartFlav_2[0]              = ord(event.Muon_genPartFlav[dilepton.tau2_idx])
+            self.out.genPartFlav_1[0]          = ord(event.Muon_genPartFlav[dilepton.tau1_idx])
+            self.out.genPartFlav_2[0]          = ord(event.Muon_genPartFlav[dilepton.tau2_idx])
 
         # event weights
         self.out.run[0]                        = event.run
@@ -218,16 +218,16 @@ class MuMuProducer(Module):
         self.out.MET_covXY[0]                  = event.MET_covXY
         self.out.MET_covYY[0]                  = event.MET_covYY
         self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
-        self.out.PV_npvs[0]                    = event.PV_npvs
-        self.out.PV_npvsGood[0]                = event.PV_npvsGood
+        self.out.npvs[0]                       = event.PV_npvs
+        self.out.npvsGood[0]                   = event.PV_npvsGood
 
         if not self.isData:
-            self.out.GenMET_pt[0]                  = event.GenMET_pt
-            self.out.GenMET_phi[0]                 = event.GenMET_phi
-            self.out.Pileup_nPU[0]                 = event.Pileup_nPU
-            self.out.Pileup_nTrueInt[0]            = event.Pileup_nTrueInt
-            self.out.genWeight[0]                  = event.genWeight
-            self.out.LHE_Njets[0]                  = event.LHE_Njets
+            self.out.GenMET_pt[0]              = event.GenMET_pt
+            self.out.GenMET_phi[0]             = event.GenMET_phi
+            self.out.nPU[0]                    = event.Pileup_nPU
+            self.out.nTrueInt[0]               = event.Pileup_nTrueInt
+            self.out.genWeight[0]              = event.genWeight
+            self.out.LHE_Njets[0}              = event.LHE_Njets
 
 
         self.out.jpt_1[0]                      = -9.
@@ -244,18 +244,18 @@ class MuMuProducer(Module):
 
 
         if len(jetIds)>0:
-            self.out.jpt_1[0]                      = event.Jet_pt[jetIds[0]]
-            self.out.jeta_1[0]                     = event.Jet_eta[jetIds[0]]
-            self.out.jphi_1[0]                     = event.Jet_phi[jetIds[0]]
-            self.out.jcsvv2_1[0]                   = event.Jet_btagCSVV2[jetIds[0]]
-            self.out.jdeepb_1[0]                   = event.Jet_btagDeepB[jetIds[0]]
+            self.out.jpt_1[0]                  = event.Jet_pt[jetIds[0]]
+            self.out.jeta_1[0]                 = event.Jet_eta[jetIds[0]]
+            self.out.jphi_1[0]                 = event.Jet_phi[jetIds[0]]
+            self.out.jcsvv2_1[0]               = event.Jet_btagCSVV2[jetIds[0]]
+            self.out.jdeepb_1[0]               = event.Jet_btagDeepB[jetIds[0]]
 
         if len(jetIds)>1:
-            self.out.jpt_2[0]                      = event.Jet_pt[jetIds[1]]
-            self.out.jeta_2[0]                     = event.Jet_eta[jetIds[1]]
-            self.out.jphi_2[0]                     = event.Jet_phi[jetIds[1]]
-            self.out.jcsvv2_2[0]                   = event.Jet_btagCSVV2[jetIds[1]]
-            self.out.jdeepb_2[0]                   = event.Jet_btagDeepB[jetIds[1]]
+            self.out.jpt_2[0]                  = event.Jet_pt[jetIds[1]]
+            self.out.jeta_2[0]                 = event.Jet_eta[jetIds[1]]
+            self.out.jphi_2[0]                 = event.Jet_phi[jetIds[1]]
+            self.out.jcsvv2_2[0]               = event.Jet_btagCSVV2[jetIds[1]]
+            self.out.jdeepb_2[0]               = event.Jet_btagDeepB[jetIds[1]]
 
 
         self.out.njets[0]                      = len(jetIds)
