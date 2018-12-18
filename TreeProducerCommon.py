@@ -2,37 +2,202 @@ import ROOT
 import math 
 import numpy as num 
 
-class DiLeptonBasicClass:
-    def __init__(self, tau1_idx, tau1_pt, tau1_iso, tau2_idx, tau2_pt, tau2_iso):
 
-        self.tau1_pt = tau1_pt
-        self.tau2_pt = tau2_pt
-        self.tau1_iso = tau1_iso
-        self.tau2_iso = tau2_iso
-        self.tau1_idx = tau1_idx
-        self.tau2_idx = tau2_idx
+
+class TreeProducerCommon(object):
+
+    def __init__(self, name):
+
+        print 'TreeProducerCommon is called', name
+
+        # create file
+        self.outputfile = ROOT.TFile(name, 'recreate')
+        self.tree = ROOT.TTree('tree','tree')
+
+        # histogram for cutflow
+        self.h_cutflow = ROOT.TH1F("h_cutflow", "h_cutflow", 50, 0, 50)
+
         
+        ##################
+        # event variables
+        ##################
+
+        self.run                        = num.zeros(1, dtype=int)
+        self.luminosityBlock            = num.zeros(1, dtype=int)        
+        self.event                      = num.zeros(1, dtype=int)
+        self.MET_pt                     = num.zeros(1, dtype=float)
+        self.MET_phi                    = num.zeros(1, dtype=float)
+        self.GenMET_pt                  = num.zeros(1, dtype=float)
+        self.GenMET_phi                 = num.zeros(1, dtype=float)
+        self.PuppiMET_pt                = num.zeros(1, dtype=float)
+        self.PuppiMET_phi               = num.zeros(1, dtype=float)
+        self.MET_significance           = num.zeros(1, dtype=float)
+        self.MET_covXX                  = num.zeros(1, dtype=float)
+        self.MET_covXY                  = num.zeros(1, dtype=float)
+        self.MET_covYY                  = num.zeros(1, dtype=float)
+        self.nPU                        = num.zeros(1, dtype=int)
+        self.nTrueInt                   = num.zeros(1, dtype=int)
+        self.npvs                       = num.zeros(1, dtype=int)
+        self.npvsGood                   = num.zeros(1, dtype=int)
+        self.fixedGridRhoFastjetAll     = num.zeros(1, dtype=float)
+        self.LHE_Njets                  = num.zeros(1, dtype=int)
+        self.isData                     = num.zeros(1, dtype=int)
+        self.genWeight                  = num.zeros(1, dtype=float)
+        self.weight                     = num.zeros(1, dtype=float)
+        self.trigweight                 = num.zeros(1, dtype=float)
+        self.puweight                   = num.zeros(1, dtype=float)
+        self.isisoweight_1              = num.zeros(1, dtype=float)
+        self.isisoweight_2              = num.zeros(1, dtype=float)
+        
+        self.tree.Branch('run'                       , self.run, 'run/I')
+        self.tree.Branch('luminosityBlock'           , self.luminosityBlock, 'luminosityBlock/I')
+        self.tree.Branch('event'                     , self.event, 'event/I')
+        self.tree.Branch('MET_pt'                    , self.MET_pt, 'MET_pt/D')
+        self.tree.Branch('MET_phi'                   , self.MET_phi, 'MET_phi/D')
+        self.tree.Branch('GenMET_pt'                 , self.GenMET_pt, 'GenMET_pt/D')
+        self.tree.Branch('GenMET_phi'                , self.GenMET_phi, 'GenMET_phi/D')
+        self.tree.Branch('PuppiMET_pt'               , self.PuppiMET_pt, 'PuppiMET_pt/D')
+        self.tree.Branch('PuppiMET_phi'              , self.PuppiMET_phi, 'PuppiMET_phi/D')
+        self.tree.Branch('MET_significance'          , self.MET_significance, 'MET_significance/D')
+        self.tree.Branch('nPU'                       , self.nPU, 'nPU/I')
+        self.tree.Branch('nTrueInt'                  , self.nTrueInt, 'nTrueInt/I')
+        self.tree.Branch('npvs'                      , self.npvs, 'npvs/I')
+        self.tree.Branch('npvsGood'                  , self.npvsGood, 'npvsGood/I')
+        self.tree.Branch('fixedGridRhoFastjetAll'    , self.fixedGridRhoFastjetAll, 'fixedGridRhoFastjetAll/D')
+        self.tree.Branch('LHE_Njets'                 , self.LHE_Njets, 'LHE_Njets/I')
+        self.tree.Branch('isData'                    , self.isData, 'isData/I')
+        self.tree.Branch('genWeight'                 , self.genWeight, 'genWeight/D')
+        self.tree.Branch('weight'                    , self.weight, 'weight/D')
+        self.tree.Branch('trigweight'                , self.trigweight, 'trigweight/D')
+        self.tree.Branch('puweight'                  , self.puweight, 'puweight/D')
+        self.tree.Branch('isisoweight_1'             , self.isisoweight_1, 'isisoweight_1/D')
+        self.tree.Branch('isisoweight_2'             , self.isisoweight_2, 'isisoweight_2/D')
+        
+        
+        
+        self.njets                      = num.zeros(1, dtype=int)
+        self.njets50                    = num.zeros(1, dtype=int)
+        self.nfjets                     = num.zeros(1, dtype=int)
+        self.ncjets                     = num.zeros(1, dtype=int)
+        self.nbtag                      = num.zeros(1, dtype=int)
+        self.pfmt_1                     = num.zeros(1, dtype=float)
+        self.pfmt_2                     = num.zeros(1, dtype=float)
+        
+        self.jpt_1                      = num.zeros(1, dtype=float)
+        self.jeta_1                     = num.zeros(1, dtype=float)
+        self.jphi_1                     = num.zeros(1, dtype=float)
+        self.jcsvv2_1                   = num.zeros(1, dtype=float)
+        self.jdeepb_1                   = num.zeros(1, dtype=float)
+        
+        self.jpt_2                      = num.zeros(1, dtype=float)
+        self.jeta_2                     = num.zeros(1, dtype=float)
+        self.jphi_2                     = num.zeros(1, dtype=float)
+        self.jcsvv2_2                   = num.zeros(1, dtype=float)
+        self.jdeepb_2                   = num.zeros(1, dtype=float)
+        
+        self.m_vis                      = num.zeros(1, dtype=float)
+        self.pt_tt                      = num.zeros(1, dtype=float)
+        self.dR_ll                      = num.zeros(1, dtype=float)
+        self.dphi_ll                    = num.zeros(1, dtype=float)
+
+        self.pzetamiss                  = num.zeros(1, dtype=float)
+        self.pzetavis                   = num.zeros(1, dtype=float)
+        self.pzeta_disc                 = num.zeros(1, dtype=float)
+
+        self.dilepton_veto              = num.zeros(1, dtype=int)
+        self.extraelec_veto             = num.zeros(1, dtype=int)
+        self.extramuon_veto             = num.zeros(1, dtype=int)
+
+        self.ngentauhads                = num.zeros(1, dtype=int)
+        self.ngentaus                   = num.zeros(1, dtype=int)
+        
+        
+        self.tree.Branch('njets'                       , self.njets, 'njets/I')
+        self.tree.Branch('njets50'                     , self.njets50, 'njets50/I')
+        self.tree.Branch('ncjets'                      , self.ncjets, 'ncjets/I')
+        self.tree.Branch('nfjets'                      , self.nfjets, 'nfjets/I')
+        self.tree.Branch('nbtag'                       , self.nbtag, 'nbtag/I')
+
+        self.tree.Branch('pfmt_1'                      , self.pfmt_1, 'pfmt_1/D')
+        self.tree.Branch('pfmt_2'                      , self.pfmt_2, 'pfmt_2/D')
+
+        self.tree.Branch('jpt_1'                       , self.jpt_1, 'jpt_1/D')
+        self.tree.Branch('jeta_1'                      , self.jeta_1, 'jeta_1/D')
+        self.tree.Branch('jphi_1'                      , self.jphi_1, 'jphi_1/D')
+        self.tree.Branch('jcsvv2_1'                    , self.jcsvv2_1, 'jcsvv2_1/D')
+        self.tree.Branch('jdeepb_1'                    , self.jdeepb_1, 'jdeepb_1/D')
+
+        self.tree.Branch('jpt_2'                       , self.jpt_2, 'jpt_2/D')
+        self.tree.Branch('jeta_2'                      , self.jeta_2, 'jeta_2/D')
+        self.tree.Branch('jphi_2'                      , self.jphi_2, 'jphi_2/D')
+        self.tree.Branch('jcsvv2_2'                    , self.jcsvv2_2, 'jcsvv2_2/D')
+        self.tree.Branch('jdeepb_2'                    , self.jdeepb_2, 'jdeepb_2/D')
+
+        self.tree.Branch('m_vis'                       , self.m_vis, 'm_vis/D')
+        self.tree.Branch('pt_tt'                       , self.pt_tt, 'pt_tt/D')
+        self.tree.Branch('dR_ll'                       , self.dR_ll, 'dR_ll/D')
+        self.tree.Branch('dphi_ll'                     , self.dphi_ll, 'dphi_ll/D')
+
+        self.tree.Branch('pzetamiss'                   , self.pzetamiss, 'pzetamiss/D')
+        self.tree.Branch('pzetavis'                    , self.pzetavis, 'pzetavis/D')
+        self.tree.Branch('pzeta_disc'                  , self.pzeta_disc, 'pzeta_disc/D')
+
+        self.tree.Branch('dilepton_veto'               , self.dilepton_veto, 'dilepton_veto/I')
+        self.tree.Branch('extraelec_veto'              , self.extraelec_veto, 'extraelec_veto/I')
+        self.tree.Branch('extramuon_veto'              , self.extramuon_veto, 'extramuon_veto/I')
+
+        self.tree.Branch('ngentauhads'                 , self.ngentauhads, 'ngentauhads/I')
+        self.tree.Branch('ngentaus'                    , self.ngentaus, 'ngentaus/I')
+
+
+
+class DiLeptonBasicClass:
+    def __init__(self, id1, pt1, iso1, id2, pt2, iso2):
+        self.id1  = id1
+        self.id2  = id2
+        self.pt1  = pt1
+        self.pt2  = pt2
+        self.iso1 = iso1
+        self.iso2 = iso2
+        
+    def __gt__(self, odilep):
+        """Order dilepton pairs according to the pT of both objects first, then in isolation."""
+        if   self.pt1  != odilep.pt1:  return self.pt1  > odilep.pt1  # greater = higher pT
+        elif self.pt2  != odilep.pt2:  return self.pt2  > odilep.pt2  # greater = higher pT
+        elif self.iso1 != odilep.iso1: return self.iso1 < odilep.iso1 # greater = smaller isolation
+        elif self.iso2 != odilep.iso2: return self.iso2 < odilep.iso2 # greater = smaller isolation
+        return True
+    
+class LeptonTauPair(DiLeptonBasicClass):
+    def __gt__(self, oltau):
+        """Override for tau isolation."""
+        if   self.pt1  != oltau.pt1:  return self.pt1  > oltau.pt1  # greater = higher pT
+        elif self.pt2  != oltau.pt2:  return self.pt2  > oltau.pt2  # greater = higher pT
+        elif self.iso1 != oltau.iso1: return self.iso1 > oltau.iso1 # greater = larger tau isolation
+        elif self.iso2 != oltau.iso2: return self.iso2 < oltau.iso2 # greater = smaller lepton isolation
+        return True
+    
+class DiTauPair(DiLeptonBasicClass):
+    def __gt__(self, oditau):
+        """Override for tau isolation."""
+        if   self.pt1  != oditau.pt1:  return self.pt1  > oditau.pt1  # greater = higher pT
+        elif self.pt2  != oditau.pt2:  return self.pt2  > oditau.pt2  # greater = higher pT
+        elif self.iso1 != oditau.iso1: return self.iso1 > oditau.iso1 # greater = smaller lepton isolation
+        elif self.iso2 != oditau.iso2: return self.iso2 > oditau.iso2 # greater = larger tau isolation
+        return True
+    
+
 
 def bestDiLepton(diLeptons):
-
-
+    """Take best dilepton pair."""
+    
     if len(diLeptons)==1:
         return diLeptons[0]
-
-#    print '# of diLeptons =', len(diLeptons)
-
-#    for ii in diLeptons:
-#        print 'tau1 idx =', ii.tau1_idx
-#        print 'tau2 idx =', ii.tau2_idx
-#        print 'tau1 iso =', ii.tau1_iso
-#        print 'tau2 iso = ', ii.tau2_iso
-#        print 'tau1 pt = ', ii.tau1_pt
-#        print 'tau2 pt = ', ii.tau2_pt
-#        print '-'*80
-
-    least_iso_highest_pt = lambda dl: (-dl.tau1_iso, -dl.tau1_pt, -dl.tau2_iso, -dl.tau2_pt)
-    return sorted(diLeptons, key=lambda dl: least_iso_highest_pt(dl), reverse=False)[0]
-
+        
+    #least_iso_highest_pt = lambda dl: (-dl.tau1_pt, -dl.tau2_pt, dl.tau2_iso, -dl.tau1_iso)
+    #return sorted(diLeptons, key=lambda dl: least_iso_highest_pt(dl), reverse=False)[0]
+    return sorted(diLeptons, reverse=True)[0]
+    
 
 def deltaR2( e1, p1, e2, p2):
     de = e1 - e2
@@ -45,14 +210,14 @@ def deltaR( *args ):
 
 
 def deltaPhi( p1, p2):
-    '''Computes delta phi, handling periodic limit conditions.'''
+    """Computes delta phi, handling periodic limit conditions."""
     res = p1 - p2
     while res > math.pi:
-        res -= 2*math.pi
+      res -= 2*math.pi
     while res < -math.pi:
-        res += 2*math.pi
+      res += 2*math.pi
     return res
-
+    
 
 def extraLeptonVetos(event, muon_idxs, electron_idxs, name):
   
@@ -61,7 +226,7 @@ def extraLeptonVetos(event, muon_idxs, electron_idxs, name):
   b_extramuon_veto_ = False;
   
   LooseMuons = []
-
+  
   for imuon in range(event.nMuon):
 
       if event.Muon_pt[imuon] < 10: continue
@@ -69,11 +234,9 @@ def extraLeptonVetos(event, muon_idxs, electron_idxs, name):
       if abs(event.Muon_dz[imuon]) > 0.2: continue
       if abs(event.Muon_dxy[imuon]) > 0.045: continue
       if event.Muon_pfRelIso04_all[imuon] > 0.3: continue
-
       if event.Muon_mediumId[imuon] > 0.5 and (imuon not in muon_idxs):
           b_extramuon_veto_ = True
-
-
+      
       if event.Muon_pt[imuon] > 15 and event.Muon_isPFcand[imuon] > 0.5:
           LooseMuons.append(imuon)
 
@@ -87,8 +250,7 @@ def extraLeptonVetos(event, muon_idxs, electron_idxs, name):
       if abs(event.Electron_dz[ielectron]) > 0.2: continue
       if abs(event.Electron_dxy[ielectron]) > 0.045: continue
       if event.Electron_pfRelIso03_all[ielectron] > 0.3: continue
-
-
+      
       if event.Electron_convVeto[ielectron] ==1 and ord(event.Electron_lostHits[ielectron]) <= 1 and event.Electron_mvaFall17Iso_WP90[ielectron] > 0.5 and (ielectron not in electron_idxs):
           b_extraelec_veto_ = True
 
@@ -130,142 +292,3 @@ def extraLeptonVetos(event, muon_idxs, electron_idxs, name):
 #  b_lepton_vetos[ch]                    = ( b_dilepton_veto_ || b_extraelec_veto_ || b_extramuon_veto_ );
 
 
-
-
-class TreeProducerCommon(object):
-
-    def __init__(self, name):
-
-        print 'TreeProducerCommon is called', name
-
-        # create file
-        self.outputfile = ROOT.TFile(name, 'recreate')
-        self.tree = ROOT.TTree('tree','tree')
-
-        # histogram for cutflow
-        self.h_cutflow = ROOT.TH1F("h_cutflow", "h_cutflow", 50, 0, 50)
-
-        
-        ##################
-        # event variables
-        ##################
-
-        self.run                        = num.zeros(1, dtype=int)
-        self.luminosityBlock            = num.zeros(1, dtype=int)        
-        self.event                      = num.zeros(1, dtype=int)
-        self.MET_pt                     = num.zeros(1, dtype=float)
-        self.MET_phi                    = num.zeros(1, dtype=float)
-        self.GenMET_pt                  = num.zeros(1, dtype=float)
-        self.GenMET_phi                 = num.zeros(1, dtype=float)
-        self.PuppiMET_pt                = num.zeros(1, dtype=float)
-        self.PuppiMET_phi               = num.zeros(1, dtype=float)
-        self.MET_significance           = num.zeros(1, dtype=float)
-        self.MET_covXX                  = num.zeros(1, dtype=float)
-        self.MET_covXY                  = num.zeros(1, dtype=float)
-        self.MET_covYY                  = num.zeros(1, dtype=float)
-        self.Pileup_nPU                 = num.zeros(1, dtype=int)
-        self.Pileup_nTrueInt            = num.zeros(1, dtype=int)
-        self.PV_npvs                    = num.zeros(1, dtype=int)
-        self.PV_npvsGood                = num.zeros(1, dtype=int)
-        self.Pileup_nTrueInt            = num.zeros(1, dtype=int)
-        self.fixedGridRhoFastjetAll     = num.zeros(1, dtype=float)
-        self.genWeight                  = num.zeros(1, dtype=float)
-        self.LHE_Njets                  = num.zeros(1, dtype=int)
-        self.isData                     = num.zeros(1, dtype=int)
-
-        self.tree.Branch('run'                       , self.run, 'run/I')
-        self.tree.Branch('luminosityBlock'           , self.luminosityBlock, 'luminosityBlock/I')
-        self.tree.Branch('event'                     , self.event, 'event/I')
-        self.tree.Branch('MET_pt'                    , self.MET_pt, 'MET_pt/D')
-        self.tree.Branch('MET_phi'                   , self.MET_phi, 'MET_phi/D')
-        self.tree.Branch('GenMET_pt'                 , self.GenMET_pt, 'GenMET_pt/D')
-        self.tree.Branch('GenMET_phi'                , self.GenMET_phi, 'GenMET_phi/D')
-        self.tree.Branch('PuppiMET_pt'               , self.PuppiMET_pt, 'PuppiMET_pt/D')
-        self.tree.Branch('PuppiMET_phi'              , self.PuppiMET_phi, 'PuppiMET_phi/D')
-        self.tree.Branch('MET_significance'          , self.MET_significance, 'MET_significance/D')
-        self.tree.Branch('Pileup_nPU'                , self.Pileup_nPU, 'Pileup_nPU/I')
-        self.tree.Branch('Pileup_nTrueInt'           , self.Pileup_nTrueInt, 'Pileup_nTrueInt/I')
-        self.tree.Branch('PV_npvs'                   , self.PV_npvs, 'PV_npvs/I')
-        self.tree.Branch('PV_npvsGood'               , self.PV_npvsGood, 'PV_npvsGood/I')
-        self.tree.Branch('fixedGridRhoFastjetAll'    , self.fixedGridRhoFastjetAll, 'fixedGridRhoFastjetAll/D')
-        self.tree.Branch('genWeight'                 , self.genWeight, 'genWeight/D')
-        self.tree.Branch('LHE_Njets'                 , self.LHE_Njets, 'LHE_Njets/I')
-        self.tree.Branch('isData'                    , self.isData, 'isData/I')
-
-
-
-        self.njets                      = num.zeros(1, dtype=int)
-        self.njets50                    = num.zeros(1, dtype=int)
-        self.nfjets                     = num.zeros(1, dtype=int)
-        self.ncjets                     = num.zeros(1, dtype=int)
-        self.nbtag                      = num.zeros(1, dtype=int)
-        self.pfmt_1                     = num.zeros(1, dtype=float)
-        self.pfmt_2                     = num.zeros(1, dtype=float)
-    
-        self.jpt_1                      = num.zeros(1, dtype=float)
-        self.jeta_1                     = num.zeros(1, dtype=float)
-        self.jphi_1                     = num.zeros(1, dtype=float)
-        self.jcsvv2_1                   = num.zeros(1, dtype=float)
-        self.jdeepb_1                   = num.zeros(1, dtype=float)
-
-        self.jpt_2                      = num.zeros(1, dtype=float)
-        self.jeta_2                     = num.zeros(1, dtype=float)
-        self.jphi_2                     = num.zeros(1, dtype=float)
-        self.jcsvv2_2                   = num.zeros(1, dtype=float)
-        self.jdeepb_2                   = num.zeros(1, dtype=float)
-
-        self.m_vis                      = num.zeros(1, dtype=float)
-        self.pt_tt                      = num.zeros(1, dtype=float)
-        self.dR_ll                      = num.zeros(1, dtype=float)
-        self.dphi_ll                    = num.zeros(1, dtype=float)
-
-        self.pzetamiss                  = num.zeros(1, dtype=float)
-        self.pzetavis                   = num.zeros(1, dtype=float)
-        self.pzeta_disc                 = num.zeros(1, dtype=float)
-
-        self.dilepton_veto              = num.zeros(1, dtype=int)
-        self.extraelec_veto             = num.zeros(1, dtype=int)
-        self.extramuon_veto             = num.zeros(1, dtype=int)
-
-        self.ngentauhads                = num.zeros(1, dtype=int)
-        self.ngentaus                   = num.zeros(1, dtype=int)
-        self.weight                     = num.zeros(1, dtype=float)
-
-
-        self.tree.Branch('njets'                       , self.njets, 'njets/I')
-        self.tree.Branch('njets50'                     , self.njets50, 'njets50/I')
-        self.tree.Branch('ncjets'                      , self.ncjets, 'ncjets/I')
-        self.tree.Branch('nfjets'                      , self.nfjets, 'nfjets/I')
-        self.tree.Branch('nbtag'                       , self.nbtag, 'nbtag/I')
-
-        self.tree.Branch('pfmt_1'                      , self.pfmt_1, 'pfmt_1/D')
-        self.tree.Branch('pfmt_2'                      , self.pfmt_2, 'pfmt_2/D')
-
-        self.tree.Branch('jpt_1'                       , self.jpt_1, 'jpt_1/D')
-        self.tree.Branch('jeta_1'                      , self.jeta_1, 'jeta_1/D')
-        self.tree.Branch('jphi_1'                      , self.jphi_1, 'jphi_1/D')
-        self.tree.Branch('jcsvv2_1'                    , self.jcsvv2_1, 'jcsvv2_1/D')
-        self.tree.Branch('jdeepb_1'                    , self.jdeepb_1, 'jdeepb_1/D')
-
-        self.tree.Branch('jpt_2'                       , self.jpt_2, 'jpt_2/D')
-        self.tree.Branch('jeta_2'                      , self.jeta_2, 'jeta_2/D')
-        self.tree.Branch('jphi_2'                      , self.jphi_2, 'jphi_2/D')
-        self.tree.Branch('jcsvv2_2'                    , self.jcsvv2_2, 'jcsvv2_2/D')
-        self.tree.Branch('jdeepb_2'                    , self.jdeepb_2, 'jdeepb_2/D')
-
-        self.tree.Branch('m_vis'                       , self.m_vis, 'm_vis/D')
-        self.tree.Branch('pt_tt'                       , self.pt_tt, 'pt_tt/D')
-        self.tree.Branch('dR_ll'                       , self.dR_ll, 'dR_ll/D')
-        self.tree.Branch('dphi_ll'                     , self.dphi_ll, 'dphi_ll/D')
-
-        self.tree.Branch('pzetamiss'                   , self.pzetamiss, 'pzetamiss/D')
-        self.tree.Branch('pzetavis'                    , self.pzetavis, 'pzetavis/D')
-        self.tree.Branch('pzeta_disc'                  , self.pzeta_disc, 'pzeta_disc/D')
-
-        self.tree.Branch('dilepton_veto'               , self.dilepton_veto, 'dilepton_veto/I')
-        self.tree.Branch('extraelec_veto'              , self.extraelec_veto, 'extraelec_veto/I')
-        self.tree.Branch('extramuon_veto'              , self.extramuon_veto, 'extramuon_veto/I')
-
-        self.tree.Branch('ngentauhads'                 , self.ngentauhads, 'ngentauhads/I')
-        self.tree.Branch('ngentaus'                    , self.ngentaus, 'ngentaus/I')
-        self.tree.Branch('weight'                      , self.weight, 'weight/D')
