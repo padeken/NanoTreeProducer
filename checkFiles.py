@@ -34,61 +34,77 @@ class bcolors:
 
 subdirs = [ 'TT', 'DY', 'W*J', 'ST', 'LQ', 'Tau', 'SingleMuon', 'SingleElectron' ]
 sample_dict = { 
-   ('DY',  "DYJetsToLL_M-10to50" ): "DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-Nano_20180518_DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
-   ('DY',  "DYJetsToLL_M-50_reg" ): "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAOD-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('DY',  "DYJetsToLL_M-50_ext" ): "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAOD-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
-   ('DY',  "DY1JetsToLL_M-50"    ): "DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
-   ('DY',  "DY2JetsToLL_M-50"    ): "DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
-   ('DY',  "DY3JetsToLL_M-50"    ): "DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
-   ('DY',  "DY4JetsToLL_M-50"    ): "DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('WJ',  "WJetsToLNu"          ): "WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
-   ('WJ',  "W1JetsToLNu"         ): "W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
-   ('WJ',  "W2JetsToLNu"         ): "W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
-   ('WJ',  "W3JetsToLNu"         ): "W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
-   ('WJ',  "W4JetsToLNu"         ): "W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
-   ('ST',  "ST_t-channel_antitop"): "ST_t-channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('ST',  "ST_t-channel_top"    ): "ST_t-channel_top_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('ST',  "ST_tW_antitop"       ): "ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('ST',  "ST_tW_top"           ): "ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('TT',  "TTTo2L2Nu"           ): "TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('TT',  "TTToHadronic"        ): "TTToHadronic_TuneCP5_13TeV-powheg-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('TT',  "TTToSemiLeptonic"    ): "TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8__RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
-   ('VV',  "WW"                  ): "WW_TuneCP5_13TeV-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/NANOAODSIM",
-   ('VV',  "WZ"                  ): "WZ_TuneCP5_13TeV-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/NANOAODSIM",
-   ('VV',  "ZZ"                  ): "ZZ_TuneCP5_13TeV-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/NANOAODSIM",
+   ('DY',  "DYJetsToLL_M-10to50" ): "DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/ytakahas-Nano_20180518_DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
+   ('DY',  "DYJetsToLL_M-50_reg" ): "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAOD-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('DY',  "DYJetsToLL_M-50_ext" ): "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAOD-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
+   ('DY',  "DY1JetsToLL_M-50"    ): "DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
+   ('DY',  "DY2JetsToLL_M-50"    ): "DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
+   ('DY',  "DY3JetsToLL_M-50"    ): "DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
+   ('DY',  "DY4JetsToLL_M-50"    ): "DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('WJ',  "WJetsToLNu"          ): "WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/ytakahas-NanoTest_20180507_WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
+   ('WJ',  "W1JetsToLNu"         ): "W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/ytakahas-NanoTest_20180507_W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
+   ('WJ',  "W2JetsToLNu"         ): "W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/ytakahas-NanoTest_20180507_W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
+   ('WJ',  "W3JetsToLNu"         ): "W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/ytakahas-NanoTest_20180507_W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
+   ('WJ',  "W4JetsToLNu"         ): "W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be",
+   ('ST',  "ST_t-channel_antitop"): "ST_t-channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('ST',  "ST_t-channel_top"    ): "ST_t-channel_top_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('ST',  "ST_tW_antitop"       ): "ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('ST',  "ST_tW_top"           ): "ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('TT',  "TTTo2L2Nu"           ): "TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('TT',  "TTToHadronic"        ): "TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('TT',  "TTToSemiLeptonic"    ): "TTToSemiLeptonic_TuneCP5_PSweights_13TeV-powheg-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('VV',  "WWTo1L1Nu2Q"         ): "WWTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('VV',  "WWTo2L2Nu"           ): "WWTo2L2Nu_NNPDF31_TuneCP5_PSweights_13TeV-powheg-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
+   ('VV',  "WWToLNuQQ_reg"       ): "WWToLNuQQ_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('VV',  "WWToLNuQQ_ext"       ): "WWToLNuQQ_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1",
+   ('VV',  "WW"                  ): "WW_TuneCP5_13TeV-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('VV',  "WZ"                  ): "WZ_TuneCP5_13TeV-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
+   ('VV',  "ZZ"                  ): "ZZ_TuneCP5_13TeV-pythia8/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1",
    ('LQ',  "LQ3ToTauB_t-channel_M$MASS"         ): "LQ3ToTauB_Fall2017_5f_Madgraph_LO_t-channel-M$MASS",
    ('LQ',  "LQ3ToTauB_s-channel_M$MASS"         ): "LQ3ToTauB_Fall2017_5f_Madgraph_LO_s-channel-M$MASS",
    ('LQ',  "LQ3ToTauB_pair_M$MASS"              ): "LQ3ToTauB_Fall2017_5f_Madgraph_LO_pair-M$MASS",
    ('LQ',  "VectorLQ3ToTauB_s-channel_M$MASS"   ): "VectorLQ3ToTauB_Fall2017_5f_Madgraph_LO_s_channel_M$MASS",
    ('LQ',  "VectorLQ3ToTauB_pair_M$MASS"        ): "VectorLQ3ToTauB_Fall2017_5f_Madgraph_LO_pair_M$MASS",
-   ('Tau',            "Tau_Run2017B"            ): "Tau__ytakahas-NanoTest_20180507_B-55055ff3316a022bb149a249662ed4c4",
-   ('Tau',            "Tau_Run2017C"            ): "Tau__ytakahas-NanoTest_20180507_C-55055ff3316a022bb149a249662ed4c4",
-   ('Tau',            "Tau_Run2017D"            ): "Tau__ytakahas-NanoTest_20180507_D-55055ff3316a022bb149a249662ed4c4",
-   ('Tau',            "Tau_Run2017E"            ): "Tau__ytakahas-NanoTest_20180507_E-55055ff3316a022bb149a249662ed4c4",
-   ('Tau',            "Tau_Run2017F"            ): "Tau__ytakahas-NanoTest_20180507_F-55055ff3316a022bb149a249662ed4c4",
-   ('SingleMuon',     "SingleMuon_Run2017B"     ): "/SingleMuon/Run2017B-31Mar2018-v1/NANOAOD",
-   ('SingleMuon',     "SingleMuon_Run2017C"     ): "/SingleMuon/Run2017C-31Mar2018-v1/NANOAOD",
-   ('SingleMuon',     "SingleMuon_Run2017D"     ): "/SingleMuon/Run2017D-31Mar2018-v1/NANOAOD",
-   ('SingleMuon',     "SingleMuon_Run2017E"     ): "/SingleMuon/Run2017E-31Mar2018-v1/NANOAOD",
-   ('SingleMuon',     "SingleMuon_Run2017F"     ): "/SingleMuon/Run2017F-31Mar2018-v1/NANOAOD",
-   ('SingleElectron', "SingleElectron_Run2017B" ): "/SingleElectron/ytakahas-Nano_SingleElectron_20180507_B-55055ff3316a022bb149a249662ed4c4/USER",
-   ('SingleElectron', "SingleElectron_Run2017C" ): "/SingleElectron/ytakahas-Nano_SingleElectron_20180507_C-55055ff3316a022bb149a249662ed4c4/USER",
-   ('SingleElectron', "SingleElectron_Run2017D" ): "/SingleElectron/ytakahas-Nano_SingleElectron_20180507_D-55055ff3316a022bb149a249662ed4c4/USER",
-   ('SingleElectron', "SingleElectron_Run2017E" ): "/SingleElectron/ytakahas-Nano_SingleElectron_20180507_E-55055ff3316a022bb149a249662ed4c4/USER",
-   ('SingleElectron', "SingleElectron_Run2017F" ): "/SingleElectron/ytakahas-Nano_SingleElectron_20180507_F-55055ff3316a022bb149a249662ed4c4/USER",
+   ('Tau',            "Tau_Run2017B"            ): "Tau/Run2017B-31Mar2018-v1",
+   ('Tau',            "Tau_Run2017C"            ): "Tau/Run2017C-31Mar2018-v1",
+   ('Tau',            "Tau_Run2017D"            ): "Tau/Run2017D-31Mar2018-v1",
+   ('Tau',            "Tau_Run2017E"            ): "Tau/Run2017E-31Mar2018-v1",
+   ('Tau',            "Tau_Run2017F"            ): "Tau/Run2017F-31Mar2018-v1",
+   ('Tau',            "Tau_Run2017B"            ): "Tau/ytakahas-NanoTest_20180507_B-55055ff3316a022bb149a249662ed4c4",
+   ('Tau',            "Tau_Run2017C"            ): "Tau/ytakahas-NanoTest_20180507_C-55055ff3316a022bb149a249662ed4c4",
+   ('Tau',            "Tau_Run2017D"            ): "Tau/ytakahas-NanoTest_20180507_D-55055ff3316a022bb149a249662ed4c4",
+   ('Tau',            "Tau_Run2017E"            ): "Tau/ytakahas-NanoTest_20180507_E-55055ff3316a022bb149a249662ed4c4",
+   ('Tau',            "Tau_Run2017F"            ): "Tau/ytakahas-NanoTest_20180507_F-55055ff3316a022bb149a249662ed4c4",
+   ('SingleMuon',     "SingleMuon_Run2017B"     ): "SingleMuon/Run2017B-31Mar2018-v1",
+   ('SingleMuon',     "SingleMuon_Run2017C"     ): "SingleMuon/Run2017C-31Mar2018-v1",
+   ('SingleMuon',     "SingleMuon_Run2017D"     ): "SingleMuon/Run2017D-31Mar2018-v1",
+   ('SingleMuon',     "SingleMuon_Run2017E"     ): "SingleMuon/Run2017E-31Mar2018-v1",
+   ('SingleMuon',     "SingleMuon_Run2017F"     ): "SingleMuon/Run2017F-31Mar2018-v1",
+   ('SingleElectron', "SingleElectron_Run2017B" ): "SingleElectron/Run2017B-31Mar2018-v1",
+   ('SingleElectron', "SingleElectron_Run2017C" ): "SingleElectron/Run2017C-31Mar2018-v1",
+   ('SingleElectron', "SingleElectron_Run2017D" ): "SingleElectron/Run2017D-31Mar2018-v1",
+   ('SingleElectron', "SingleElectron_Run2017E" ): "SingleElectron/Run2017E-31Mar2018-v1",
+   ('SingleElectron', "SingleElectron_Run2017F" ): "SingleElectron/Run2017F-31Mar2018-v1",
+   ('SingleElectron', "SingleElectron_Run2017B" ): "SingleElectron/ytakahas-Nano_SingleElectron_20180507_B-55055ff3316a022bb149a249662ed4c4/USER",
+   ('SingleElectron', "SingleElectron_Run2017C" ): "SingleElectron/ytakahas-Nano_SingleElectron_20180507_C-55055ff3316a022bb149a249662ed4c4/USER",
+   ('SingleElectron', "SingleElectron_Run2017D" ): "SingleElectron/ytakahas-Nano_SingleElectron_20180507_D-55055ff3316a022bb149a249662ed4c4/USER",
+   ('SingleElectron', "SingleElectron_Run2017E" ): "SingleElectron/ytakahas-Nano_SingleElectron_20180507_E-55055ff3316a022bb149a249662ed4c4/USER",
+   ('SingleElectron', "SingleElectron_Run2017F" ): "SingleElectron/ytakahas-Nano_SingleElectron_20180507_F-55055ff3316a022bb149a249662ed4c4/USER",
    #('SingleElectron', "SingleElectron_Run2017B" ): "/SingleElectron/Run2017B-31Mar2018-v1/NANOAOD",
    #('SingleElectron', "SingleElectron_Run2017C" ): "/SingleElectron/Run2017C-31Mar2018-v1/NANOAOD",
    #('SingleElectron', "SingleElectron_Run2017D" ): "/SingleElectron/Run2017D-31Mar2018-v1/NANOAOD",
    #('SingleElectron', "SingleElectron_Run2017E" ): "/SingleElectron/Run2017E-31Mar2018-v1/NANOAOD",
    #('SingleElectron', "SingleElectron_Run2017F" ): "/SingleElectron/Run2017F-31Mar2018-v1/NANOAOD",
 }
-sample_dict = { k: v.lstrip('/').replace('/','__') for k, v in sample_dict.iteritems() }
+#sample_dict = { k: v.lstrip('/').replace('/','__') for k, v in sample_dict.iteritems() }
 haddsets = {
    ('DY',             "DYJetsToLL_M-50"        ): [ 'DYJetsToLL_M-50_*'       ],
    ('Tau',            "Tau_Run2017"            ): [ 'Tau_Run2017?'            ],
    ('SingleMuon',     "SingleMuon_Run2017"     ): [ 'SingleMuon_Run2017?'     ],
    ('SingleElectron', "SingleElectron_Run2017" ): [ 'SingleElectron_Run2017?' ],
 }
+
+
 
 def main():
   for channel in args.channels:
@@ -239,6 +255,7 @@ def getSampleName(dasname):
   #  dasname = dasname[:dasname.lower().index('__nanoaod')]
   #if '__user' in dasname.lower():
   #  dasname = dasname[:dasname.lower().index('__user')]
+  dasname = dasname.replace('__','/').lstrip('/')
   for (subdir,samplename), pattern in sample_dict.iteritems():
     if '$MASS' in pattern:
       matches = re.findall(pattern.replace('$MASS','(\d+)'),dasname)
@@ -247,7 +264,7 @@ def getSampleName(dasname):
         return subdir, samplename
     elif pattern in dasname:
       return subdir, samplename
-  return "unknown", dasname
+  return "unknown", dasname.replace('/','__')
   
 def getSubdir(dir):
   for subdir in subdirs:
