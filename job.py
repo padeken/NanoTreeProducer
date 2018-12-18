@@ -1,7 +1,5 @@
 #!/Usr-/bin/env python
-
 import os,sys
-
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import * 
 
 
@@ -9,15 +7,13 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import *
 def ensureDir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
-
-
+    
 
 if len(sys.argv)>1:
    infile = sys.argv[1].split(',')
 else:
    print '[warning] input file not specified'
-
-#   infile = ["root://cms-xrd-global.cern.ch//store/user/arizzi/Nano01_17Nov17/SingleMuon/RunII2017ReReco17Nov17-94X-Nano01/180205_181602/0000/test_data_94X_NANO_432.root"]
+   #infile = ["root://cms-xrd-global.cern.ch//store/user/arizzi/Nano01_17Nov17/SingleMuon/RunII2017ReReco17Nov17-94X-Nano01/180205_181602/0000/test_data_94X_NANO_432.root"]
    infile = ["root://cms-xrd-global.cern.ch//store/user/arizzi/Nano01Fall17/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X-Nano01Fall17/180205_160029/0000/test94X_NANO_70.root"]
 
 if len(sys.argv)>2:
@@ -57,10 +53,8 @@ print '-'*80
 
 
 DataType = 'mc'
-
 if infile[0].find("/SingleMuon/")!=-1 or infile[0].find("/Tau/")!=-1 or infile[0].find("/SingleElectron/")!=-1:
     DataType = 'data'
-
 
 json='/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
 
@@ -71,37 +65,26 @@ _postfix = outputDir + '/' + name + '_' + chunck + '_' + channel + '.root'
 module2run = None
 
 if channel=='tautau':
-
     from TauTauModule import *
-#    from TauTauModule_sync import *
-
+    #from TauTauModule_sync import *
     module2run = lambda : TauTauProducer(_postfix, DataType)
 
 elif channel=='mutau':
-
     from MuTauModule import *
-#    from MuTauModule_sync import *
-
+    #from MuTauModule_sync import *
     module2run = lambda : MuTauProducer(_postfix, DataType)
 
 elif channel=='eletau' or channel=='etau':
-
     from EleTauModule import *
-#    from EleTauModule_sync import *
-
+    #from EleTauModule_sync import *
     module2run = lambda : EleTauProducer(_postfix, DataType)
 
-
 elif channel=='mumu':
-
     from MuMuModule import *
-
     module2run = lambda : MuMuProducer(_postfix, DataType)
 
 elif channel=='muele':
-
     from MuEleModule import *
-
     module2run = lambda : MuEleProducer(_postfix, DataType)
 
 else:
@@ -109,21 +92,13 @@ else:
     sys.exit(0)
 
 
-
-
-
 if DataType=='data':
-    p=PostProcessor(outputDir, infile, None, "keep_and_drop.txt", noOut=True, 
-                    modules=[module2run()],provenance=False,fwkJobReport=False,
-                    jsonInput=json, postfix=_postfix)
-
-    
+    p = PostProcessor(outputDir, infile, None, "keep_and_drop.txt", noOut=True, 
+                      modules=[module2run()],provenance=False,fwkJobReport=False,
+                      jsonInput=json, postfix=_postfix)
 else:
-    p=PostProcessor(outputDir, infile, None, "keep_and_drop.txt", noOut=True,
-                    modules=[module2run()],provenance=False,fwkJobReport=False, postfix=_postfix)
-
-
-
+    p = PostProcessor(outputDir, infile, None, "keep_and_drop.txt", noOut=True,
+                      modules=[module2run()],provenance=False,fwkJobReport=False, postfix=_postfix)
 
 p.run()
 print "DONE"

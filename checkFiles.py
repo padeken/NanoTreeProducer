@@ -95,20 +95,20 @@ def main():
     for directory in sorted(os.listdir("./")):
         if not os.path.isdir(directory): continue
         if args.samples and not matchSample(args.samples,directory): continue
-      
+        
         subdir, samplename = getSampleName(directory)
         outdir  = "%s/%s"%(args.outdir,subdir)
         outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
         infiles = '%s/*_%s.root'%(directory,channel)
-      
+        
         #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
         filelist = glob.glob(infiles)     
-      
+        
         if not filelist: continue
-      
+        
         flag  = False
         files = [ ]
-      
+        
         for file2check in filelist:
           file = TFile(file2check, 'READ')
           if not file.GetListOfKeys().Contains("tree"):
@@ -119,7 +119,7 @@ def main():
             #os.system(rmcmd)
             print bcolors.FAIL + '[NG] no tree found in ' + file2check + bcolors.ENDC
           file.Close()
-    
+        
         if flag:
           print bcolors.FAIL + "[NG] " + directory + bcolors.ENDC
           print '   ', len(files), ' out of ', len(filelist), ' files have no tree!'
@@ -133,7 +133,7 @@ def main():
           else:
             print bcolors.BOLD + bcolors.OKBLUE + '    [OK] ' + directory + bcolors.ENDC
           print 
-      
+        
         # HADD
         if args.make:
             ensureDirectory(outdir)

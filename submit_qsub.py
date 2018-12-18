@@ -139,17 +139,17 @@ if __name__ == "__main__":
             if '*' in options.sample or '?' in options.sample:
               if not fnmatch(pattern,'*'+options.sample+'*'): continue
             elif pattern.find(options.sample)==-1: continue
-
+        
         files = None
         name = None
         
         if ispnfs:
-            name = pattern.split("/")[8].replace("/","") + '__' + pattern.split("/")[9].replace("/","") + '__' + pattern.split("/")[10].replace("/","")
+            name = pattern.split('/')[8].replace('/','') + '__' + pattern.split('/')[9].replace('/','') + '__' + pattern.split('/')[10].replace('/','')
             #files = getFileListPNFS(pattern)
             files = getFileListPNFS(name)
         else:
             files = getFileListDAS(pattern)
-            name = pattern.split("/")[1].replace("/","") + '__' + pattern.split("/")[2].replace("/","") + '__' + pattern.split("/")[3].replace("/","")
+            name = pattern.split('/')[1].replace('/','') + '__' + pattern.split('/')[2].replace('/','') + '__' + pattern.split('/')[3].replace('/','')
         
         print pattern, 'filter = ', options.sample
         if files:
@@ -183,10 +183,9 @@ if __name__ == "__main__":
         #print "FILES = ",f
             createJobs(f,outfolder,name,nChunks, options.channel, pattern)
             nChunks = nChunks+1
-            
+        
         jobs.close()
-
-
+        
         if options.force:
           submitJobs(jobList,nChunks, outfolder, batchSystem)
         else:
