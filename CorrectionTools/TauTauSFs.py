@@ -1,24 +1,21 @@
 #!/usr/bin/env python
-
 '''
 Class to get Tau Trigger SF based on 2017 Rereco data
 and MCv2 (re-miniaod).
 T. Ruggles
 5 February, 2018
 Updated 12 August, 2018
+Edited by Izaak Neutelings (November 2018)
 '''
 
-
-import ROOT
+from ROOT import TFile
 import os
 
 #base = os.environ['CMSSW_BASE']
-base = '/shome/ineuteli/analysis/LQ_2017/NanoTreeProducer/TauTriggerSFs2017/data'
-#/shome/ytakahas/work/Leptoquark/CMSSW_9_4_4/src/PhysicsTools/NanoAODTools/NanoTreeProducer/TauTriggerSFs2017/data
-#base = 'TauTriggerSFs2017/data'
+base = 'CorrectionTools/TauTriggerSFs2017/data'
 
-class getTauTriggerSFs :
-    
+
+class TauTauSFs:
     
     def __init__( self, tauWP='medium', wpType='MVA' ):
         
@@ -32,8 +29,8 @@ class getTauTriggerSFs :
         # Assume this is in CMSSW with the below path structure
         filename_old = base+'/tauTriggerEfficiencies2017.root'
         filename_new = base+'/tauTriggerEfficiencies2017_New.root'
-        self.f_old   = ROOT.TFile( filename_old, 'r' )
-        self.f       = ROOT.TFile( filename_new, 'r' )
+        self.f_old   = TFile( filename_old, 'READ' )
+        self.f       = TFile( filename_new, 'READ' )
         
         for file, filename in [(self.f,filename_new), (self.f_old,filename_old)]:
           if not file or file.IsZombie():
@@ -99,18 +96,16 @@ class getTauTriggerSFs :
         return eff
         
     
-    # This is the efficiency for a single leg of the di-tau trigger
-    def getDiTauEfficiencyData( self, pt, eta, phi ) :
+    def getDiTauEfficiencyData( self, pt, eta, phi ):
+        """Get efficiency for a single leg of the di-tau trigger."""
         return self.getEfficiency( pt, eta, phi, self.diTauData, self.diTauEtaPhiData, self.diTauEtaPhiAvgData )
-
-
-    # This is the efficiency for a single leg of the di-tau trigger
-    def getDiTauEfficiencyMC( self, pt, eta, phi ) :
+    
+    def getDiTauEfficiencyMC( self, pt, eta, phi ):
+        """Get efficiency for a single leg of the di-tau trigger."""
         return self.getEfficiency( pt, eta, phi, self.diTauMC, self.diTauEtaPhiMC, self.diTauEtaPhiAvgMC )
-
-
-    # This is the SF for a single leg of the di-tau trigger
-    def getDiTauScaleFactor( self, pt, eta, phi ) :
+    
+    def getTriggerSF( self, pt, eta, phi ):
+        """Get SF for a single leg of the di-tau trigger."""
         pt = self.ptCheck( pt )
         effData = self.getDiTauEfficiencyData( pt, eta, phi )
         effMC = self.getDiTauEfficiencyMC( pt, eta, phi )
@@ -122,19 +117,17 @@ class getTauTriggerSFs :
         sf = effData / effMC
         return sf
     
-
-    # This is the efficiency for the tau leg of the mu-tau trigger
-    def getMuTauEfficiencyData( self, pt, eta, phi ) :
+    
+    def getMuTauEfficiencyData( self, pt, eta, phi ):
+        """Get efficiency for the tau leg of the mu-tau trigger."""
         return self.getEfficiency( pt, eta, phi, self.muTauData, self.muTauEtaPhiData, self.muTauEtaPhiAvgData )
-
-
-    # This is the efficiency for the tau leg of the mu-tau trigger
-    def getMuTauEfficiencyMC( self, pt, eta, phi ) :
+    
+    def getMuTauEfficiencyMC( self, pt, eta, phi ):
+        """Get efficiency for the tau leg of the mu-tau trigger."""
         return self.getEfficiency( pt, eta, phi, self.muTauMC, self.muTauEtaPhiMC, self.muTauEtaPhiAvgMC )
-
-
-    # This is the SF for the tau leg of the mu-tau trigger
-    def getMuTauScaleFactor( self, pt, eta, phi ) :
+    
+    def getMuTauScaleFactor( self, pt, eta, phi ):
+        """Get SF for the tau leg of the mu-tau trigger."""
         pt = self.ptCheck( pt )
         effData = self.getMuTauEfficiencyData( pt, eta, phi )
         effMC = self.getMuTauEfficiencyMC( pt, eta, phi )
@@ -145,21 +138,18 @@ class getTauTriggerSFs :
             return 0.0
         sf = effData / effMC
         return sf
-
-
-
-    # This is the efficiency for the tau leg of the e-tau trigger
-    def getETauEfficiencyData( self, pt, eta, phi ) :
+    
+    
+    def getETauEfficiencyData( self, pt, eta, phi ):
+        """Get efficiency for the tau leg of the e-tau trigger."""
         return self.getEfficiency( pt, eta, phi, self.eTauData, self.eTauEtaPhiData, self.eTauEtaPhiAvgData )
-
-
-    # This is the efficiency for the tau leg of the e-tau trigger
-    def getETauEfficiencyMC( self, pt, eta, phi ) :
+    
+    def getETauEfficiencyMC( self, pt, eta, phi ):
+        """Get efficiency for the tau leg of the e-tau trigger."""
         return self.getEfficiency( pt, eta, phi, self.eTauMC, self.eTauEtaPhiMC, self.eTauEtaPhiAvgMC )
-
-
-    # This is the SF for the tau leg of the e-tau trigger
-    def getETauScaleFactor( self, pt, eta, phi ) :
+    
+    def getETauScaleFactor( self, pt, eta, phi ):
+        """Get SF for the tau leg of the e-tau trigger."""
         pt = self.ptCheck( pt )
         effData = self.getETauEfficiencyData( pt, eta, phi )
         effMC = self.getETauEfficiencyMC( pt, eta, phi )
@@ -170,3 +160,30 @@ class getTauTriggerSFs :
             return 0.0
         sf = effData / effMC
         return sf
+    
+    
+    def getLeptonTauFakeSF(genmatch,eta):
+        """Get SF for lepton to tau fake."""
+        # https://indico.cern.ch/event/715039/timetable/#2-lepton-tau-fake-rates-update
+        # https://indico.cern.ch/event/719250/contributions/2971854/attachments/1635435/2609013/tauid_recommendations2017.pdf
+        # https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendation13TeV#Muon%20to%20tau%20fake%20rate
+        eta = abs(eta)
+        
+        # electron -> tau (VLoose for tautau)
+        if genmatch==1:
+          if   eta<1.460: return 1.09
+          elif eta>1.558: return 1.19
+        
+        # muon -> tau (Loose for tautau)
+        elif genmatch==2:
+          if   eta<0.4: return 1.061
+          elif eta<0.8: return 1.022
+          elif eta<1.2: return 1.097
+          elif eta<1.7: return 1.030
+          else:         return 1.941
+        
+        # real tau (Tight)
+        #elif genmatch_2==5
+        #  return 0.88; // Tight
+        
+        return 1.0
