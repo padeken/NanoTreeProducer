@@ -5,6 +5,7 @@ from commands import getoutput
 from fnmatch import fnmatch
 import itertools
 import optparse
+from checkFiles import getSampleName
 
 parser = optparse.OptionParser()
 parser.add_option('-f', '--force', action="store_true", default=False, dest='force')
@@ -92,15 +93,15 @@ def createJobs(f, outfolder,name,nchunks, channel, pattern):
   return 1
 
 
-def submitJobs(jobList, nchunks, outfolder, batchSystem):
+def submitJobs(jobName, jobList, nchunks, outfolder, batchSystem):
     print 'Reading joblist'
     jobListName = jobList
     print jobList
     #subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobListName)
-    subCmd = 'qsub -t 1-%s -o %s/logs/ %s %s' %(nchunks,outfolder,batchSystem,jobListName)
-    print 'Going to submit', nchunks, 'jobs with', subCmd
+    subCmd = 'qsub -t 1-%s -N %s -o %s/logs/ %s %s' %(nchunks,jobName,outfolder,batchSystem,jobListName)
+    print 'Going to submit', nchunks, 'jobs with'
+    print '   ',subCmd
     os.system(subCmd)
-    
     return 1
 
 
@@ -116,7 +117,7 @@ if __name__ == "__main__":
         line = line.rstrip()
         if line=='': continue
         #if line.count('/')!=3:
-        #    continue 
+        #    continue
         patterns.append(line)
     #print patterns
 	
@@ -126,6 +127,11 @@ if __name__ == "__main__":
         if pattern.find('pnfs')!=-1:
             ispnfs = True
         
+        if options.sample!=None:
+            if '*' in options.sample or '?' in options.sample:
+              if not fnmatch(pattern,'*'+options.sample+'*'): continue
+            elif pattern.find(options.sample)==-1: continue
+        
         if options.channel=='tautau':
             if pattern.find('/SingleMuon')!=-1 or pattern.find('/SingleElectron')!=-1: continue
 
@@ -134,11 +140,6 @@ if __name__ == "__main__":
         
         if options.channel=='eletau':
             if pattern.find('/SingleMuon')!=-1 or pattern.find('/Tau')!=-1: continue
-        
-        if options.sample!=None:
-            if '*' in options.sample or '?' in options.sample:
-              if not fnmatch(pattern,'*'+options.sample+'*'): continue
-            elif pattern.find(options.sample)==-1: continue
         
         files = None
         name = None
@@ -152,11 +153,12 @@ if __name__ == "__main__":
             name = pattern.split('/')[1].replace('/','') + '__' + pattern.split('/')[2].replace('/','') + '__' + pattern.split('/')[3].replace('/','')
         
         print pattern, 'filter = ', options.sample
-        if files:
-          print "FILELIST = "+files[0]
-          for file in files[1:]:
-            print "           "+file
-        else:
+        #if files:
+        #  print "FILELIST = "+files[0]
+        #  for file in files[1:]:
+        #    print "           "+file
+        #else:
+        if not files:
           print bcolors.BOLD + bcolors.WARNING + "Warning!!! FILELIST empty" + bcolors.ENDC
           continue
         
@@ -165,6 +167,7 @@ if __name__ == "__main__":
         print 
         try: os.stat('joblist/')
         except: os.mkdir('joblist/')
+        jobName = getSampleName(pattern)[1]
         jobList = 'joblist/joblist%s_%s.txt' % (name, options.channel)
         jobs = open(jobList, 'w')
         nChunks = 0
@@ -187,11 +190,14 @@ if __name__ == "__main__":
         jobs.close()
         
         if options.force:
-          submitJobs(jobList,nChunks, outfolder, batchSystem)
+          submitJobs(jobName,jobList,nChunks, outfolder, batchSystem)
         else:
           submit = raw_input("Do you also want to submit " + str(nChunks) + " jobs to the batch system? [y/n] ")
+          if submit.lower()=='force':
+            submit = 'y'
+            options.force = True
           if submit.lower()=='y':
-            submitJobs(jobList,nChunks, outfolder, batchSystem)
+            submitJobs(jobName,jobList,nChunks, outfolder, batchSystem)
           else:
             print "Not submitting jobs"
 		
