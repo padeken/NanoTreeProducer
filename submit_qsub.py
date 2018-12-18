@@ -7,13 +7,21 @@ import itertools
 import optparse
 
 parser = optparse.OptionParser()
-
 parser.add_option('-f', '--force', action="store_true", default=False, dest='force')
 parser.add_option('-c', '--channel', action="store", type=str, default="mutau", dest='channel')
 parser.add_option('-s', '--sample', action="store", type=str, default=None, dest='sample')
 parser.add_option('-n', '--njob', action="store", type=int, default=4, dest='njob')
-
 (options, args) = parser.parse_args() 
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 def split_seq(iterable, size):
     it = iter(iterable)
@@ -101,16 +109,16 @@ if __name__ == "__main__":
     batchSystem = 'psibatch_runner.sh'
     
     # read samples
-    patterns = []
+    patterns = [ ]
     
     for line in open('samples.cfg', 'r'):
         if line.find('#')!=-1: continue
-        if line.rstrip()=='': continue
+        line = line.rstrip()
+        if line=='': continue
         #if line.count('/')!=3:
         #    continue 
-        patterns.append(line.rstrip())
-    
-    print patterns
+        patterns.append(line)
+    #print patterns
 	
     for pattern in patterns:
         
@@ -142,10 +150,15 @@ if __name__ == "__main__":
         else:
             files = getFileListDAS(pattern)
             name = pattern.split("/")[1].replace("/","") + '__' + pattern.split("/")[2].replace("/","") + '__' + pattern.split("/")[3].replace("/","")
-
-
+        
         print pattern, 'filter = ', options.sample
-        print "FILELIST = ", files
+        if files:
+          print "FILELIST = "+files[0]
+          for file in files[1:]:
+            print "           "+file
+        else:
+          print bcolors.BOLD + bcolors.WARNING + "Warning!!! FILELIST empty" + bcolors.ENDC
+          continue
         
         print 
         print "creating job file " ,'joblist/joblist%s.txt'%name
@@ -178,7 +191,7 @@ if __name__ == "__main__":
           submitJobs(jobList,nChunks, outfolder, batchSystem)
         else:
           submit = raw_input("Do you also want to submit " + str(nChunks) + " jobs to the batch system? [y/n] ")
-          if submit == 'y' or submit=='Y':
+          if submit.lower()=='y':
             submitJobs(jobList,nChunks, outfolder, batchSystem)
           else:
             print "Not submitting jobs"
