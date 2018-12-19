@@ -63,6 +63,7 @@ class MuTauProducer(Module):
             self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
         else:
           self.out.h_cutflow.Fill(self.TotalWeighted, 1.)
+          self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, 1.)
         #####################################
         
         if not (event.HLT_IsoMu24 or event.HLT_IsoMu27): # TODO: add lower-pT trigger!
@@ -257,40 +258,40 @@ class MuTauProducer(Module):
         self.out.npvsGood[0]                   = event.PV_npvsGood
         
         if not self.isData:
-            self.out.GenMET_pt[0]              = event.GenMET_pt
-            self.out.GenMET_phi[0]             = event.GenMET_phi
-            self.out.nPU[0]                    = event.Pileup_nPU
-            self.out.nTrueInt[0]               = event.Pileup_nTrueInt
-            self.out.genWeight[0]              = event.genWeight
-            self.out.LHE_Njets[0]              = event.LHE_Njets
+          self.out.GenMET_pt[0]                = event.GenMET_pt
+          self.out.GenMET_phi[0]               = event.GenMET_phi
+          self.out.nPU[0]                      = event.Pileup_nPU
+          self.out.nTrueInt[0]                 = event.Pileup_nTrueInt
+          self.out.genWeight[0]                = event.genWeight
+          self.out.LHE_Njets[0]                = event.LHE_Njets
         
         
         # JETS
         if len(jetIds)>0:
-            self.out.jpt_1[0]                  = event.Jet_pt[jetIds[0]]
-            self.out.jeta_1[0]                 = event.Jet_eta[jetIds[0]]
-            self.out.jphi_1[0]                 = event.Jet_phi[jetIds[0]]
-            self.out.jcsvv2_1[0]               = event.Jet_btagCSVV2[jetIds[0]]
-            self.out.jdeepb_1[0]               = event.Jet_btagDeepB[jetIds[0]]
+          self.out.jpt_1[0]                    = event.Jet_pt[jetIds[0]]
+          self.out.jeta_1[0]                   = event.Jet_eta[jetIds[0]]
+          self.out.jphi_1[0]                   = event.Jet_phi[jetIds[0]]
+          self.out.jcsvv2_1[0]                 = event.Jet_btagCSVV2[jetIds[0]]
+          self.out.jdeepb_1[0]                 = event.Jet_btagDeepB[jetIds[0]]
         else:
-            self.out.jpt_1[0]                  = -9.
-            self.out.jeta_1[0]                 = -9.
-            self.out.jphi_1[0]                 = -9.
-            self.out.jcsvv2_1[0]               = -9.
-            self.out.jdeepb_1[0]               = -9.
-        
-        if len(jetIds)>1:
-            self.out.jpt_2[0]                  = event.Jet_pt[jetIds[1]]
-            self.out.jeta_2[0]                 = event.Jet_eta[jetIds[1]]
-            self.out.jphi_2[0]                 = event.Jet_phi[jetIds[1]]
-            self.out.jcsvv2_2[0]               = event.Jet_btagCSVV2[jetIds[1]]
-            self.out.jdeepb_2[0]               = event.Jet_btagDeepB[jetIds[1]]
+          self.out.jpt_1[0]                    = -9.
+          self.out.jeta_1[0]                   = -9.
+          self.out.jphi_1[0]                   = -9.
+          self.out.jcsvv2_1[0]                 = -9.
+          self.out.jdeepb_1[0]                 = -9.
+          
+        if len(jetIds)>1:  
+          self.out.jpt_2[0]                    = event.Jet_pt[jetIds[1]]
+          self.out.jeta_2[0]                   = event.Jet_eta[jetIds[1]]
+          self.out.jphi_2[0]                   = event.Jet_phi[jetIds[1]]
+          self.out.jcsvv2_2[0]                 = event.Jet_btagCSVV2[jetIds[1]]
+          self.out.jdeepb_2[0]                 = event.Jet_btagDeepB[jetIds[1]]
         else:
-            self.out.jpt_2[0]                  = -9.
-            self.out.jeta_2[0]                 = -9.
-            self.out.jphi_2[0]                 = -9.
-            self.out.jcsvv2_2[0]               = -9.
-            self.out.jdeepb_2[0]               = -9.
+          self.out.jpt_2[0]                    = -9.
+          self.out.jeta_2[0]                   = -9.
+          self.out.jphi_2[0]                   = -9.
+          self.out.jcsvv2_2[0]                 = -9.
+          self.out.jdeepb_2[0]                 = -9.
         
         self.out.njets[0]                      = len(jetIds)
         self.out.njets50[0]                    = len([j for j in jetIds if event.Jet_pt[j]>50])
@@ -306,8 +307,8 @@ class MuTauProducer(Module):
         
         self.out.dR_ll[0]                      = muons[ltau.id1].p4().DeltaR(taus[ltau.id2].p4())
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
-
-
+        
+        
         # PZETA
         leg1 = ROOT.TVector3(muons[ltau.id1].p4().Px(), muons[ltau.id1].p4().Py(), 0.)
         leg2 = ROOT.TVector3(taus[ltau.id2].p4().Px(), taus[ltau.id2].p4().Py(), 0.)
@@ -326,13 +327,16 @@ class MuTauProducer(Module):
         
         
         # VETOS
-        self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0]  = extraLeptonVetos(event, [ltau.id1], [-1], self.name)
+        self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0] = extraLeptonVetos(event, [ltau.id1], [-1], self.name)
         
         
         # WEIGHTS
-        self.out.trigweight[0] = self.muSFs.getTriggerSF(self.out.pt_1[0],self.out.eta_1[0])
-        self.out.puweight[0]   = self.puTool.getWeight(event.Pileup_nTrueInt)
-        self.out.weight[0]     = self.out.trigweight[0]*self.out.puweight[0]
+        if not self.isData:
+          self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+          self.out.trigweight[0]    = self.muSFs.getTriggerSF(self.out.pt_1[0],self.out.eta_1[0])
+          self.out.idisoweight_1[0] = self.muSFs.getIdIsoSF(self.out.pt_1[0],self.out.eta_1[0])
+          self.out.idisoweight_2[0] = self.muSFs.getLeptonTauFakeSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
+          self.out.weight[0]        = self.out.trigweight[0]*self.out.puweight[0]
         
         
         self.out.tree.Fill()

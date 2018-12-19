@@ -65,77 +65,78 @@ class TauTauProducer(Module):
         #electrons = Collection(event, "Electron")
         #muons = Collection(event, "Muon")
         
-        #print '-'*80
+        ##print '-'*80
         ngentauhads = 0
         ngentaus = 0
-        if not self.isData:            
-            for igp in range(event.nGenPart):
-                if abs(event.GenPart_pdgId[igp])==15 and event.GenPart_status[igp]==2:
-                    genflag = event.GenPart_statusFlags[igp]
-                    binary = format(genflag,'b').zfill(15)
-                    # 0 : isPrompt
-                    # 1 : isDecayedLeptonHadron
-                    # 2 : isTauDecayProduct
-                    # 3 : isPromptTauDecayProduct
-                    # 4 : isDirectTauDecayProduct
-                    # 5 : isDirectPromptTauDecayProduct
-                    # 6 : isDirectHadronDecayProduct
-                    # 7 : isHardProcess
-                    # 8 : fromHardProcess
-                    # 9 : isHardProcessTauDecayProduct
-                    # 10 : isDirectHardProcessTauDecayProduct
-                    # 11 : fromHardProcessBeforeFSR
-                    # 12 : isFirstCopy
-                    # 13 : isLastCopy
-                    # 14 : isLastCopyBeforeFSR
-                    
-                    if int(binary[14])==0: continue
-                    if int(binary[6])==0: continue
-                    #print 'Tau found with status = 2 (pt, eta) = ', event.GenPart_pt[igp], event.GenPart_eta[igp], event.GenPart_statusFlags[igp]
-                    
-                    ngentaus += 1
-                    _pdg_ = -1
-                    _idx_ = event.GenPart_genPartIdxMother[igp]
-                    #_status_ = -1
-                    flag_resonance = False
-                    
-                    while abs(_pdg_) not in [9000002, 9000006]:
-                        if _idx_==-1: break
-                        _pdg_ = event.GenPart_pdgId[_idx_]
-                        # _status_ = event.GenPart_status[_idx_]
-                        _idx_ = event.GenPart_genPartIdxMother[_idx_]
-                        if abs(_pdg_) > 30 and abs(_pdg_) not in [9000002, 9000006]: 
-                            flag_resonance = True
-                        #print '\t (pdg, mother id) = ', _pdg_, _status_, _idx_
-                    if flag_resonance: continue
-                    _dr_ = 100.
-                    for igvt in range(event.nGenVisTau):
-                        dr = deltaR(event.GenPart_eta[igp], event.GenPart_phi[igp], event.GenVisTau_eta[igvt], event.GenVisTau_phi[igvt])
-                        #print dr, _dr_, event.GenPart_eta[igp], event.GenPart_phi[igp], event.GenVisTau_eta[igvt], event.GenVisTau_phi[igvt]
-                        if _dr_ > dr:
-                            _dr_ = dr
-                    #print 'match !',_pdg_, event.nGenVisTau,  _dr_
-                    if _dr_ < 0.1:
-                        ngentauhads += 1
-            
-            #for igvt in range(event.nGenVisTau):
-            #    print 'status = ', event.GenVisTau_status[igvt], 'mother ID = ', event.GenVisTau_genPartIdxMother[igvt], 'pt = ', event.GenVisTau_pt[igvt], ', eta = ', event.GenVisTau_eta[igvt]
-            #    ngentauhads += 1
-            
-            if ngentaus != 2:
-               print 'WOW!!! ngentaus = %d != 2'%(ngentaus)
+        #if not self.isData:            
+        #    for igp in range(event.nGenPart):
+        #        if abs(event.GenPart_pdgId[igp])==15 and event.GenPart_status[igp]==2:
+        #            genflag = event.GenPart_statusFlags[igp]
+        #            binary = format(genflag,'b').zfill(15)
+        #            # 0 : isPrompt
+        #            # 1 : isDecayedLeptonHadron
+        #            # 2 : isTauDecayProduct
+        #            # 3 : isPromptTauDecayProduct
+        #            # 4 : isDirectTauDecayProduct
+        #            # 5 : isDirectPromptTauDecayProduct
+        #            # 6 : isDirectHadronDecayProduct
+        #            # 7 : isHardProcess
+        #            # 8 : fromHardProcess
+        #            # 9 : isHardProcessTauDecayProduct
+        #            # 10 : isDirectHardProcessTauDecayProduct
+        #            # 11 : fromHardProcessBeforeFSR
+        #            # 12 : isFirstCopy
+        #            # 13 : isLastCopy
+        #            # 14 : isLastCopyBeforeFSR
+        #            
+        #            if int(binary[14])==0: continue
+        #            if int(binary[6])==0: continue
+        #            #print 'Tau found with status = 2 (pt, eta) = ', event.GenPart_pt[igp], event.GenPart_eta[igp], event.GenPart_statusFlags[igp]
+        #            
+        #            ngentaus += 1
+        #            _pdg_ = -1
+        #            _idx_ = event.GenPart_genPartIdxMother[igp]
+        #            #_status_ = -1
+        #            flag_resonance = False
+        #            
+        #            while abs(_pdg_) not in [9000002, 9000006]:
+        #                if _idx_==-1: break
+        #                _pdg_ = event.GenPart_pdgId[_idx_]
+        #                # _status_ = event.GenPart_status[_idx_]
+        #                _idx_ = event.GenPart_genPartIdxMother[_idx_]
+        #                if abs(_pdg_) > 30 and abs(_pdg_) not in [9000002, 9000006]: 
+        #                    flag_resonance = True
+        #                #print '\t (pdg, mother id) = ', _pdg_, _status_, _idx_
+        #            if flag_resonance: continue
+        #            _dr_ = 100.
+        #            for igvt in range(event.nGenVisTau):
+        #                dr = deltaR(event.GenPart_eta[igp], event.GenPart_phi[igp], event.GenVisTau_eta[igvt], event.GenVisTau_phi[igvt])
+        #                #print dr, _dr_, event.GenPart_eta[igp], event.GenPart_phi[igp], event.GenVisTau_eta[igvt], event.GenVisTau_phi[igvt]
+        #                if _dr_ > dr:
+        #                    _dr_ = dr
+        #            #print 'match !',_pdg_, event.nGenVisTau,  _dr_
+        #            if _dr_ < 0.1:
+        #                ngentauhads += 1
+        #    
+        #    #for igvt in range(event.nGenVisTau):
+        #    #    print 'status = ', event.GenVisTau_status[igvt], 'mother ID = ', event.GenVisTau_genPartIdxMother[igvt], 'pt = ', event.GenVisTau_pt[igvt], ', eta = ', event.GenVisTau_eta[igvt]
+        #    #    ngentauhads += 1
+        #    
+        #    if ngentaus != 2:
+        #       print 'WOW!!! ngentaus = %d != 2'%(ngentaus)
         
         
         #####################################
         self.out.h_cutflow.Fill(self.Nocut)
-        if ngentauhads == 2:
-            self.out.h_cutflow.Fill(self.Nocut_GT)
+        #if ngentauhads == 2:
+        #   self.out.h_cutflow.Fill(self.Nocut_GT)
         if not self.isData:
           self.out.h_cutflow.Fill(self.TotalWeighted, event.genWeight)
           if event.Pileup_nTrueInt>0:
             self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
         else:
           self.out.h_cutflow.Fill(self.TotalWeighted, 1.)
+          self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, 1.)
         #####################################        
         
         
@@ -149,8 +150,8 @@ class TauTauProducer(Module):
         
         #####################################
         self.out.h_cutflow.Fill(self.Trigger)
-        if ngentauhads == 2:
-            self.out.h_cutflow.Fill(self.Trigger_GT)
+        #if ngentauhads == 2:
+        #    self.out.h_cutflow.Fill(self.Trigger_GT)
         #####################################
         
         
@@ -171,8 +172,8 @@ class TauTauProducer(Module):
         
         #####################################
         self.out.h_cutflow.Fill(self.GoodTaus)
-        if ngentauhads == 2:
-            self.out.h_cutflow.Fill(self.GoodTaus_GT)
+        #if ngentauhads == 2:
+        #    self.out.h_cutflow.Fill(self.GoodTaus_GT)
         #####################################
 
         
@@ -197,8 +198,8 @@ class TauTauProducer(Module):
         
         #####################################
         self.out.h_cutflow.Fill(self.GoodDiLepton)
-        if ngentauhads == 2:
-            self.out.h_cutflow.Fill(self.GoodDiLepton_GT)
+        #if ngentauhads == 2:
+        #    self.out.h_cutflow.Fill(self.GoodDiLepton_GT)
         #####################################
         
         jetIds = [ ]
@@ -368,12 +369,14 @@ class TauTauProducer(Module):
         self.out.npvsGood[0]                   = event.PV_npvsGood
         
         if not self.isData:
-            self.out.GenMET_pt[0]              = event.GenMET_pt
-            self.out.GenMET_phi[0]             = event.GenMET_phi
-            self.out.nPU[0]                    = event.Pileup_nPU
-            self.out.nTrueInt[0]               = event.Pileup_nTrueInt
-            self.out.genWeight[0]              = event.genWeight
-            self.out.LHE_Njets[0]              = event.LHE_Njets
+          self.out.ngentauhads[0]              = ngentauhads
+          self.out.ngentaus[0]                 = ngentaus
+          self.out.GenMET_pt[0]                = event.GenMET_pt
+          self.out.GenMET_phi[0]               = event.GenMET_phi
+          self.out.nPU[0]                      = event.Pileup_nPU
+          self.out.nTrueInt[0]                 = event.Pileup_nTrueInt
+          self.out.genWeight[0]                = event.genWeight
+          self.out.LHE_Njets[0]                = event.LHE_Njets
         #print 'check (LO)', event.LHE_NpLO, type(event.LHE_NpLO)
         #print 'check (NLO)', event.LHE_NpNLO, type(event.LHE_NpNLO)        
         #self.out.LHE_NpLO[0]                   = event.LHE_NpLO
@@ -387,30 +390,30 @@ class TauTauProducer(Module):
         
         # JETS
         if len(jetIds)>0:
-            self.out.jpt_1[0]                  = event.Jet_pt[jetIds[0]]
-            self.out.jeta_1[0]                 = event.Jet_eta[jetIds[0]]
-            self.out.jphi_1[0]                 = event.Jet_phi[jetIds[0]]
-            self.out.jcsvv2_1[0]               = event.Jet_btagCSVV2[jetIds[0]]
-            self.out.jdeepb_1[0]               = event.Jet_btagDeepB[jetIds[0]]
+          self.out.jpt_1[0]                    = event.Jet_pt[jetIds[0]]
+          self.out.jeta_1[0]                   = event.Jet_eta[jetIds[0]]
+          self.out.jphi_1[0]                   = event.Jet_phi[jetIds[0]]
+          self.out.jcsvv2_1[0]                 = event.Jet_btagCSVV2[jetIds[0]]
+          self.out.jdeepb_1[0]                 = event.Jet_btagDeepB[jetIds[0]]
         else:
-            self.out.jpt_1[0]                  = -9.
-            self.out.jeta_1[0]                 = -9.
-            self.out.jphi_1[0]                 = -9.
-            self.out.jcsvv2_1[0]               = -9.
-            self.out.jdeepb_1[0]               = -9.
+          self.out.jpt_1[0]                    = -9.
+          self.out.jeta_1[0]                   = -9.
+          self.out.jphi_1[0]                   = -9.
+          self.out.jcsvv2_1[0]                 = -9.
+          self.out.jdeepb_1[0]                 = -9.
         
-        if len(jetIds)>1:
-            self.out.jpt_2[0]                  = event.Jet_pt[jetIds[1]]
-            self.out.jeta_2[0]                 = event.Jet_eta[jetIds[1]]
-            self.out.jphi_2[0]                 = event.Jet_phi[jetIds[1]]
-            self.out.jcsvv2_2[0]               = event.Jet_btagCSVV2[jetIds[1]]
-            self.out.jdeepb_2[0]               = event.Jet_btagDeepB[jetIds[1]]
+        if len(jetIds)>1:  
+          self.out.jpt_2[0]                    = event.Jet_pt[jetIds[1]]
+          self.out.jeta_2[0]                   = event.Jet_eta[jetIds[1]]
+          self.out.jphi_2[0]                   = event.Jet_phi[jetIds[1]]
+          self.out.jcsvv2_2[0]                 = event.Jet_btagCSVV2[jetIds[1]]
+          self.out.jdeepb_2[0]                 = event.Jet_btagDeepB[jetIds[1]]
         else:
-            self.out.jpt_2[0]                  = -9.
-            self.out.jeta_2[0]                 = -9.
-            self.out.jphi_2[0]                 = -9.
-            self.out.jcsvv2_2[0]               = -9.
-            self.out.jdeepb_2[0]               = -9.
+          self.out.jpt_2[0]                    = -9.
+          self.out.jeta_2[0]                   = -9.
+          self.out.jphi_2[0]                   = -9.
+          self.out.jcsvv2_2[0]                 = -9.
+          self.out.jdeepb_2[0]                 = -9.
         
         self.out.njets[0]                      = len(jetIds)
         self.out.njets50[0]                    = len([j for j in jetIds if event.Jet_pt[j]>50])
@@ -454,16 +457,17 @@ class TauTauProducer(Module):
         
         
         # WEIGHTS
-        diTauLeg1SF   = self.tauSFs.getTriggerSF(   self.out.pt_1, self.out.eta_1, self.out.phi_1 )
-        diTauLeg2SF   = self.tauSFs.getTriggerSF(   self.out.pt_2, self.out.eta_2, self.out.phi_2 )
-        diTauLeg1SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_1, self.out.eta_1, self.out.phi_1 )
-        diTauLeg2SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_2, self.out.eta_2, self.out.phi_2 )
-        self.out.ngentauhads[0]  = ngentauhads
-        self.out.ngentaus[0]     = ngentaus
-        self.out.trigweight[0]   = diTauLeg1SF*diTauLeg2SF
-        self.out.trigweightVT[0] = diTauLeg1SFVT*diTauLeg2SFVT
-        self.out.puweight[0]     = self.puTool.getWeight(event.Pileup_nTrueInt)
-        self.out.weight[0]       = self.out.trigweight[0]*self.out.puweight[0]
+        if not self.isData:
+          diTauLeg1SF   = self.tauSFs.getTriggerSF(   self.out.pt_1, self.out.eta_1, self.out.phi_1 )
+          diTauLeg2SF   = self.tauSFs.getTriggerSF(   self.out.pt_2, self.out.eta_2, self.out.phi_2 )
+          diTauLeg1SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_1, self.out.eta_1, self.out.phi_1 )
+          diTauLeg2SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_2, self.out.eta_2, self.out.phi_2 )
+          self.out.trigweight[0]    = diTauLeg1SF*diTauLeg2SF
+          self.out.trigweightVT[0]  = diTauLeg1SFVT*diTauLeg2SFVT
+          self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+          self.out.idisoweight_1[0] = self.tauSFs.getLeptonTauFakeSF(self.out.genPartFlav_1[0],self.out.eta_1[0])
+          self.out.idisoweight_2[0] = self.tauSFs.getLeptonTauFakeSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
+          self.out.weight[0]        = self.out.trigweight[0]*self.out.puweight[0]
         
         
         self.out.tree.Fill() 

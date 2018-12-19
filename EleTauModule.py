@@ -65,6 +65,7 @@ class EleTauProducer(Module):
             self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
         else:
           self.out.h_cutflow.Fill(self.TotalWeighted, 1.)
+          self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, 1.)
         #####################################
         
         
@@ -282,30 +283,30 @@ class EleTauProducer(Module):
         
         # JETS
         if len(jetIds)>0:
-            self.out.jpt_1[0]                  = event.Jet_pt[jetIds[0]]
-            self.out.jeta_1[0]                 = event.Jet_eta[jetIds[0]]
-            self.out.jphi_1[0]                 = event.Jet_phi[jetIds[0]]
-            self.out.jcsvv2_1[0]               = event.Jet_btagCSVV2[jetIds[0]]
-            self.out.jdeepb_1[0]               = event.Jet_btagDeepB[jetIds[0]]
+          self.out.jpt_1[0]                    = event.Jet_pt[jetIds[0]]
+          self.out.jeta_1[0]                   = event.Jet_eta[jetIds[0]]
+          self.out.jphi_1[0]                   = event.Jet_phi[jetIds[0]]
+          self.out.jcsvv2_1[0]                 = event.Jet_btagCSVV2[jetIds[0]]
+          self.out.jdeepb_1[0]                 = event.Jet_btagDeepB[jetIds[0]]
         else:
-            self.out.jpt_1[0]                  = -9.
-            self.out.jeta_1[0]                 = -9.
-            self.out.jphi_1[0]                 = -9.
-            self.out.jcsvv2_1[0]               = -9.
-            self.out.jdeepb_1[0]               = -9.
+          self.out.jpt_1[0]                    = -9.
+          self.out.jeta_1[0]                   = -9.
+          self.out.jphi_1[0]                   = -9.
+          self.out.jcsvv2_1[0]                 = -9.
+          self.out.jdeepb_1[0]                 = -9.
         
         if len(jetIds)>1:
-            self.out.jpt_2[0]                  = event.Jet_pt[jetIds[1]]
-            self.out.jeta_2[0]                 = event.Jet_eta[jetIds[1]]
-            self.out.jphi_2[0]                 = event.Jet_phi[jetIds[1]]
-            self.out.jcsvv2_2[0]               = event.Jet_btagCSVV2[jetIds[1]]
-            self.out.jdeepb_2[0]               = event.Jet_btagDeepB[jetIds[1]]
+          self.out.jpt_2[0]                    = event.Jet_pt[jetIds[1]]
+          self.out.jeta_2[0]                   = event.Jet_eta[jetIds[1]]
+          self.out.jphi_2[0]                   = event.Jet_phi[jetIds[1]]
+          self.out.jcsvv2_2[0]                 = event.Jet_btagCSVV2[jetIds[1]]
+          self.out.jdeepb_2[0]                 = event.Jet_btagDeepB[jetIds[1]]
         else:
-            self.out.jpt_2[0]                  = -9.
-            self.out.jeta_2[0]                 = -9.
-            self.out.jphi_2[0]                 = -9.
-            self.out.jcsvv2_2[0]               = -9.
-            self.out.jdeepb_2[0]               = -9.
+          self.out.jpt_2[0]                    = -9.
+          self.out.jeta_2[0]                   = -9.
+          self.out.jphi_2[0]                   = -9.
+          self.out.jcsvv2_2[0]                 = -9.
+          self.out.jdeepb_2[0]                 = -9.
         
         self.out.njets[0]                      = len(jetIds)
         self.out.njets50[0]                    = len([j for j in jetIds if event.Jet_pt[j]>50])
@@ -345,9 +346,12 @@ class EleTauProducer(Module):
         
         
         # WEIGHTS
-        self.out.trigweight[0] = self.eleSFs.getTriggerSF(self.out.pt_1[0], self.out.eta_1[0])
-        self.out.puweight[0]   = self.puTool.getWeight(event.Pileup_nTrueInt)
-        self.out.weight[0]     = self.out.trigweight[0]*self.out.puweight[0]
+        if not self.isData:
+          self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
+          self.out.trigweight[0]    = self.eleSFs.getTriggerSF(self.out.pt_1[0], self.out.eta_1[0])
+          self.out.idisoweight_1[0] = self.eleSFs.getIdIsoSF(self.out.pt_1[0],self.out.eta_1[0])
+          self.out.idisoweight_2[0] = self.eleSFs.getLeptonTauFakeSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
+          self.out.weight[0]        = self.out.trigweight[0]*self.out.puweight[0]
         
         
         self.out.tree.Fill()
