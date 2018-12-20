@@ -10,7 +10,7 @@ pathHTT = 'CorrectionTools/leptonEfficiencies/HTT/Muon/Run2017/'
 
 class MuonSFs:
     
-    def __init__( self ):
+    def __init__(self):
         # Load the TH1s containing the bin by bin values
         
         # TRIGGER (Muon POG)
@@ -25,27 +25,27 @@ class MuonSFs:
         ## ID (Muon POG)
         #self.sftool_trig = ScaleFactor(path+"EfficienciesAndSF_RunBtoF_Nov17Nov2017.root","IsoMu27_PtEtaBins/pt_abseta_ratio",'mu_trig')
         
-    def getTriggerSF( self, pt, eta ):
+    def getTriggerSF(self, pt, eta):
         """Get SF for single muon trigger."""
         return self.sftool_trig.getSF(pt,abs(eta))
         
-    def getIdIsoSF( self, pt, eta ):
+    def getIdIsoSF(self, pt, eta):
         """Get SF for muon identification + isolation."""
         return self.sftool_idiso.getSF(pt,eta)
         
-    def getLeptonTauFakeSF(genmatch,eta):
+    def getLeptonTauFakeSF(self, genmatch, eta):
         """Get SF for lepton to tau fake."""
         # https://indico.cern.ch/event/715039/timetable/#2-lepton-tau-fake-rates-update
         # https://indico.cern.ch/event/719250/contributions/2971854/attachments/1635435/2609013/tauid_recommendations2017.pdf
         # https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendation13TeV#Muon%20to%20tau%20fake%20rate
         eta = abs(eta)
         
-        # electron -> tau (VLoose for mutau)
+        # electron -> tau (VLoose for etau)
         if genmatch==1:
           if   eta<1.460: return 1.09
           elif eta>1.558: return 1.19
         
-        # muon -> tau (Tight for mutau)
+        # muon -> tau (Tight for etau)
         elif genmatch==2:
           if   eta<0.4: return 1.165
           elif eta<0.8: return 1.290

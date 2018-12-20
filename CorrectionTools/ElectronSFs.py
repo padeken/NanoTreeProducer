@@ -9,7 +9,7 @@ pathHTT = 'CorrectionTools/leptonEfficiencies/HTT/Electron/Run2017/'
 
 class ElectronSFs:
     
-    def __init__( self ):
+    def __init__(self):
         """Load histograms from files."""
         
         # TRIGGER (HTT)
@@ -20,17 +20,17 @@ class ElectronSFs:
         self.sftool_idiso = ScaleFactor(path+"gammaEffi.txt_EGM2D_runBCDEF_passingMVA94Xwp80iso.root","EGamma_SF2D",'ele_idiso',ptvseta=True)
         #self.sftool_idiso = ScaleFactorHTT(pathHTT+"Electron_IdIso_IsoLt0.15_IsoID_eff.root","ZMass",'ele_idiso')
         
-    def getTriggerSF( self, pt, eta ):
+    def getTriggerSF(self, pt, eta):
         """Get SF for single electron trigger."""
         return self.sftool_trig.getSF(pt,eta)
         
-    def getIdIsoSF( self, pt, eta ):
+    def getIdIsoSF(self, pt, eta):
         """Get SF for electron identification + isolation."""
         sf_reco  = self.sftool_reco.getSF(pt,eta)
         sf_idiso = self.sftool_idiso.getSF(pt,eta)
         return sf_reco*sf_idiso
     
-    def getLeptonTauFakeSF(genmatch,eta):
+    def getLeptonTauFakeSF(self, genmatch, eta):
         """Get SF for lepton to tau fake."""
         # https://indico.cern.ch/event/715039/timetable/#2-lepton-tau-fake-rates-update
         # https://indico.cern.ch/event/719250/contributions/2971854/attachments/1635435/2609013/tauid_recommendations2017.pdf

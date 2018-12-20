@@ -162,7 +162,7 @@ class TauTauSFs:
         return sf
     
     
-    def getLeptonTauFakeSF(genmatch,eta):
+    def getLeptonTauFakeSF(self, genmatch, eta):
         """Get SF for lepton to tau fake."""
         # https://indico.cern.ch/event/715039/timetable/#2-lepton-tau-fake-rates-update
         # https://indico.cern.ch/event/719250/contributions/2971854/attachments/1635435/2609013/tauid_recommendations2017.pdf
@@ -187,3 +187,4 @@ class TauTauSFs:
         #  return 0.88; // Tight
         
         return 1.0
+        
