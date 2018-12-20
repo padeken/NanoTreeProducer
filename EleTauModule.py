@@ -5,6 +5,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from TreeProducerEleTau import *
 from CorrectionTools.ElectronSFs import *
 from CorrectionTools.PileupWeightTool import *
+from CorrectionTools.LeptonTauFakeSFs import *
 
 
 class declareVariables(TreeProducerEleTau):
@@ -28,6 +29,7 @@ class EleTauProducer(Module):
 
         self.eleSFs = ElectronSFs()
         self.puTool = PileupWeightTool()
+        self.ltfSFs = LeptonTauFakeSFs('loose','tight')
 
         self.Nocut = 0
         self.Trigger = 1
@@ -351,7 +353,7 @@ class EleTauProducer(Module):
           self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.trigweight[0]    = self.eleSFs.getTriggerSF(self.out.pt_1[0], self.out.eta_1[0])
           self.out.idisoweight_1[0] = self.eleSFs.getIdIsoSF(self.out.pt_1[0],self.out.eta_1[0])
-          self.out.idisoweight_2[0] = self.eleSFs.getLeptonTauFakeSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
+          self.out.idisoweight_2[0] = self.ltfSFs.getSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
           self.out.weight[0]        = self.out.trigweight[0]*self.out.puweight[0]
         
         

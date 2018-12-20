@@ -7,6 +7,7 @@ from TreeProducerTauTau import *
 # for trigger efficiencies
 from CorrectionTools.TauTauSFs import *
 from CorrectionTools.PileupWeightTool import *
+from CorrectionTools.LeptonTauFakeSFs import *
 
 
 class declareVariables(TreeProducerTauTau):
@@ -31,6 +32,7 @@ class TauTauProducer(Module):
 
         self.tauSFs   = TauTauSFs('tight')
         self.tauSFsVT = TauTauSFs('vtight')
+        self.ltfSFs   = LeptonTauFakeSFs('loose','vloose')
         self.puTool   = PileupWeightTool()
         
         self.Nocut = 0
@@ -468,8 +470,8 @@ class TauTauProducer(Module):
           self.out.trigweight[0]    = diTauLeg1SF*diTauLeg2SF
           self.out.trigweightVT[0]  = diTauLeg1SFVT*diTauLeg2SFVT
           self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
-          self.out.idisoweight_1[0] = self.tauSFs.getLeptonTauFakeSF(self.out.genPartFlav_1[0],self.out.eta_1[0])
-          self.out.idisoweight_2[0] = self.tauSFs.getLeptonTauFakeSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
+          self.out.idisoweight_1[0] = self.ltfSFs.getSF(self.out.genPartFlav_1[0],self.out.eta_1[0])
+          self.out.idisoweight_2[0] = self.ltfSFs.getSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
           self.out.weight[0]        = self.out.trigweight[0]*self.out.puweight[0]
         
         
