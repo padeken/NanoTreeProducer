@@ -41,7 +41,7 @@ else:
     print '[warning] channel not specified'
     channel = "mutau"
 if channel=='etau':
- channel = 'eletau'
+   channel = 'eletau'
 
 
 print '-'*80
@@ -89,7 +89,6 @@ elif channel=='muele':
 else:
     print 'Unkonwn channel !!!!!!!'
     sys.exit(0)
-q
 
 if DataType=='data':
     p = PostProcessor(outputDir, infile, None, "keep_and_drop.txt", noOut=True, 
