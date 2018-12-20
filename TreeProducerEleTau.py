@@ -44,6 +44,7 @@ class TreeProducerEleTau(TreeProducerCommon):
         self.tree.Branch('mvaFall17Iso_WP90_1'        , self.mvaFall17Iso_WP90_1, 'mvaFall17Iso_WP90_1/I')
         self.tree.Branch('mvaFall17Iso_WPL_1'         , self.mvaFall17Iso_WPL_1, 'mvaFall17Iso_WPL_1/I')
         
+        self.genPartFlav_1[0]  = -1
         
         # TAU
         self.pt_2                           = num.zeros(1, dtype=float)
@@ -113,4 +114,10 @@ class TreeProducerEleTau(TreeProducerCommon):
         self.tree.Branch('genvistaupt_2'              , self.genvistaupt_2, 'genvistaupt_2/D')
         self.tree.Branch('genvistaueta_2'             , self.genvistaueta_2, 'genvistaueta_2/D')
         self.tree.Branch('genvistauphi_2'             , self.genvistauphi_2, 'genvistauphi_2/D')
-
+        
+        self.genPartFlav_2[0]  = -1
+        self.gendecayMode_2[0] = -1
+        self.genvistaupt_2[0]  = -9
+        self.genvistaueta_2[0] = -1
+        self.genvistauphi_2[0] = -9
+        
