@@ -9,11 +9,12 @@
 class LeptonTauFakeSFs:
     
     def __init__(self, antiMuWP, antiEleWP):
+        """Initialize WP-dependent SFs."""
         # Default to loading the Tau MVA Medium ID based WPs
         #self.antiMuWP = antiMuWP
         #self.antiEleWP = antiEleWP
         assert (antiMuWP in ['loose', 'tight']),\
-               "You must choose a anti-electron discriminator WP from: loose or tight"
+               "You must choose a anti-muon discriminator WP from: loose or tight"
         assert (antiEleWP in ['vloose', 'loose', 'medium', 'tight', 'vtight']),\
                "You must choose a anti-electron discriminator WP from: vloose, loose, medium, tight, or vtight"
         
@@ -39,7 +40,7 @@ class LeptonTauFakeSFs:
         
     
     def getSF(self, genmatch, eta):
-        """Get SF for lepton to tau fake."""
+        """Get anti-lepton discriminator SF for lepton to tau fake (tau objects that are faked by a leptons)."""
         eta = abs(eta)
         
         # electron -> tau
