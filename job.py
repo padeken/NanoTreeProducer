@@ -40,7 +40,8 @@ if len(sys.argv)>5:
 else:
     print '[warning] channel not specified'
     channel = "mutau"
-    
+if channel=='etau':
+ channel = 'eletau'
 
 
 print '-'*80
@@ -72,7 +73,7 @@ elif channel=='mutau':
     #from MuTauModule_sync import *
     module2run = lambda : MuTauProducer(_postfix, DataType)
 
-elif channel=='eletau' or channel=='etau':
+elif channel=='eletau':
     from EleTauModule import *
     #from EleTauModule_sync import *
     module2run = lambda : EleTauProducer(_postfix, DataType)
@@ -88,7 +89,7 @@ elif channel=='muele':
 else:
     print 'Unkonwn channel !!!!!!!'
     sys.exit(0)
-
+q
 
 if DataType=='data':
     p = PostProcessor(outputDir, infile, None, "keep_and_drop.txt", noOut=True, 
