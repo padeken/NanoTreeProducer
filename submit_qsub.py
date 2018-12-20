@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, glob
+import os, re, glob
 from commands import getoutput
 from fnmatch import fnmatch
 import itertools
@@ -16,6 +16,8 @@ parser.add_option('-s', '--sample',  dest='sample',  action="store", type=str, d
                                      help="filter this sample")
 parser.add_option('-n', '--njob',    dest='njob',    action="store", type=int, default=4,
                                      help="number of files per job")
+parser.add_option('-m', '--mock',    dest='mock',    action="store_true", default=False,
+                                     help="mock submit jobs for debugging purposes")
 (options, args) = parser.parse_args()
 
 
@@ -37,7 +39,7 @@ def checkExistingFiles(outdir,channel,njob):
       print bcolors.BOLD + bcolors.WARNING + "Warning! There already exist %d files, while the requested number of files per job is %d"%(nfiles,njob) + bcolors.ENDC
       remove = raw_input("Do you want to remove the extra files? [y/n] ")
       if remove.lower()=='y':
-        for filename in filelist:
+        for filename in sorted(filelist):
           matches = re.findall(r"_(\d+)_%s.root"%(channel),filename)
           if matches and int(matches[0])>njob:
             print "Removing %s..."%(filename)
@@ -94,10 +96,9 @@ def getFileListPNFS(dataset):
     return files 
 
    
-def createJobs(f, outdir,name,nchunks, channel, pattern):
-  infiles = []
-  
-  for files in f:
+def createJobs(jobs, filelist, outdir, name, nchunks, channel, pattern):
+  infiles = [ ]
+  for files in filelist:
       #if pattern.find('pnfs')!=-1:
       #    infiles.append("dcap://t3se01.psi.ch:22125/"+ pattern + '/' + files)
       #    infiles.append("root://cms-xrd-global.cern.ch/"+ pattern.replace('/pnfs/psi.ch/cms/trivcat','') + '/' + files)
@@ -106,7 +107,6 @@ def createJobs(f, outdir,name,nchunks, channel, pattern):
           infiles.append("dcap://t3se01.psi.ch:22125/"+files)
       else:
           infiles.append("root://cms-xrd-global.cern.ch/"+files)
-  
   cmd = 'python job.py %s %s %s %i %s \n'%(','.join(infiles), outdir,name,nchunks, channel)
   #print cmd
   jobs.write(cmd)
@@ -114,22 +114,23 @@ def createJobs(f, outdir,name,nchunks, channel, pattern):
 
 
 def submitJobs(jobName, jobList, nchunks, outdir, batchSystem):
-    print 'Reading joblist'
+    print 'Reading joblist...'
     jobListName = jobList
     print jobList
     #subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobListName)
     subCmd = 'qsub -t 1-%s -N %s -o %s/logs/ %s %s'%(nchunks,jobName,outdir,batchSystem,jobListName)
     print bcolors.BOLD + bcolors.OKBLUE + "Submitting %d jobs with \n    %s"%(nchunks,subCmd) + bcolors.ENDC
-    os.system(subCmd)
+    if not options.mock:
+      os.system(subCmd)
     return 1
     
 
-if __name__ == "__main__":
-    
+def main():
+
     batchSystem = 'psibatch_runner.sh'
     channel = options.channel
     
-    # read samples
+    # READ SAMPLES
     patterns = [ ]
     for line in open('samples.cfg', 'r'):
         if line.find('#')!=-1: continue
@@ -140,6 +141,7 @@ if __name__ == "__main__":
         patterns.append(line)
     #print patterns
 	
+	# SUBMIT SAMPLES
     for pattern in patterns:
         
         ispnfs = False
@@ -160,6 +162,7 @@ if __name__ == "__main__":
         if channel=='eletau':
             if pattern.find('/SingleMuon')!=-1 or pattern.find('/Tau')!=-1: continue
         
+        print bcolors.BOLD + bcolors.OKGREEN + pattern + bcolors.ENDC
         files = None
         name = None
         
@@ -171,7 +174,6 @@ if __name__ == "__main__":
             files = getFileListDAS(pattern)
             name = pattern.split('/')[1].replace('/','') + '__' + pattern.split('/')[2].replace('/','') + '__' + pattern.split('/')[3].replace('/','')
         
-        print pattern, 'filter =', options.sample
         #if files:
         #  print "FILELIST = "+files[0]
         #  for file in files[1:]:
@@ -183,8 +185,7 @@ if __name__ == "__main__":
         
         # JOBLIST
         jobList = 'joblist/joblist%s_%s.txt'%(name,channel)
-        print "creating job file %s"%(jobList)
-        print 
+        print "Creating job file %s..."%(jobList)
         try: os.stat('joblist/')
         except: os.mkdir('joblist/')
         jobName = getSampleName(pattern)[1]
@@ -195,9 +196,8 @@ if __name__ == "__main__":
         
         # NJOBS CHECKS
         if njob>1 and any(v==jobName for v in [ 'WW', 'WZ', 'ZZ' ]):
-          print "Warning: Setting number of files per job from %s to 1 for %s"%(njob,jobName)
+          print bcolors.BOLD + bcolors.WARNING + "Warning: Setting number of files per job from %s to 1 for %s"%(njob,jobName) + bcolors.ENDC
           njob = 1
-        checkExistingFiles(outdir,channel,njob)
         
         try: os.stat(outdir)
         except: os.mkdir(outdir)
@@ -206,10 +206,11 @@ if __name__ == "__main__":
         
         # CREATE JOBS
         filelists = list(split_seq(files,njob))
+        checkExistingFiles(outdir,channel,len(filelists))
         #filelists = list(split_seq(files,1))
         for file in filelists:
         #print "FILES = ",f
-            createJobs(file,outdir,name,nChunks,channel,pattern)
+            createJobs(jobs, file,outdir,name,nChunks,channel,pattern)
             nChunks = nChunks+1
         jobs.close()
         
@@ -225,6 +226,14 @@ if __name__ == "__main__":
             submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
           else:
             print "Not submitting jobs"
+        print
+
+
+
+if __name__ == "__main__":
+    print
+    main()
+    print "Done\n"
 		
 		
 		
