@@ -6,7 +6,7 @@
 
 
 
-class LeptonTauFakeSF:
+class LeptonTauFakeSFs:
     
     def __init__(self, antiMuWP, antiEleWP):
         # Default to loading the Tau MVA Medium ID based WPs
@@ -38,14 +38,14 @@ class LeptonTauFakeSF:
           self.antiEleSFs = (1.96, 1.66)
         
     
-    def getLeptonTauFakeSF(self, genmatch, eta):
+    def getSF(self, genmatch, eta):
         """Get SF for lepton to tau fake."""
         eta = abs(eta)
         
         # electron -> tau
         if genmatch==1:
-          if   eta<1.460: return self.antiEleWP[0]
-          elif eta>1.558: return self.antiEleWP[1]
+          if   eta<1.460: return self.antiEleSFs[0]
+          elif eta>1.558: return self.antiEleSFs[1]
         
         # muon -> tau
         elif genmatch==2:
