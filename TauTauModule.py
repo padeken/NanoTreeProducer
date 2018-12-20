@@ -13,23 +13,22 @@ from CorrectionTools.LeptonTauFakeSFs import *
 class declareVariables(TreeProducerTauTau):
     
     def __init__(self, name):
-
+        
         super(declareVariables, self).__init__(name)
 
 
 class TauTauProducer(Module):
 
     def __init__(self, name, DataType):
-
+        
         self.name = name
         self.out = declareVariables(name)
-
+        
         if DataType=='data':
             self.isData = True
         else:
             self.isData = False
-
-
+        
         self.tauSFs   = TauTauSFs('tight')
         self.tauSFsVT = TauTauSFs('vtight')
         self.ltfSFs   = LeptonTauFakeSFs('loose','vloose')
@@ -38,16 +37,28 @@ class TauTauProducer(Module):
         self.Nocut = 0
         self.Trigger = 1
         self.GoodTaus = 2
-        self.GoodDiLepton = 3
+        self.GoodDiTau = 3
         
         self.Nocut_GT = 20
         self.Trigger_GT = 21
         self.GoodTaus_GT = 22
-        self.GoodDiLepton_GT = 23
-
+        self.GoodDiTau_GT = 23
+        
         self.TotalWeighted = 15
         self.TotalWeighted_no0PU = 16
-
+        
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.Nocut,               "no cut"                 )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.Trigger,             "trigger"                )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodTaus,            "tau objects"            )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodDiTau,           "ditau pair"             )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.Nocut_GT,            "no cut, GM"             )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.Trigger_GT,          "trigger, GM"            )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodTaus_GT,         "tau objects, GM"        )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodDiTau_GT,        "ditau pair, GM"         )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted,       "no cut, weighted"       )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted_no0PU, "no cut, weighted, PU>0" )
+        self.out.cutflow.GetXaxis().SetLabelSize(0.041)
+    
     def beginJob(self):
         pass
 
@@ -129,16 +140,21 @@ class TauTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.Nocut)
+        self.out.cutflow.Fill(self.Nocut)
         #if ngentauhads == 2:
-        #   self.out.h_cutflow.Fill(self.Nocut_GT)
-        if not self.isData:
-          self.out.h_cutflow.Fill(self.TotalWeighted, event.genWeight)
-          if event.Pileup_nTrueInt>0:
-            self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
+        #   self.out.cutflow.Fill(self.Nocut_GT)
+        if self.isData:
+          self.out.cutflow.Fill(self.TotalWeighted, 1.)
+          if event.PV_npvs>0:
+            self.out.cutflow.Fill(self.TotalWeighted_no0PU, 1.)
+          else:
+            return False
         else:
-          self.out.h_cutflow.Fill(self.TotalWeighted, 1.)
-          self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, 1.)
+          self.out.cutflow.Fill(self.TotalWeighted, event.genWeight)
+          if event.Pileup_nTrueInt>0:
+            self.out.cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
+          else:
+            return False
         #####################################        
         
         
@@ -151,9 +167,9 @@ class TauTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.Trigger)
+        self.out.cutflow.Fill(self.Trigger)
         #if ngentauhads == 2:
-        #    self.out.h_cutflow.Fill(self.Trigger_GT)
+        #    self.out.cutflow.Fill(self.Trigger_GT)
         #####################################
         
         
@@ -173,9 +189,9 @@ class TauTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.GoodTaus)
+        self.out.cutflow.Fill(self.GoodTaus)
         #if ngentauhads == 2:
-        #    self.out.h_cutflow.Fill(self.GoodTaus_GT)
+        #    self.out.cutflow.Fill(self.GoodTaus_GT)
         #####################################
 
         
@@ -199,9 +215,9 @@ class TauTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.GoodDiLepton)
+        self.out.cutflow.Fill(self.GoodDiTau)
         #if ngentauhads == 2:
-        #    self.out.h_cutflow.Fill(self.GoodDiLepton_GT)
+        #    self.out.cutflow.Fill(self.GoodDiTau_GT)
         #####################################
         
         jetIds = [ ]

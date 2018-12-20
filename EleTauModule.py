@@ -11,26 +11,26 @@ from CorrectionTools.LeptonTauFakeSFs import *
 class declareVariables(TreeProducerEleTau):
     
     def __init__(self, name):
-
+        
         super(declareVariables, self).__init__(name)
 
 
 class EleTauProducer(Module):
-
+    
     def __init__(self, name, DataType):
-
+        
         self.name = name
         self.out = declareVariables(name)
-
+        
         if DataType=='data':
             self.isData = True
         else:
             self.isData = False
-
+        
         self.eleSFs = ElectronSFs()
         self.puTool = PileupWeightTool()
         self.ltfSFs = LeptonTauFakeSFs('loose','tight')
-
+        
         self.Nocut = 0
         self.Trigger = 1
         self.GoodElectrons = 2
@@ -38,7 +38,16 @@ class EleTauProducer(Module):
         self.GoodDiLepton = 4
         self.TotalWeighted = 15
         self.TotalWeighted_no0PU = 16
-
+        
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.Nocut,               "no cut"                 )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.Trigger,             "trigger"                )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodElectrons,       "electron object"        )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodTaus,            "tau object"             )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodDiLepton,        "eletau pair"            )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted,       "no cut, weighted"       )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted_no0PU, "no cut, weighted, PU>0" )
+        self.out.cutflow.GetXaxis().SetLabelSize(0.041)
+    
     def beginJob(self):
         pass
 
@@ -60,14 +69,19 @@ class EleTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.Nocut)
-        if not self.isData:
-          self.out.h_cutflow.Fill(self.TotalWeighted, event.genWeight)
-          if event.Pileup_nTrueInt>0:
-            self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
+        self.out.cutflow.Fill(self.Nocut)
+        if self.isData:
+          self.out.cutflow.Fill(self.TotalWeighted, 1.)
+          if event.PV_npvs>0:
+            self.out.cutflow.Fill(self.TotalWeighted_no0PU, 1.)
+          else:
+            return False
         else:
-          self.out.h_cutflow.Fill(self.TotalWeighted, 1.)
-          self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, 1.)
+          self.out.cutflow.Fill(self.TotalWeighted, event.genWeight)
+          if event.Pileup_nTrueInt>0:
+            self.out.cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
+          else:
+            return False
         #####################################
         
         
@@ -78,7 +92,7 @@ class EleTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.Trigger)
+        self.out.cutflow.Fill(self.Trigger)
         #####################################
         
         
@@ -98,7 +112,7 @@ class EleTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.GoodElectrons)
+        self.out.cutflow.Fill(self.GoodElectrons)
         #####################################
         
         
@@ -118,7 +132,7 @@ class EleTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.GoodTaus)
+        self.out.cutflow.Fill(self.GoodTaus)
         #####################################
         
         
@@ -143,7 +157,7 @@ class EleTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.GoodDiLepton)
+        self.out.cutflow.Fill(self.GoodDiLepton)
         #####################################
         
         

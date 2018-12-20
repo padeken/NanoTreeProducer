@@ -5,12 +5,13 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from TreeProducerMuTau import *
 from CorrectionTools.MuonSFs import *
 from CorrectionTools.PileupWeightTool import *
+from CorrectionTools.LeptonTauFakeSFs import *
 
 
 class declareVariables(TreeProducerMuTau):
     
     def __init__(self, name):
-
+        
         super(declareVariables, self).__init__(name)
 
 
@@ -28,6 +29,7 @@ class MuTauProducer(Module):
         
         self.muSFs  = MuonSFs()
         self.puTool = PileupWeightTool()
+        self.ltfSFs = LeptonTauFakeSFs('tight','vloose')
         
         self.Nocut = 0
         self.Trigger = 1
@@ -36,10 +38,19 @@ class MuTauProducer(Module):
         self.GoodDiLepton = 4
         self.TotalWeighted = 15
         self.TotalWeighted_no0PU = 16
-
+        
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.Nocut,               "no cut"                 )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.Trigger,             "trigger"                )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodMuons,           "muon object"            )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodTaus,            "tau object"             )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodDiLepton,        "mutau pair"             )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted,       "no cut, weighted"       )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted_no0PU, "no cut, weighted, PU>0" )
+        self.out.cutflow.GetXaxis().SetLabelSize(0.041)
+        
     def beginJob(self):
         pass
-
+    
     def endJob(self):
         self.out.outputfile.Write()
         self.out.outputfile.Close()
@@ -55,21 +66,26 @@ class MuTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.Nocut)
-        if not self.isData:
-          self.out.h_cutflow.Fill(self.TotalWeighted, event.genWeight)
-          if event.Pileup_nTrueInt>0:
-            self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
+        self.out.cutflow.Fill(self.Nocut)
+        if self.isData:
+          self.out.cutflow.Fill(self.TotalWeighted, 1.)
+          if event.PV_npvs>0:
+            self.out.cutflow.Fill(self.TotalWeighted_no0PU, 1.)
+          else:
+            return False
         else:
-          self.out.h_cutflow.Fill(self.TotalWeighted, 1.)
-          self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, 1.)
+          self.out.cutflow.Fill(self.TotalWeighted, event.genWeight)
+          if event.Pileup_nTrueInt>0:
+            self.out.cutflow.Fill(self.TotalWeighted_no0PU, event.genWeight)
+          else:
+            return False
         #####################################
         
         if not (event.HLT_IsoMu24 or event.HLT_IsoMu27):
             return False
         
         #####################################
-        self.out.h_cutflow.Fill(self.Trigger)
+        self.out.cutflow.Fill(self.Trigger)
         #####################################
         
         idx_goodmuons = []
@@ -86,7 +102,7 @@ class MuTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.GoodMuons)
+        self.out.cutflow.Fill(self.GoodMuons)
         #####################################
         
         
@@ -106,7 +122,7 @@ class MuTauProducer(Module):
 
 
         #####################################
-        self.out.h_cutflow.Fill(self.GoodTaus)
+        self.out.cutflow.Fill(self.GoodTaus)
         #####################################
 
         
@@ -132,7 +148,7 @@ class MuTauProducer(Module):
         
         
         #####################################
-        self.out.h_cutflow.Fill(self.GoodDiLepton)
+        self.out.cutflow.Fill(self.GoodDiLepton)
         #####################################
         
         
@@ -336,7 +352,7 @@ class MuTauProducer(Module):
           self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.trigweight[0]    = self.muSFs.getTriggerSF(self.out.pt_1[0],self.out.eta_1[0])
           self.out.idisoweight_1[0] = self.muSFs.getIdIsoSF(self.out.pt_1[0],self.out.eta_1[0])
-          self.out.idisoweight_2[0] = self.muSFs.getLeptonTauFakeSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
+          self.out.idisoweight_2[0] = self.ltfSFs.getSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
           self.out.weight[0]        = self.out.trigweight[0]*self.out.puweight[0]
         
         
