@@ -43,11 +43,10 @@ class MuTauProducer(Module):
     def endJob(self):
         self.out.outputfile.Write()
         self.out.outputfile.Close()
-
+    
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
-
-
+    
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):        
         pass
         
@@ -66,7 +65,7 @@ class MuTauProducer(Module):
           self.out.h_cutflow.Fill(self.TotalWeighted_no0PU, 1.)
         #####################################
         
-        if not (event.HLT_IsoMu24 or event.HLT_IsoMu27): # TODO: add lower-pT trigger!
+        if not (event.HLT_IsoMu24 or event.HLT_IsoMu27):
             return False
         
         #####################################
@@ -169,8 +168,7 @@ class MuTauProducer(Module):
         #for lep in electrons :
         #    eventSum += lep.p4()
         #for j in filter(self.jetSel,jets):
-        #    eventSum += j.p4()
-        
+        #    eventSum += j.p4()   
         
         # MUON
         self.out.pt_1[0]                       = event.Muon_pt[ltau.id1]
@@ -263,7 +261,10 @@ class MuTauProducer(Module):
           self.out.nPU[0]                      = event.Pileup_nPU
           self.out.nTrueInt[0]                 = event.Pileup_nTrueInt
           self.out.genWeight[0]                = event.genWeight
-          self.out.LHE_Njets[0]                = event.LHE_Njets
+          try:
+            self.out.LHE_Njets[0]              = event.LHE_Njets
+          except RuntimeError:
+            self.out.LHE_Njets[0]              = -1
         
         
         # JETS

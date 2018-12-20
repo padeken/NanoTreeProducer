@@ -273,25 +273,25 @@ class TauTauProducer(Module):
         
         # GENERATOR 1
         if not self.isData:
-            self.out.genPartFlav_1[0]              = ord(event.Tau_genPartFlav[ditau.id1])
-            genvistau = Collection(event, 'GenVisTau')
-            _drmax_ = 1000
-            gendm = -1
-            genpt = -1
-            geneta = -1
-            genphi = -1
-            for igvt in range(event.nGenVisTau):
-                _dr_ = genvistau[igvt].p4().DeltaR(taus[ditau.id1].p4())
-                if _dr_ < 0.5 and _dr_ < _drmax_:
-                    _drmax_ = _dr_
-                    gendm = event.GenVisTau_status[igvt]
-                    genpt = event.GenVisTau_pt[igvt]
-                    geneta = event.GenVisTau_eta[igvt]
-                    genphi = event.GenVisTau_phi[igvt]
-            self.out.gendecayMode_1[0]         = gendm
-            self.out.genvistaupt_1[0]          = genpt
-            self.out.genvistaueta_1[0]         = geneta
-            self.out.genvistauphi_1[0]         = genphi
+          self.out.genPartFlav_1[0]            = ord(event.Tau_genPartFlav[ditau.id1])
+          genvistau = Collection(event, 'GenVisTau')
+          _drmax_ = 1000
+          gendm = -1
+          genpt = -1
+          geneta = -1
+          genphi = -1
+          for igvt in range(event.nGenVisTau):
+              _dr_ = genvistau[igvt].p4().DeltaR(taus[ditau.id1].p4())
+              if _dr_ < 0.5 and _dr_ < _drmax_:
+                  _drmax_ = _dr_
+                  gendm = event.GenVisTau_status[igvt]
+                  genpt = event.GenVisTau_pt[igvt]
+                  geneta = event.GenVisTau_eta[igvt]
+                  genphi = event.GenVisTau_phi[igvt]
+          self.out.gendecayMode_1[0]           = gendm
+          self.out.genvistaupt_1[0]            = genpt
+          self.out.genvistaueta_1[0]           = geneta
+          self.out.genvistauphi_1[0]           = genphi
         
         
         # TAU 2
@@ -375,8 +375,10 @@ class TauTauProducer(Module):
           self.out.GenMET_phi[0]               = event.GenMET_phi
           self.out.nPU[0]                      = event.Pileup_nPU
           self.out.nTrueInt[0]                 = event.Pileup_nTrueInt
-          self.out.genWeight[0]                = event.genWeight
-          self.out.LHE_Njets[0]                = event.LHE_Njets
+          try:
+            self.out.LHE_Njets[0]              = event.LHE_Njets
+          except RuntimeError:
+            self.out.LHE_Njets[0]              = -1
         #print 'check (LO)', event.LHE_NpLO, type(event.LHE_NpLO)
         #print 'check (NLO)', event.LHE_NpNLO, type(event.LHE_NpNLO)        
         #self.out.LHE_NpLO[0]                   = event.LHE_NpLO
@@ -462,6 +464,7 @@ class TauTauProducer(Module):
           diTauLeg2SF   = self.tauSFs.getTriggerSF(   self.out.pt_2, self.out.eta_2, self.out.phi_2 )
           diTauLeg1SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_1, self.out.eta_1, self.out.phi_1 )
           diTauLeg2SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_2, self.out.eta_2, self.out.phi_2 )
+          self.out.genWeight[0]     = event.genWeight
           self.out.trigweight[0]    = diTauLeg1SF*diTauLeg2SF
           self.out.trigweightVT[0]  = diTauLeg1SFVT*diTauLeg2SFVT
           self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)

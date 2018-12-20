@@ -273,12 +273,13 @@ class EleTauProducer(Module):
         self.out.npvsGood[0]                   = event.PV_npvsGood
         
         if not self.isData:
-            self.out.GenMET_pt[0]              = event.GenMET_pt
-            self.out.GenMET_phi[0]             = event.GenMET_phi
-            self.out.nPU[0]                    = event.Pileup_nPU
-            self.out.nTrueInt[0]               = event.Pileup_nTrueInt
-            self.out.genWeight[0]              = event.genWeight
-            self.out.LHE_Njets[0]              = event.LHE_Njets
+          self.out.GenMET_pt[0]                = event.GenMET_pt
+          self.out.GenMET_phi[0]               = event.GenMET_phi
+          self.out.nPU[0]                      = event.Pileup_nPU
+          self.out.nTrueInt[0]                 = event.Pileup_nTrueInt
+          self.out.genWeight[0]                = event.genWeight
+          #self.out.LHE_Njets[0]                = event.LHE_Njets
+          self.out.LHE_Njets[0]                = getattr(event,'LHE_Njets',-1)
         
         
         # JETS
