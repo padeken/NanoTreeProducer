@@ -162,29 +162,29 @@ class TauTauSFs:
         return sf
     
     
-    def getLeptonTauFakeSF(self, genmatch, eta):
-        """Get SF for lepton to tau fake."""
-        # https://indico.cern.ch/event/715039/timetable/#2-lepton-tau-fake-rates-update
-        # https://indico.cern.ch/event/719250/contributions/2971854/attachments/1635435/2609013/tauid_recommendations2017.pdf
-        # https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendation13TeV#Muon%20to%20tau%20fake%20rate
-        eta = abs(eta)
-        
-        # electron -> tau (VLoose for tautau)
-        if genmatch==1:
-          if   eta<1.460: return 1.09
-          elif eta>1.558: return 1.19
-        
-        # muon -> tau (Loose for tautau)
-        elif genmatch==2:
-          if   eta<0.4: return 1.061
-          elif eta<0.8: return 1.022
-          elif eta<1.2: return 1.097
-          elif eta<1.7: return 1.030
-          else:         return 1.941
-        
-        # real tau (Tight)
-        #elif genmatch_2==5
-        #  return 0.88; // Tight
-        
-        return 1.0
+    #def getLeptonTauFakeSF(self, genmatch, eta):
+    #    """Get SF for lepton to tau fake."""
+    #    # https://indico.cern.ch/event/715039/timetable/#2-lepton-tau-fake-rates-update
+    #    # https://indico.cern.ch/event/719250/contributions/2971854/attachments/1635435/2609013/tauid_recommendations2017.pdf
+    #    # https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendation13TeV#Muon%20to%20tau%20fake%20rate
+    #    eta = abs(eta)
+    #    
+    #    # electron -> tau (VLoose for tautau)
+    #    if genmatch==1:
+    #      if   eta<1.460: return 1.09
+    #      elif eta>1.558: return 1.19
+    #    
+    #    # muon -> tau (Loose for tautau)
+    #    elif genmatch==2:
+    #      if   eta<0.4: return 1.061
+    #      elif eta<0.8: return 1.022
+    #      elif eta<1.2: return 1.097
+    #      elif eta<1.7: return 1.030
+    #      else:         return 1.941
+    #    
+    #    # real tau (Tight)
+    #    #elif genmatch_2==5
+    #    #  return 0.88; // Tight
+    #    
+    #    return 1.0
         
