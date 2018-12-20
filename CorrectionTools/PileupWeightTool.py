@@ -29,6 +29,6 @@ class PileupWeightTool:
         if mc>0.:
           return data/mc
         
-        print ">>> PileupWeightTools::getWeight: could not make pileup weight: data=%s, mc=%s"%(data,mc)  
+        print ">>> Warning! PileupWeightTools::getWeight: Could not make pileup weight for npu=%s data=%s, mc=%s"%(npu,data,mc)  
         return 1.
     
