@@ -4,21 +4,23 @@ import os, re, glob
 from commands import getoutput
 from fnmatch import fnmatch
 import itertools
-import optparse
+from argparse import ArgumentParser
 from checkFiles import getSampleName
 
-parser = optparse.OptionParser()
-parser.add_option('-f', '--force',   dest='force',   action="store_true", default=False,
-                                     help="do not ask for confirmation before submission of jobs")
-parser.add_option('-c', '--channel', dest='channel', action="store", type=str, default="mutau",
-                                     help="channels to submit")
-parser.add_option('-s', '--sample',  dest='sample',  action="store", type=str, default=None,
-                                     help="filter this sample")
-parser.add_option('-n', '--njob',    dest='njob',    action="store", type=int, default=4,
-                                     help="number of files per job")
-parser.add_option('-m', '--mock',    dest='mock',    action="store_true", default=False,
-                                     help="mock submit jobs for debugging purposes")
-(options, args) = parser.parse_args()
+parser = ArgumentParser()
+parser.add_argument('-f', '--force',   dest='force',   action="store_true", default=False,
+                                       help="do not ask for confirmation before submission of jobs" )
+parser.add_argument('-c', '--channel', dest='channel', action="store", type=str, default="mutau",
+                                       help="channels to submit" )
+parser.add_argument('-s', '--sample',  dest='sample',  action="store", type=str, default=None,
+                                       help="filter this sample" )
+parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
+                                       help="select year")
+parser.add_argument('-n', '--njob',    dest='njob',    action="store", type=int, default=4,
+                                       help="number of files per job" )
+parser.add_argument('-m', '--mock',    dest='mock',    action="store_true", default=False,
+                                       help="mock submit jobs for debugging purposes" )
+args = parser.parse_args()
 
 
 class bcolors:
@@ -120,19 +122,20 @@ def submitJobs(jobName, jobList, nchunks, outdir, batchSystem):
     #subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobListName)
     subCmd = 'qsub -t 1-%s -N %s -o %s/logs/ %s %s'%(nchunks,jobName,outdir,batchSystem,jobListName)
     print bcolors.BOLD + bcolors.OKBLUE + "Submitting %d jobs with \n    %s"%(nchunks,subCmd) + bcolors.ENDC
-    if not options.mock:
+    if not args.mock:
       os.system(subCmd)
     return 1
     
 
 def main():
-
+    
     batchSystem = 'psibatch_runner.sh'
-    channel = options.channel
+    channel = args.channel
+    samplelist = "samples_%s.cfg"%(args.year)
     
     # READ SAMPLES
     patterns = [ ]
-    for line in open('samples.cfg', 'r'):
+    for line in open(samplelist, 'r'):
         if line.find('#')!=-1: continue
         line = line.rstrip()
         if line=='': continue
@@ -148,10 +151,10 @@ def main():
         if pattern.find('pnfs')!=-1:
             ispnfs = True
         
-        if options.sample!=None:
-            if '*' in options.sample or '?' in options.sample:
-              if not fnmatch(pattern,'*'+options.sample+'*'): continue
-            elif pattern.find(options.sample)==-1: continue
+        if args.sample!=None:
+            if '*' in args.sample or '?' in args.sample:
+              if not fnmatch(pattern,'*'+args.sample+'*'): continue
+            elif pattern.find(args.sample)==-1: continue
         
         if channel=='tautau':
             if pattern.find('/SingleMuon')!=-1 or pattern.find('/SingleElectron')!=-1: continue
@@ -190,7 +193,7 @@ def main():
         except: os.mkdir('joblist/')
         jobName = getSampleName(pattern)[1]
         jobs = open(jobList, 'w')
-        njob = options.njob
+        njob = args.njob
         nChunks = 0
         outdir = name
         
@@ -215,13 +218,13 @@ def main():
         jobs.close()
         
         # SUBMIT
-        if options.force:
+        if args.force:
           submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
         else:
           submit = raw_input("Do you also want to submit %d jobs to the batch system? [y/n] "%(nChunks))
           if submit.lower()=='force':
             submit = 'y'
-            options.force = True
+            args.force = True
           if submit.lower()=='y':
             submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
           else:
