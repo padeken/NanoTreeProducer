@@ -108,94 +108,98 @@ haddsets = {
 
 def main():
   for channel in args.channels:
-    for directory in sorted(os.listdir("./")):
-        if not os.path.isdir(directory): continue
-        if args.samples and not matchSample(args.samples,directory): continue
+    
+    # HADD samples
+    if not args.haddother or args.make:
+      for directory in sorted(os.listdir("./")):
+          if not os.path.isdir(directory): continue
+          if args.samples and not matchSample(args.samples,directory): continue
+          
+          subdir, samplename = getSampleName(directory)
+          outdir  = "%s/%s"%(args.outdir,subdir)
+          outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
+          infiles = '%s/*_%s.root'%(directory,channel)
+          
+          #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
+          filelist = glob.glob(infiles)
+          if not filelist: continue
+          
+          flag  = False
+          files = [ ]
+          for file2check in filelist:
+            file = TFile(file2check, 'READ')
+            if not file.GetListOfKeys().Contains("tree"):
+              files.append(file2check)
+              flag = True
+              #rmcmd = 'rm %s' %file2check
+              #print rmcmd
+              #os.system(rmcmd)
+              print bcolors.FAIL + '[NG] no tree found in ' + file2check + bcolors.ENDC
+            file.Close()
         
-        subdir, samplename = getSampleName(directory)
-        outdir  = "%s/%s"%(args.outdir,subdir)
-        outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
-        infiles = '%s/*_%s.root'%(directory,channel)
-        
-        #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
-        filelist = glob.glob(infiles)     
-        
-        if not filelist: continue
-        
-        flag  = False
-        files = [ ]
-        
-        for file2check in filelist:
-          file = TFile(file2check, 'READ')
-          if not file.GetListOfKeys().Contains("tree"):
-            files.append(file2check)
-            flag = True
-            #rmcmd = 'rm %s' %file2check
-            #print rmcmd
-            #os.system(rmcmd)
-            print bcolors.FAIL + '[NG] no tree found in ' + file2check + bcolors.ENDC
-          file.Close()
-        
-        if flag:
-          print bcolors.FAIL + "[NG] " + directory + bcolors.ENDC
-          print '   ', len(files), ' out of ', len(filelist), ' files have no tree!'
-          #continue
-        else:
-          print bcolors.BOLD + bcolors.OKGREEN + '[OK] ' + directory + ' ... can be hadded ' + bcolors.ENDC
-      
-        if os.path.isfile(outfile):
-          if args.compareToDas and directory.find('LQ3')<0:
-            compareEventsToDAS(outfile,directory)
+          if flag:
+            print bcolors.FAIL + "[NG] " + directory + bcolors.ENDC
+            print '   ', len(files), ' out of ', len(filelist), ' files have no tree!'
+            #continue
           else:
-            print bcolors.BOLD + bcolors.OKBLUE + '    [OK] ' + directory + bcolors.ENDC
-          print 
+            print bcolors.BOLD + bcolors.OKGREEN + '[OK] ' + directory + ' ... can be hadded ' + bcolors.ENDC
+          
+          if os.path.isfile(outfile):
+            if args.compareToDas and directory.find('LQ3')<0:
+              compareEventsToDAS(outfile,directory)
+            else:
+              print bcolors.BOLD + bcolors.OKBLUE + '    [OK] ' + directory + bcolors.ENDC
+            print 
         
-        # HADD
-        if args.make:
-            ensureDirectory(outdir)
-            if os.path.isfile(outfile):
-              if args.force:
-                print bcolors.BOLD + bcolors.WARNING + "[WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
-              else:
-                print bcolors.BOLD + bcolors.FAIL + "[NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
-                continue
-            
-            haddcmd = 'hadd -f %s %s'%(outfile,infiles)
-            #print haddcmd
-            os.system(haddcmd)
-          
-            if directory.find('LQ3')!=-1:
-                skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
-                rmcmd = 'rm %s'%(infiles)
-                #os.system(skimcmd)
-                #os.system(rmcmd)
-                continue
-            compareEventsToDAS(outfile,directory)
-          
-            skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
-            #os.system(skimcmd)
-          
-            # cleaning up ...
-            rmcmd = 'rm %s'%(infiles)
-            #os.system(rmcmd)
-            print
+          # HADD
+          if args.make:
+              ensureDirectory(outdir)
+              if os.path.isfile(outfile):
+                if args.force:
+                  print bcolors.BOLD + bcolors.WARNING + "   [WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
+                else:
+                  print bcolors.BOLD + bcolors.FAIL + "   [NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
+                  continue
+              
+              haddcmd = 'hadd -f %s %s'%(outfile,infiles)
+              #print haddcmd
+              os.system(haddcmd)
+              
+              if directory.find('LQ3')!=-1:
+                  skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
+                  rmcmd = 'rm %s'%(infiles)
+                  #os.system(skimcmd)
+                  #os.system(rmcmd)
+                  continue
+              compareEventsToDAS(outfile,directory)
+              
+              skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
+              #os.system(skimcmd)
+              
+              # cleaning up ...
+              rmcmd = 'rm %s'%(infiles)
+              #os.system(rmcmd)
+              print
       
     # HADD other
     if args.haddother:
-        for (subdir,samplename), sampleset in haddsets.iteritems():
+      for (subdir,samplename), sampleset in haddsets.iteritems():
           if args.samples and not matchSample(args.samples,samplename): continue
-        
+          
           outdir  = "%s/%s"%(args.outdir,subdir)
           outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
           infiles = ['%s/%s_%s.root'%(outdir,s,channel) for s in sampleset] #.replace('ele','e')
           ensureDirectory(outdir)
-        
+          
+          # OVERWRITE ?
           if os.path.isfile(outfile):
             if args.force:
               print bcolors.BOLD + bcolors.WARNING + "[WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
             else:
               print bcolors.BOLD + bcolors.FAIL + "[NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
               continue
+          
+          # CHECK FILES  
           for infile in infiles[:]:
             if '*' in infile or '?' in infile:
               if not glob.glob(infile):
@@ -204,16 +208,16 @@ def main():
             elif not os.path.isfile(infile):
               print bcolors.BOLD + bcolors.FAIL + '[NG] infile %s does not exists! Removing from hadd list for "%s"...'%(infile,samplename) + bcolors.ENDC
               infiles.remove(infile)
-        
+          
+          # HADD
           if len(infiles)>0:
             print bcolors.BOLD + bcolors.OKGREEN + '[OK] hadding %s' %(outfile) + bcolors.ENDC
             haddcmd = 'hadd -f %s %s'%(outfile,' '.join(infiles))
+            print haddcmd
+            os.system(haddcmd)
           else:
             print bcolors.BOLD + bcolors.WARNING + "[WN] no files to hadd!" + bcolors.ENDC
-        
-          print haddcmd
-          os.system(haddcmd)
-        
+          
           print
         
 
