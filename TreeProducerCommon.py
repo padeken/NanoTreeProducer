@@ -18,9 +18,9 @@ class TreeProducerCommon(object):
         self.h_cutflow = ROOT.TH1F("h_cutflow", "h_cutflow", 50, 0, 50)
 
         
-        ##################
-        # event variables
-        ##################
+        ###################
+        # event variables #
+        ###################
 
         self.run                        = num.zeros(1, dtype=int)
         self.luminosityBlock            = num.zeros(1, dtype=int)        
@@ -46,8 +46,8 @@ class TreeProducerCommon(object):
         self.weight                     = num.zeros(1, dtype=float)
         self.trigweight                 = num.zeros(1, dtype=float)
         self.puweight                   = num.zeros(1, dtype=float)
-        self.isisoweight_1              = num.zeros(1, dtype=float)
-        self.isisoweight_2              = num.zeros(1, dtype=float)
+        self.idisoweight_1              = num.zeros(1, dtype=float)
+        self.idisoweight_2              = num.zeros(1, dtype=float)
         
         self.tree.Branch('run'                       , self.run, 'run/I')
         self.tree.Branch('luminosityBlock'           , self.luminosityBlock, 'luminosityBlock/I')
@@ -70,8 +70,15 @@ class TreeProducerCommon(object):
         self.tree.Branch('weight'                    , self.weight, 'weight/D')
         self.tree.Branch('trigweight'                , self.trigweight, 'trigweight/D')
         self.tree.Branch('puweight'                  , self.puweight, 'puweight/D')
-        self.tree.Branch('isisoweight_1'             , self.isisoweight_1, 'isisoweight_1/D')
-        self.tree.Branch('isisoweight_2'             , self.isisoweight_2, 'isisoweight_2/D')
+        self.tree.Branch('idisoweight_1'             , self.idisoweight_1, 'idisoweight_1/D') # TODO: update
+        self.tree.Branch('idisoweight_2'             , self.idisoweight_2, 'idisoweight_2/D')
+        
+        self.weight[0]        = 1.
+        self.genWeight[0]     = 1.
+        self.trigweight[0]    = 1.
+        self.puweight[0]      = 1.
+        self.idisoweight_1[0] = 1.
+        self.idisoweight_2[0] = 1.
         
         
         self.njets                      = num.zeros(1, dtype=int)
