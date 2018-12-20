@@ -14,6 +14,8 @@ class PileupWeightTool:
         self.mchist   = self.mcfile.Get('pileup')
         self.datahist.SetDirectory(0)
         self.mchist.SetDirectory(0)
+        self.datahist.Scale(1./self.datahist.Integral())
+        self.mchist.Scale(1./self.mchist.Integral())
         self.datafile.Close()
         self.mcfile.Close()
         
