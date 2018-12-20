@@ -15,7 +15,7 @@ class TreeProducerCommon(object):
         self.tree = ROOT.TTree('tree','tree')
 
         # histogram for cutflow
-        self.h_cutflow = ROOT.TH1F("h_cutflow", "h_cutflow", 50, 0, 50)
+        self.cutflow = ROOT.TH1F("cutflow", "cutflow", 25, 0, 25)
 
         
         ###################
