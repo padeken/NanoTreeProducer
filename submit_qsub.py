@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os
+import os, glob
 from commands import getoutput
 from fnmatch import fnmatch
 import itertools
@@ -8,11 +8,16 @@ import optparse
 from checkFiles import getSampleName
 
 parser = optparse.OptionParser()
-parser.add_option('-f', '--force', action="store_true", default=False, dest='force')
-parser.add_option('-c', '--channel', action="store", type=str, default="mutau", dest='channel')
-parser.add_option('-s', '--sample', action="store", type=str, default=None, dest='sample')
-parser.add_option('-n', '--njob', action="store", type=int, default=4, dest='njob')
-(options, args) = parser.parse_args() 
+parser.add_option('-f', '--force',   dest='force',   action="store_true", default=False,
+                                     help="do not ask for confirmation before submission of jobs")
+parser.add_option('-c', '--channel', dest='channel', action="store", type=str, default="mutau",
+                                     help="channels to submit")
+parser.add_option('-s', '--sample',  dest='sample',  action="store", type=str, default=None,
+                                     help="filter this sample")
+parser.add_option('-n', '--njob',    dest='njob',    action="store", type=int, default=4,
+                                     help="number of files per job")
+(options, args) = parser.parse_args()
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -23,6 +28,23 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+    
+
+def checkExistingFiles(outdir,channel,njob):
+    filelist = glob.glob("%s/*%s.root"%(outdir,channel))
+    nfiles = len(filelist)
+    if nfiles>njob:
+      print bcolors.BOLD + bcolors.WARNING + "Warning! There already exist %d files, while the requested number of files per job is %d"%(nfiles,njob) + bcolors.ENDC
+      remove = raw_input("Do you want to remove the extra files? [y/n] ")
+      if remove.lower()=='y':
+        for filename in filelist:
+          matches = re.findall(r"_(\d+)_%s.root"%(channel),filename)
+          if matches and int(matches[0])>njob:
+            print "Removing %s..."%(filename)
+            os.remove(filename)
+      else:
+        print "Not removing extra files. Please make sure to delete the %d last files before hadd'ing."%(nfiles-njob)
+    
 
 def split_seq(iterable, size):
     it = iter(iterable)
@@ -31,6 +53,7 @@ def split_seq(iterable, size):
         yield item
         item = list(itertools.islice(it, size))
     
+
 def getFileListDAS(dataset):
     
     instance = 'prod/global'
@@ -55,7 +78,6 @@ def getFileListPNFS(dataset):
     #instance = 'prod/global'
     #if dataset.find('USER')!=-1:
     #    instance = 'prod/phys03'
-    
     #cmd='das_client --limit=0 --query="file dataset=%s instance=%s"'%(dataset,instance)
     
     user = 'ytakahas'
@@ -72,46 +94,43 @@ def getFileListPNFS(dataset):
     return files 
 
    
-def createJobs(f, outfolder,name,nchunks, channel, pattern):
+def createJobs(f, outdir,name,nchunks, channel, pattern):
   infiles = []
   
   for files in f:
-      
       #if pattern.find('pnfs')!=-1:
       #    infiles.append("dcap://t3se01.psi.ch:22125/"+ pattern + '/' + files)
       #    infiles.append("root://cms-xrd-global.cern.ch/"+ pattern.replace('/pnfs/psi.ch/cms/trivcat','') + '/' + files)
       #else:
-
       if files.find('LQ')!=-1:
           infiles.append("dcap://t3se01.psi.ch:22125/"+files)
       else:
           infiles.append("root://cms-xrd-global.cern.ch/"+files)
-
-  cmd = 'python job.py %s %s %s %i %s \n'%(','.join(infiles), outfolder,name,nchunks, channel)
-  print cmd
+  
+  cmd = 'python job.py %s %s %s %i %s \n'%(','.join(infiles), outdir,name,nchunks, channel)
+  #print cmd
   jobs.write(cmd)
   return 1
 
 
-def submitJobs(jobName, jobList, nchunks, outfolder, batchSystem):
+def submitJobs(jobName, jobList, nchunks, outdir, batchSystem):
     print 'Reading joblist'
     jobListName = jobList
     print jobList
     #subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobListName)
-    subCmd = 'qsub -t 1-%s -N %s -o %s/logs/ %s %s' %(nchunks,jobName,outfolder,batchSystem,jobListName)
-    print 'Going to submit', nchunks, 'jobs with'
-    print '   ',subCmd
+    subCmd = 'qsub -t 1-%s -N %s -o %s/logs/ %s %s'%(nchunks,jobName,outdir,batchSystem,jobListName)
+    print bcolors.BOLD + bcolors.OKBLUE + "Submitting %d jobs with \n    %s"%(nchunks,subCmd) + bcolors.ENDC
     os.system(subCmd)
     return 1
-
+    
 
 if __name__ == "__main__":
     
     batchSystem = 'psibatch_runner.sh'
+    channel = options.channel
     
     # read samples
     patterns = [ ]
-    
     for line in open('samples.cfg', 'r'):
         if line.find('#')!=-1: continue
         line = line.rstrip()
@@ -132,13 +151,13 @@ if __name__ == "__main__":
               if not fnmatch(pattern,'*'+options.sample+'*'): continue
             elif pattern.find(options.sample)==-1: continue
         
-        if options.channel=='tautau':
+        if channel=='tautau':
             if pattern.find('/SingleMuon')!=-1 or pattern.find('/SingleElectron')!=-1: continue
 
-        if options.channel in ['mutau', 'mumu', 'muele']:
+        if channel in ['mutau', 'mumu', 'muele']:
             if pattern.find('/SingleElectron')!=-1 or pattern.find('/Tau')!=-1: continue
         
-        if options.channel=='eletau':
+        if channel=='eletau':
             if pattern.find('/SingleMuon')!=-1 or pattern.find('/Tau')!=-1: continue
         
         files = None
@@ -152,7 +171,7 @@ if __name__ == "__main__":
             files = getFileListDAS(pattern)
             name = pattern.split('/')[1].replace('/','') + '__' + pattern.split('/')[2].replace('/','') + '__' + pattern.split('/')[3].replace('/','')
         
-        print pattern, 'filter = ', options.sample
+        print pattern, 'filter =', options.sample
         #if files:
         #  print "FILELIST = "+files[0]
         #  for file in files[1:]:
@@ -162,42 +181,48 @@ if __name__ == "__main__":
           print bcolors.BOLD + bcolors.WARNING + "Warning!!! FILELIST empty" + bcolors.ENDC
           continue
         
-        print 
-        print "creating job file " ,'joblist/joblist%s.txt'%name
+        # JOBLIST
+        jobList = 'joblist/joblist%s_%s.txt'%(name,channel)
+        print "creating job file %s"%(jobList)
         print 
         try: os.stat('joblist/')
         except: os.mkdir('joblist/')
         jobName = getSampleName(pattern)[1]
-        jobList = 'joblist/joblist%s_%s.txt' % (name, options.channel)
         jobs = open(jobList, 'w')
+        njob = options.njob
         nChunks = 0
+        outdir = name
         
-        outfolder = name
+        # NJOBS CHECKS
+        if njob>1 and any(v==jobName for v in [ 'WW', 'WZ', 'ZZ' ]):
+          print "Warning: Setting number of files per job from %s to 1 for %s"%(njob,jobName)
+          njob = 1
+        checkExistingFiles(outdir,channel,njob)
         
-        try: os.stat(outfolder)
-        except: os.mkdir(outfolder)
-        try: os.stat(outfolder+'/logs/')
-        except: os.mkdir(outfolder+'/logs/')
+        try: os.stat(outdir)
+        except: os.mkdir(outdir)
+        try: os.stat(outdir+'/logs/')
+        except: os.mkdir(outdir+'/logs/')
         
-        filelists = list(split_seq(files, options.njob))
+        # CREATE JOBS
+        filelists = list(split_seq(files,njob))
         #filelists = list(split_seq(files,1))
-        
-        for f in filelists:
+        for file in filelists:
         #print "FILES = ",f
-            createJobs(f,outfolder,name,nChunks, options.channel, pattern)
+            createJobs(file,outdir,name,nChunks,channel,pattern)
             nChunks = nChunks+1
-        
         jobs.close()
         
+        # SUBMIT
         if options.force:
-          submitJobs(jobName,jobList,nChunks, outfolder, batchSystem)
+          submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
         else:
-          submit = raw_input("Do you also want to submit " + str(nChunks) + " jobs to the batch system? [y/n] ")
+          submit = raw_input("Do you also want to submit %d jobs to the batch system? [y/n] "%(nChunks))
           if submit.lower()=='force':
             submit = 'y'
             options.force = True
           if submit.lower()=='y':
-            submitJobs(jobName,jobList,nChunks, outfolder, batchSystem)
+            submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
           else:
             print "Not submitting jobs"
 		
