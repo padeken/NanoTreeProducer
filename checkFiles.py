@@ -5,20 +5,23 @@ import subprocess
 from ROOT import TFile, Double
 from argparse import ArgumentParser
 
-
 scratchdir = "/scratch/ineuteli/analysis/LQ_2017"
 parser = ArgumentParser()
-parser.add_argument('-m', '--make',    dest='make', default=False, action="store_true" )
-parser.add_argument('-d', '--das',     dest='compareToDas', default=False, action="store_true" )
-parser.add_argument('-f', '--force',   dest='force', default=False, action="store_true",
+parser.add_argument('-m', '--make',    dest='make', default=False, action='store_true' )
+parser.add_argument('-d', '--das',     dest='compareToDas', default=False, action='store_true' )
+parser.add_argument('-f', '--force',   dest='force', default=False, action='store_true',
                                        help="overwrite existing hadd'ed files" )
-parser.add_argument('-a', '--hadd',    dest='haddother', default=False, action="store_true",
+parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
+                                       help="select year" )
+parser.add_argument('-a', '--hadd',    dest='haddother', default=False, action='store_true',
                                        help="hadd some samples (e.g. all data sets, or the extensions)" )
-parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=["tautau"], action="store" )
-parser.add_argument('-o', '--outdir',  dest='outdir', type=str, default=scratchdir, action="store" )
-parser.add_argument('-t', '--tag',     dest='tag', type=str, default="", action="store" )
-parser.add_argument('-s', '--samples', dest='samples', type=str, nargs='+', default=[ ], action="store",
-                                       help="samples to run over, glob patterns (wildcards * and ?) are allowed.")
+parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=["tautau"], action='store' )
+parser.add_argument('-o', '--outdir',  dest='outdir', type=str, default=scratchdir, action='store' )
+parser.add_argument('-t', '--tag',     dest='tag', type=str, default="", action='store' )
+parser.add_argument('-s', '--samples', dest='samples', type=str, nargs='+', default=[ ], action='store',
+                                       help="samples to run over, glob patterns (wildcards * and ?) are allowed." )
+parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
+                                       help="set verbose" )
 args = parser.parse_args()
 
 
@@ -180,7 +183,7 @@ def main():
               rmcmd = 'rm %s'%(infiles)
               #os.system(rmcmd)
               print
-      
+    
     # HADD other
     if args.haddother:
       for (subdir,samplename), sampleset in haddsets.iteritems():

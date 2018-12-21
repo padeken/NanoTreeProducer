@@ -20,6 +20,8 @@ parser.add_argument('-n', '--njob',    dest='njob',    action="store", type=int,
                                        help="number of files per job" )
 parser.add_argument('-m', '--mock',    dest='mock',    action="store_true", default=False,
                                        help="mock submit jobs for debugging purposes" )
+parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
+                                       help="set verbose" )
 args = parser.parse_args()
 
 
@@ -75,7 +77,7 @@ def getFileListDAS(dataset):
             files.append(l)
     
     return files 
-
+    
 
 def getFileListPNFS(dataset):
     
@@ -110,7 +112,8 @@ def createJobs(jobs, filelist, outdir, name, nchunks, channel, pattern):
       else:
           infiles.append("root://cms-xrd-global.cern.ch/"+files)
   cmd = 'python job.py %s %s %s %i %s \n'%(','.join(infiles), outdir,name,nchunks, channel)
-  #print cmd
+  if args.verbose:
+    print cmd
   jobs.write(cmd)
   return 1
 
@@ -177,14 +180,13 @@ def main():
             files = getFileListDAS(pattern)
             name = pattern.split('/')[1].replace('/','') + '__' + pattern.split('/')[2].replace('/','') + '__' + pattern.split('/')[3].replace('/','')
         
-        #if files:
-        #  print "FILELIST = "+files[0]
-        #  for file in files[1:]:
-        #    print "           "+file
-        #else:
         if not files:
           print bcolors.BOLD + bcolors.WARNING + "Warning!!! FILELIST empty" + bcolors.ENDC
           continue
+        elif args.verbose:
+          print "FILELIST = "+files[0]
+          for file in files[1:]:
+            print "           "+file
         
         # JOBLIST
         jobList = 'joblist/joblist%s_%s.txt'%(name,channel)
