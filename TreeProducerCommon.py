@@ -3,6 +3,20 @@ import math
 import numpy as num 
 
 
+var_dict = {
+  'Electron_mvaFall17Iso_WP90': 'Electron_mvaFall17Iso_WP90',
+  'Electron_mvaFall17Iso_WPL':  'Electron_mvaFall17Iso_WPL',
+}
+
+def setYear(year):
+  if year==2018:
+    print "setYear: setting var_dict to year %s"%(year)
+    var_dict['Electron_mvaFall17Iso_WPL']  = 'Electron_mvaFall17V1Iso_WPL'
+    var_dict['Electron_mvaFall17Iso_WP90'] = 'Electron_mvaFall17V1Iso_WP90'
+
+def getvar(obj,var):
+  return getattr(obj,var_dict[var])
+
 
 class TreeProducerCommon(object):
 
@@ -16,7 +30,7 @@ class TreeProducerCommon(object):
 
         # histogram for cutflow
         self.cutflow = ROOT.TH1F("cutflow", "cutflow", 25, 0, 25)
-
+        
         
         ###################
         # event variables #
@@ -256,9 +270,10 @@ def extraLeptonVetos(event, muon_idxs, electron_idxs, name):
         if abs(event.Electron_dz[ielectron]) > 0.2: continue
         if abs(event.Electron_dxy[ielectron]) > 0.045: continue
         if event.Electron_pfRelIso03_all[ielectron] > 0.3: continue
-        if event.Electron_convVeto[ielectron] ==1 and ord(event.Electron_lostHits[ielectron]) <= 1 and event.Electron_mvaFall17Iso_WP90[ielectron] > 0.5 and (ielectron not in electron_idxs):
+        #if event.Electron_convVeto[ielectron] ==1 and ord(event.Electron_lostHits[ielectron]) <= 1 and event.Electron_mvaFall17Iso_WP90[ielectron] > 0.5 and (ielectron not in electron_idxs):
+        if event.Electron_convVeto[ielectron] ==1 and ord(event.Electron_lostHits[ielectron]) <= 1 and getvar(event,'Electron_mvaFall17Iso_WP90')[ielectron] > 0.5 and (ielectron not in electron_idxs):
             b_extraelec_veto_ = True
-        if event.Electron_pt[ielectron] > 15 and event.Electron_mvaFall17Iso_WPL[ielectron] > 0.5:
+        if event.Electron_pt[ielectron] > 15 and getvar(event,'Electron_mvaFall17Iso_WPL') > 0.5:
             LooseElectrons.append(ielectron)
     
     if name.find('mutau')!=-1:

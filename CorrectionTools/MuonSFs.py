@@ -10,7 +10,7 @@ pathHTT = 'CorrectionTools/leptonEfficiencies/HTT/Muon/Run2017/'
 
 class MuonSFs:
     
-    def __init__(self):
+    def __init__(self, year=2017):
         # Load the TH1s containing the bin by bin values
         
         # TRIGGER (Muon POG)

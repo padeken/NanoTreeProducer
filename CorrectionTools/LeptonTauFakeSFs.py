@@ -8,7 +8,7 @@
 
 class LeptonTauFakeSFs:
     
-    def __init__(self, antiMuWP, antiEleWP):
+    def __init__(self, antiMuWP, antiEleWP, year=2017):
         """Initialize WP-dependent SFs."""
         # Default to loading the Tau MVA Medium ID based WPs
         #self.antiMuWP = antiMuWP

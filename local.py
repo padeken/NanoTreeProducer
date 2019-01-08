@@ -2,25 +2,29 @@
 import os, sys
 from importlib import import_module
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-import optparse
+from argparse import ArgumentParser
 
-parser = optparse.OptionParser()
-parser.add_option('-c', '--channel', action="store", type="string", default='tautau', dest='channel')
-parser.add_option('-t', '--type', action="store", choices=['data','mc'], default='mc', dest='type')
-(options, args) = parser.parse_args() 
-channel = options.channel
+parser = ArgumentParser()
+parser.add_argument('-c', '--channel', dest='channel', action='store', type=str, default='tautau')
+parser.add_argument('-t', '--type',    dest='type', action='store', choices=['data','mc'], default='mc')
+parser.add_argument('-y', '--year',    dest='year', action='store', choices=[2017,2018], default=2017)
+parser.add_argument('-T', '--tes',     dest='tes', action='store', type=float, default=1.0)
+args = parser.parse_args()
+
+channel = args.channel
+kwargs = {
+  'year':  args.year,
+  'tes':   args.tes,
+}
+dataType = args.type
+postfix = channel + '.root'
+
 if channel=='etau':
- channel = 'eletau'
-print 'channel  =', channel
-#channel = 'muele'
+  channel = 'eletau'
+elif channel=='elemu':
+  channel = 'muele'
 
-DataType = options.type
-#DataType = 'data'
-
-print 'channel = ', channel 
-print 'DataType = ', DataType
-
-if DataType=='data':
+if dataType=='data':
     filelist = ['root://cms-xrd-global.cern.ch//store/data/Run2017B/Tau/NANOAOD/31Mar2018-v1/10000/04463969-D044-E811-8DC1-0242AC130002.root']
 else:
 #     filelist = [ 'root://cms-xrd-global.cern.ch//store/mc/RunIIFall17NanoAOD/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1/10000/0A5AB04B-4B42-E811-AD7F-A4BF0112BDE6.root']
@@ -42,29 +46,30 @@ else:
 #                 ]
 #     filelist = [ 'dcap://t3se01.psi.ch:22125//pnfs/psi.ch/cms/trivcat/store/user/ytakahas/VectorLQ3ToTauB_Fall2017_5f_Madgraph_LO_pair_M500/nanoAOD/v1/nanoAOD_VectorLQ3ToTauB_Fall2017_5f_Madgraph_LO_pair_M500_133.root']
 
-
-_postfix = channel + '.root'
+print ">>> %-10s = %s"%('channel',channel)
+print ">>> %-10s = %s"%('dataType',dataType)
+print ">>> %-10s = %s"%('year',kwargs['year'])
 
 if channel=='tautau':
     from TauTauModule import *
-    module2run = lambda : TauTauProducer(_postfix, DataType)
+    module2run = lambda : TauTauProducer(postfix, dataType, **kwargs)
 elif channel=='mutau':
     from MuTauModule import *
-    module2run = lambda : MuTauProducer(_postfix, DataType)
+    module2run = lambda : MuTauProducer(postfix, dataType, **kwargs)
 elif channel=='eletau':
     from EleTauModule import *
-    module2run = lambda : EleTauProducer(_postfix, DataType)
+    module2run = lambda : EleTauProducer(postfix, dataType, **kwargs)
 elif channel=='mumu':
     from MuMuModule import *
-    module2run = lambda : MuMuProducer(_postfix, DataType)
+    module2run = lambda : MuMuProducer(postfix, dataType, **kwargs)
 elif channel=='muele':
     from MuEleModule import *
-    module2run = lambda : MuEleProducer(_postfix, DataType)
+    module2run = lambda : MuEleProducer(postfix, dataType, **kwargs)
 else:
     print 'Invalid channel name'
 
 #p = PostProcessor(".",["../../../crab/WZ_TuneCUETP8M1_13TeV-pythia8.root"],"Jet_pt>150","keep_and_drop.txt",[exampleModule()],provenance=True)
-p = PostProcessor(".",filelist,None,"keep_and_drop.txt",noOut=True, modules=[module2run()],provenance=False, postfix=_postfix)
-#p = PostProcessor(".",filelist,None,"keep_and_drop.txt",noOut=True, modules=[module2run()],provenance=False, jsonInput='/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PromptReco/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt', postfix=_postfix)
+p = PostProcessor(".", filelist, None, "keep_and_drop.txt", noOut=True, modules=[module2run()], provenance=False, postfix=postfix)
+#p = PostProcessor(".",filelist,None,"keep_and_drop.txt",noOut=True, modules=[module2run()],provenance=False, jsonInput='/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PromptReco/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt', postfix=postfix)
 
 p.run()

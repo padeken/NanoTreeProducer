@@ -17,19 +17,23 @@ class declareVariables(TreeProducerEleTau):
 
 class EleTauProducer(Module):
     
-    def __init__(self, name, DataType):
+    def __init__(self, name, dataType, **kwargs):
+        
+        year = kwargs.get('year',  2017 )
+        tes  = kwargs.get('tes',   1.0  )
         
         self.name = name
         self.out = declareVariables(name)
         
-        if DataType=='data':
+        if dataType=='data':
             self.isData = True
         else:
             self.isData = False
         
-        self.eleSFs = ElectronSFs()
-        self.puTool = PileupWeightTool()
-        self.ltfSFs = LeptonTauFakeSFs('loose','tight')
+        setYear(year)
+        self.eleSFs = ElectronSFs(year=year)
+        self.puTool = PileupWeightTool(year=year)
+        self.ltfSFs = LeptonTauFakeSFs('loose','tight',year=year)
         
         self.Nocut = 0
         self.Trigger = 1

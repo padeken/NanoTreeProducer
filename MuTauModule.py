@@ -17,19 +17,23 @@ class declareVariables(TreeProducerMuTau):
 
 class MuTauProducer(Module):
 
-    def __init__(self, name, DataType):
+    def __init__(self, name, dataType, **kwargs):
+        
+        year = kwargs.get('year',  2017 )
+        tes  = kwargs.get('tes',   1.0  )
         
         self.name = name
         self.out = declareVariables(name)
         
-        if DataType=='data':
+        if dataType=='data':
             self.isData = True
         else:
             self.isData = False
         
-        self.muSFs  = MuonSFs()
-        self.puTool = PileupWeightTool()
-        self.ltfSFs = LeptonTauFakeSFs('tight','vloose')
+        setYear(year)
+        self.muSFs  = MuonSFs(year=year)
+        self.puTool = PileupWeightTool(year=year)
+        self.ltfSFs = LeptonTauFakeSFs('tight','vloose',year=year)
         
         self.Nocut = 0
         self.Trigger = 1
@@ -227,6 +231,7 @@ class MuTauProducer(Module):
         self.out.idMVAoldDM2017v1_2[0]         = ord(event.Tau_idMVAoldDM2017v1[ltau.id2])
         self.out.idMVAoldDM2017v2_2[0]         = ord(event.Tau_idMVAoldDM2017v2[ltau.id2])
         
+        
         # GENERATOR
         #print type(event.Tau_genPartFlav[ltau.id2])
         if not self.isData:
@@ -263,10 +268,10 @@ class MuTauProducer(Module):
         self.out.MET_phi[0]                    = event.MET_phi
         self.out.PuppiMET_pt[0]                = event.PuppiMET_pt
         self.out.PuppiMET_phi[0]               = event.PuppiMET_phi
-        self.out.MET_significance[0]           = event.MET_significance
-        self.out.MET_covXX[0]                  = event.MET_covXX
-        self.out.MET_covXY[0]                  = event.MET_covXY
-        self.out.MET_covYY[0]                  = event.MET_covYY
+        #self.out.MET_significance[0]           = event.MET_significance
+        #self.out.MET_covXX[0]                  = event.MET_covXX
+        #self.out.MET_covXY[0]                  = event.MET_covXY
+        #self.out.MET_covYY[0]                  = event.MET_covYY
         self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
         self.out.npvs[0]                       = event.PV_npvs
         self.out.npvsGood[0]                   = event.PV_npvsGood

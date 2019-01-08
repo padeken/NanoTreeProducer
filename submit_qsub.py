@@ -8,17 +8,19 @@ from argparse import ArgumentParser
 from checkFiles import getSampleName
 
 parser = ArgumentParser()
-parser.add_argument('-f', '--force',   dest='force',   action="store_true", default=False,
+parser.add_argument('-f', '--force',   dest='force', action="store_true", default=False,
                                        help="do not ask for confirmation before submission of jobs" )
 parser.add_argument('-c', '--channel', dest='channel', action="store", type=str, default="mutau",
                                        help="channels to submit" )
-parser.add_argument('-s', '--sample',  dest='sample',  action="store", type=str, default=None,
+parser.add_argument('-s', '--sample',  dest='sample', action="store", type=str, default=None,
                                        help="filter this sample" )
 parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
-                                       help="select year")
-parser.add_argument('-n', '--njob',    dest='njob',    action="store", type=int, default=4,
+                                       help="select year" )
+parser.add_argument('-T', '--tes',     dest='tes', type=float, default=1.0, action='store',
+                                       help="tau energy scale" )
+parser.add_argument('-n', '--njob',    dest='njob', action="store", type=int, default=4,
                                        help="number of files per job" )
-parser.add_argument('-m', '--mock',    dest='mock',    action="store_true", default=False,
+parser.add_argument('-m', '--mock',    dest='mock', action="store_true", default=False,
                                        help="mock submit jobs for debugging purposes" )
 parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
                                        help="set verbose" )
@@ -100,7 +102,7 @@ def getFileListPNFS(dataset):
     return files 
 
    
-def createJobs(jobs, filelist, outdir, name, nchunks, channel, pattern):
+def createJobs(jobs, filelist, outdir, name, nchunks, channel, pattern, year=2017):
   infiles = [ ]
   for files in filelist:
       #if pattern.find('pnfs')!=-1:
@@ -111,12 +113,12 @@ def createJobs(jobs, filelist, outdir, name, nchunks, channel, pattern):
           infiles.append("dcap://t3se01.psi.ch:22125/"+files)
       else:
           infiles.append("root://cms-xrd-global.cern.ch/"+files)
-  cmd = 'python job.py %s %s %s %i %s \n'%(','.join(infiles), outdir,name,nchunks, channel)
+  cmd = 'python job.py -i %s -o %s -N %s -n %i -c %s -y %s \n'%(','.join(infiles),outdir,name,nchunks,channel,args.year)
   if args.verbose:
     print cmd
   jobs.write(cmd)
   return 1
-
+  
 
 def submitJobs(jobName, jobList, nchunks, outdir, batchSystem):
     print 'Reading joblist...'
@@ -133,8 +135,10 @@ def submitJobs(jobName, jobList, nchunks, outdir, batchSystem):
 def main():
     
     batchSystem = 'psibatch_runner.sh'
-    channel = args.channel
-    samplelist = "samples_%s.cfg"%(args.year)
+    channel     = args.channel
+    year        = args.year
+    tes         = args.tes
+    samplelist  = "samples_%s.cfg"%(year)
     
     # READ SAMPLES
     patterns = [ ]
@@ -215,7 +219,7 @@ def main():
         #filelists = list(split_seq(files,1))
         for file in filelists:
         #print "FILES = ",f
-            createJobs(jobs, file,outdir,name,nChunks,channel,pattern)
+            createJobs(jobs,file,outdir,name,nChunks,channel,pattern,year=year)
             nChunks = nChunks+1
         jobs.close()
         

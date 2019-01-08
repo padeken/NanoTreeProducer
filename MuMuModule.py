@@ -13,13 +13,13 @@ class declareVariables(TreeProducerMuMu):
 
 
 class MuMuProducer(Module):
-
-    def __init__(self, name, DataType):
+    
+    def __init__(self, name, dataType, **kwargs):
 
         self.name = name
         self.out = declareVariables(name)
 
-        if DataType=='data':
+        if dataType=='data':
             self.isData = True
         else:
             self.isData = False

@@ -19,20 +19,24 @@ class declareVariables(TreeProducerTauTau):
 
 class TauTauProducer(Module):
 
-    def __init__(self, name, DataType):
+    def __init__(self, name, dataType, **kwargs):
+        
+        year = kwargs.get('year',  2017 )
+        tes  = kwargs.get('tes',   1.0  )
         
         self.name = name
         self.out = declareVariables(name)
         
-        if DataType=='data':
+        if dataType=='data':
             self.isData = True
         else:
             self.isData = False
         
-        self.tauSFs   = TauTauSFs('tight')
-        self.tauSFsVT = TauTauSFs('vtight')
-        self.ltfSFs   = LeptonTauFakeSFs('loose','vloose')
-        self.puTool   = PileupWeightTool()
+        setYear(year)
+        self.tauSFs   = TauTauSFs('tight',year=year)
+        self.tauSFsVT = TauTauSFs('vtight',year=year)
+        self.ltfSFs   = LeptonTauFakeSFs('loose','vloose',year=year)
+        self.puTool   = PileupWeightTool(year=year)
         
         self.Nocut = 0
         self.Trigger = 1
@@ -378,7 +382,7 @@ class TauTauProducer(Module):
         self.out.MET_phi[0]                    = event.MET_phi
         self.out.PuppiMET_pt[0]                = event.PuppiMET_pt
         self.out.PuppiMET_phi[0]               = event.PuppiMET_phi
-        self.out.MET_significance[0]           = event.MET_significance
+        #self.out.MET_significance[0]           = event.MET_significance
         self.out.MET_covXX[0]                  = event.MET_covXX
         self.out.MET_covXY[0]                  = event.MET_covXY
         self.out.MET_covYY[0]                  = event.MET_covYY

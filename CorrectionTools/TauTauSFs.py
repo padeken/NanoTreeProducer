@@ -17,7 +17,7 @@ base = 'CorrectionTools/TauTriggerSFs2017/data'
 
 class TauTauSFs:
     
-    def __init__( self, tauWP='medium', wpType='MVA' ):
+    def __init__(self, tauWP='medium', wpType='MVA', year=2017):
         
         # Default to loading the Tau MVA Medium ID based WPs
         self.tauWP = tauWP

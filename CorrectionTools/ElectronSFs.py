@@ -1,15 +1,15 @@
 from ROOT import TFile
 from ScaleFactorTool import ScaleFactor, ScaleFactorHTT
+# https://twiki.cern.ch/twiki/bin/view/CMS/Egamma2017DataRecommendations#Efficiency_Scale_Factors
+# https://github.com/CMS-HTT/LeptonEfficiencies/tree/master/Electron/Run2017
 
-#/shome/ineuteli/analysis/LQ_2017/NanoTreeProducer/leptonSF
-#/shome/ytakahas/work/Leptoquark/CMSSW_9_4_4/src/PhysicsTools/NanoAODTools/NanoTreeProducer/leptonSF
 path    = 'CorrectionTools/leptonEfficiencies/'
 pathHTT = 'CorrectionTools/leptonEfficiencies/HTT/Electron/Run2017/'
 
 
 class ElectronSFs:
     
-    def __init__(self):
+    def __init__(self, year=2017):
         """Load histograms from files."""
         
         # TRIGGER (HTT)
