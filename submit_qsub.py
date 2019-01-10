@@ -7,6 +7,27 @@ import itertools
 from argparse import ArgumentParser
 from checkFiles import getSampleShortName
 
+parser = ArgumentParser()
+parser.add_argument('-f', '--force',   dest='force', action='store_true', default=False,
+                                       help="do not ask for confirmation before submission of jobs" )
+parser.add_argument('-c', '--channel', dest='channel', action='store', type=str, default="mutau",
+                                       help="channels to submit" )
+parser.add_argument('-s', '--sample',  dest='samples', type=str, nargs='+', default=[ ], action='store',
+                                       help="filter these samples, glob patterns (wildcards * and ?) are allowed." )
+parser.add_argument('-x', '--veto',    dest='veto', action='store', type=str, default=None,
+                                       help="veto this sample" )
+parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
+                                       help="select year" )
+parser.add_argument('-T', '--tes',     dest='tes', type=float, default=1.0, action='store',
+                                       help="tau energy scale" )
+parser.add_argument('-n', '--njob',    dest='njob', action='store', type=int, default=4,
+                                       help="number of files per job" )
+parser.add_argument('-m', '--mock',    dest='mock', action='store_true', default=False,
+                                       help="mock submit jobs for debugging purposes" )
+parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
+                                       help="set verbose" )
+args = parser.parse_args()
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -117,48 +138,40 @@ def main():
     samplelist  = "samples_%s.cfg"%(year)
     
     # READ SAMPLES
-    patterns = [ ]
+    directories = [ ]
     for line in open(samplelist, 'r'):
         line = line.rstrip().lstrip().split(' ')[0]
         if line[:2].count('#')>0: continue
         if line=='': continue
+        if args.samples and not matchSampleToPattern(directory,args.samples): continue
+        if args.veto and matchSampleToPattern(directory,args.veto): continue
         #if line.count('/')!=3:
         #    continue
-        patterns.append(line)
-    #print patterns
+        directories.append(line)
+    #print directories
 	
 	# SUBMIT SAMPLES
-    for pattern in patterns:
+    for directory in directories:
         
         if args.verbose:
-          print "\npattern =",pattern
+          print "\ndirectory =",directory
         
         # FILTER
-        if args.sample!=None:
-            if '*' in args.sample or '?' in args.sample:
-              if not fnmatch(pattern,'*'+args.sample+'*'): continue
-            elif args.sample not in pattern: continue
-        if 'SingleMuon' in pattern and channel not in ['mutau','mumu']: continue
-        if 'SingleElectron' in pattern and channel!='etau': continue
-        if 'Tau' in pattern and channel!='tautau': continue
-        
-        # VETO
-        if args.veto!=None:
-            if '*' in args.veto or '?' in args.veto:
-              if fnmatch(pattern,'*'+args.veto+'*'): continue
-            elif args.veto in pattern: continue
-        
-        print bcolors.BOLD + bcolors.OKGREEN + pattern + bcolors.ENDC
+        if 'SingleMuon' in directory and channel not in ['mutau','mumu']: continue
+        if 'SingleElectron' in directory and channel!='etau': continue
+        if 'Tau' in directory and channel!='tautau': continue
+          
+        print bcolors.BOLD + bcolors.OKGREEN + directory + bcolors.ENDC
         files = None
         name = None
         
-        if 'pnfs' in pattern:
-            name = pattern.split('/')[8].replace('/','') + '__' + pattern.split('/')[9].replace('/','') + '__' + pattern.split('/')[10].replace('/','')
-            #files = getFileListPNFS(pattern)
+        if 'pnfs' in directory:
+            name = directory.split('/')[8].replace('/','') + '__' + directory.split('/')[9].replace('/','') + '__' + directory.split('/')[10].replace('/','')
+            #files = getFileListPNFS(directory)
             files = getFileListPNFS(name)
         else:
-            files = getFileListDAS(pattern)
-            name = pattern.split('/')[1].replace('/','') + '__' + pattern.split('/')[2].replace('/','') + '__' + pattern.split('/')[3].replace('/','')
+            files = getFileListDAS(directory)
+            name = directory.split('/')[1].replace('/','') + '__' + directory.split('/')[2].replace('/','') + '__' + directory.split('/')[3].replace('/','')
         
         if not files:
           print bcolors.BOLD + bcolors.WARNING + "Warning!!! FILELIST empty" + bcolors.ENDC
@@ -173,7 +186,7 @@ def main():
         print "Creating job file %s..."%(jobList)
         try: os.stat('joblist/')
         except: os.mkdir('joblist/')
-        jobName = getSampleShortName(pattern)[1]
+        jobName = getSampleShortName(directory)[1]
         jobs = open(jobList, 'w')
         njob = args.njob
         outdir = "output_%s/%s"%(year,name)
@@ -218,27 +231,6 @@ def main():
 
 
 if __name__ == "__main__":
-    
-    parser = ArgumentParser()
-    parser.add_argument('-f', '--force',   dest='force', action='store_true', default=False,
-                                           help="do not ask for confirmation before submission of jobs" )
-    parser.add_argument('-c', '--channel', dest='channel', action='store', type=str, default="mutau",
-                                           help="channels to submit" )
-    parser.add_argument('-s', '--sample',  dest='sample', action='store', type=str, default=None,
-                                           help="filter this sample, only run for this" )
-    parser.add_argument('-x', '--veto',    dest='veto', action='store', type=str, default=None,
-                                           help="veto this sample" )
-    parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
-                                           help="select year" )
-    parser.add_argument('-T', '--tes',     dest='tes', type=float, default=1.0, action='store',
-                                           help="tau energy scale" )
-    parser.add_argument('-n', '--njob',    dest='njob', action='store', type=int, default=4,
-                                           help="number of files per job" )
-    parser.add_argument('-m', '--mock',    dest='mock', action='store_true', default=False,
-                                           help="mock submit jobs for debugging purposes" )
-    parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
-                                           help="set verbose" )
-    args = parser.parse_args()
     
     print
     main()
