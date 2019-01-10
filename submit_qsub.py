@@ -78,7 +78,7 @@ def getFileListPNFS(dataset):
     return files
 
 
-def createJobs(jobsfile, filelist, outdir, name, nchunks, channel, year=2017, write=True):
+def createJobs(jobsfile, filelist, outdir, name, nchunks, channel, year=2017):
   infiles = [ ]
   for file in filelist:
       #if pattern.find('pnfs')!=-1:
@@ -92,8 +92,7 @@ def createJobs(jobsfile, filelist, outdir, name, nchunks, channel, year=2017, wr
   cmd = 'python job.py -i %s -o %s -N %s -n %i -c %s -y %s \n'%(','.join(infiles),outdir,name,nchunks,channel,args.year)
   if args.verbose:
     print cmd
-  if write:
-    jobsfile.write(cmd)
+  jobsfile.write(cmd)
   return 1
   
 
@@ -177,7 +176,6 @@ def main():
         jobName = getSampleShortName(pattern)[1]
         jobs = open(jobList, 'w')
         njob = args.njob
-        nChunks = 0
         outdir = "output_%s/%s"%(year,name)
         
         # NJOBS CHECKS
@@ -191,6 +189,7 @@ def main():
         except: os.mkdir(outdir+'/logs/')
         
         # CREATE JOBS
+        nChunks = 0
         filelists = list(split_seq(files,njob))
         checkExistingFiles(outdir,channel,len(filelists))
         #filelists = list(split_seq(files,1))
