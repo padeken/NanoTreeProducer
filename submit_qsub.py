@@ -97,11 +97,11 @@ def createJobs(jobsfile, filelist, outdir, name, nchunks, channel, year=2017):
   
 
 def submitJobs(jobName, jobList, nchunks, outdir, batchSystem):
-    print 'Reading joblist...'
-    jobListName = jobList
-    print jobList
-    #subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobListName)
-    subCmd = 'qsub -t 1-%s -N %s -o %s/logs/ %s %s'%(nchunks,jobName,outdir,batchSystem,jobListName)
+    if args.verbose:
+      print 'Reading joblist...'
+      print jobList
+    #subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobList)
+    subCmd = 'qsub -t 1-%s -N %s -o %s/logs/ %s %s'%(nchunks,jobName,outdir,batchSystem,jobList)
     print bcolors.BOLD + bcolors.OKBLUE + "Submitting %d jobs with \n    %s"%(nchunks,subCmd) + bcolors.ENDC
     if not args.mock:
       os.system(subCmd)
