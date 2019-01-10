@@ -4,7 +4,7 @@ import os, glob, sys, shlex
 from commands import getoutput
 from argparse import ArgumentParser
 from checkFiles import matchSample
-from submit_qsub import createJobs, getFileListPNFS, getFileListDAS, submitJobs
+from submit_qsub import bcolors, createJobs, getFileListPNFS, getFileListDAS, submitJobs, split_seq
 import itertools
 import subprocess
 from ROOT import TFile, Double
@@ -24,16 +24,6 @@ parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='st
 args = parser.parse_args()
 
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
 
 def main():
     
@@ -42,6 +32,7 @@ def main():
     channel     = args.channel
     outdir      = "output_%s/"%(year)
     os.chdir(outdir)
+    chunkpattern = re.compile(r".*_(\d+)_[a-z]+\.root")
     
     # GET LIST
     samplelist = [ ]
@@ -57,58 +48,61 @@ def main():
     # RESUBMIT samples
     for directory in samplelist:
         #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
-        filelist = glob.glob(directory + '/*_' + args.channel + '.root')
-        if not filelist: continue
+        outfilelist = glob.glob(directory + '/*_' + args.channel + '.root')
+        if not outfilelist: continue
         
         # GET INPUT FILES
         if 'LQ' in directory:
-          files = getFileListPNFS(directory)
+          infiles = getFileListPNFS(directory)
         else:
-          files = getFileListDAS('/' + directory.replace('__', '/'))
+          infiles = getFileListDAS('/' + directory.replace('__', '/'))
         
-        total = 0
         outdir = "output_%s/%s"%(year,directory)
-        filelists = list(split_seq(files, args.njob))
+        infilelists = list(split_seq(infiles, args.njob))
         
+        foundchunks = [ ]
+        badchunks   = [ ]
+        misschunks  = [ ]
         jobList = 'joblist/joblist%s_%s_retry.txt'%(directory, args.channel)
         with open(jobList, 'w') as jobslog:
-          ids = []
-          #print filelists
-          
-          # TODO: check if files are missing
-          for file2check in filelist:
-              file = TFile(file2check,'READ')
+          for filename in outfilelist:
+              match = chunkpattern.search(filename)
+              if match:
+                chunk = match.group(0)
+              else:
+                print bcolors.BOLD + bcolors.FAIL + '[NG] did not recognize output file %s !'%(directory) + bcolors.ENDC
+                exit(1)
+              #chunk = filename.split('_')[-2]
+              foundchunks.append(chunk)
+              file = TFile(filename,'READ')
               if not file.IsZombie() and file.GetListOfKeys().Contains('tree') and file.GetListOfKeys().Contains('cutflow'):
                 continue
-              total += 1
-              id = file2check.split('_')[-2]
-              #print 'id = ', id
-              ids.append(id)
-              nChunks = 0
-              
-              for filelist in filelists:
-                if int(id) == nChunks:
-                  createJobs(jobslog,filelist,outdir,directory,nChunks,channel,year=year,write=True)
-                else:
-                  createJobs(jobslog,filelist,outdir,directory,nChunks,channel,year=year,write=False)
-                nChunks = nChunks+1
-                
-        if len(ids)==0:
-            print bcolors.BOLD + bcolors.OKBLUE + '[OK] : ' + directory + bcolors.ENDC, ids
+              infiles = infilelists[chunk]
+              createJobs(jobslog,infiles,outdir,directory,chunk,channel,year=year)
+              badchunks.append(chunk)
+          
+          # BAD CHUNKS
+          if len(badchunks)>0:
+            chunktext = ('chunks' if len(badchunks)>1 else 'chunk') + ', '.join(str(ch) for ch in badchunks)
+            print bcolors.BOLD + bcolors.WARNING + '[NG] %s, %d/%d failed ! Resubmitting %s...'%(directory,len(ids),len(outfilelist),chunktext) + bcolors.ENDC
+          
+          # MISSING CHUNKS
+          maxchunk = max(foundchunks)+1
+          if len(outfilelist)<maxchunk:
+            misschunks = [ i for i in range(0,max(foundchunks)) if i not in foundchunks ]
+            chunktext = ('chunks' if len(misschunks)>1 else 'chunk') + ', '.join(str(i) for i in misschunks)
+            print bcolors.BOLD + bcolors.WARNING + "[WN] %s missing %d/%d files ! Resubmitting %s...%s"%(directory,imax-len(outfilelist),len(outfilelist),chunktext) + bcolors.ENDC
+            for chunk in misschunks:
+              infiles = infilelists[chunk]
+              createJobs(jobslog,infiles,outdir,directory,chunk,channel,year=year)
+        
+        # RESUBMIT
+        nchunks = len(badchunks)+len(misschunks)
+        if nchunks>0:
+            submitJobs(jobList,nchunks,directory,batchSystem)
         else:
-            print bcolors.BOLD + bcolors.FAIL + '[NG] : ' + directory + ', ' + str(len(ids)) + '/' + str(len(filelist)) + ' ... broken' + bcolors.ENDC, ids
-
-        if len(ids)!=0:
-            submitJobs(jobList, total, directory, batchSystem)
-    
-
-def split_seq(iterable, size):
-    it = iter(iterable)
-    item = list(itertools.islice(it, size))
-    while item:
-        yield item
-        item = list(itertools.islice(it, size)) 
-    
+            print bcolors.BOLD + bcolors.OKBLUE + '[OK] ' + directory + bcolors.ENDC
+        
 #    if flag:
 #        print bcolors.FAIL + "[NG]" + directory + bcolors.ENDC
 #        print '\t', len(files), ' out of ', str(total) + ' files are corrupted ... skip this sample (consider to resubmit the job)'
