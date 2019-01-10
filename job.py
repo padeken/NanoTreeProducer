@@ -45,9 +45,11 @@ if infiles[0].find("/SingleMuon/")>0 or infiles[0].find("/Tau/")>0 or infiles[0]
     dataType = 'data'
 
 if year==2017:
-  json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+  json = '/shome/ineuteli/analysis/LQ_legacy/NanoTreeProducer/json/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+  #json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
 else:
-  json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+  json = '/shome/ineuteli/analysis/LQ_legacy/NanoTreeProducer/json/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
+  #json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
 
 print '-'*80
 print "%-10s = %s"%('input file',infiles)
