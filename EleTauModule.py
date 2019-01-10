@@ -284,10 +284,10 @@ class EleTauProducer(Module):
         self.out.MET_phi[0]                    = event.MET_phi
         self.out.PuppiMET_pt[0]                = event.PuppiMET_pt
         self.out.PuppiMET_phi[0]               = event.PuppiMET_phi
-        self.out.MET_significance[0]           = event.MET_significance
-        self.out.MET_covXX[0]                  = event.MET_covXX
-        self.out.MET_covXY[0]                  = event.MET_covXY
-        self.out.MET_covYY[0]                  = event.MET_covYY
+        ###self.out.MET_significance[0]           = event.MET_significance
+        ###self.out.MET_covXX[0]                  = event.MET_covXX
+        ###self.out.MET_covXY[0]                  = event.MET_covXY
+        ###self.out.MET_covYY[0]                  = event.MET_covYY
         self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
         self.out.npvs[0]                       = event.PV_npvs
         self.out.npvsGood[0]                   = event.PV_npvsGood
