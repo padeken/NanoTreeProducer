@@ -60,20 +60,18 @@ def main():
         outdir = "output_%s/%s"%(year,directory)
         infilelists = list(split_seq(infiles, args.njob))
         
-        foundchunks = [ ]
         badchunks   = [ ]
-        misschunks  = [ ]
+        misschunks  = range(0,len(infilelists))
         jobList = 'joblist/joblist%s_%s_retry.txt'%(directory, args.channel)
         with open(jobList, 'w') as jobslog:
           for filename in outfilelist:
               match = chunkpattern.search(filename)
               if match:
-                chunk = match.group(0)
+                chunk = int(match.group(0))
               else:
-                print bcolors.BOLD + bcolors.FAIL + '[NG] did not recognize output file %s !'%(directory) + bcolors.ENDC
+                print bcolors.BOLD + bcolors.FAIL + '[NG] did not recognize output file %s !'%(filename) + bcolors.ENDC
                 exit(1)
-              #chunk = filename.split('_')[-2]
-              foundchunks.append(chunk)
+              misschunks.remove(chunk)
               file = TFile(filename,'READ')
               if not file.IsZombie() and file.GetListOfKeys().Contains('tree') and file.GetListOfKeys().Contains('cutflow'):
                 continue
@@ -87,9 +85,7 @@ def main():
             print bcolors.BOLD + bcolors.WARNING + '[NG] %s, %d/%d failed ! Resubmitting %s...'%(directory,len(ids),len(outfilelist),chunktext) + bcolors.ENDC
           
           # MISSING CHUNKS
-          maxchunk = max(foundchunks)+1
-          if len(outfilelist)<maxchunk:
-            misschunks = [ i for i in range(0,max(foundchunks)) if i not in foundchunks ]
+          if len(misschunks)>0:
             chunktext = ('chunks' if len(misschunks)>1 else 'chunk') + ', '.join(str(i) for i in misschunks)
             print bcolors.BOLD + bcolors.WARNING + "[WN] %s missing %d/%d files ! Resubmitting %s...%s"%(directory,imax-len(outfilelist),len(outfilelist),chunktext) + bcolors.ENDC
             for chunk in misschunks:
