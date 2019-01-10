@@ -12,6 +12,8 @@ parser = ArgumentParser()
 parser.add_argument('-c', '--channel', dest='channel', type=str, default="tautau", action="store")
 parser.add_argument('-n', '--njob',    dest='njob', type=int, default=10, action="store")
 parser.add_argument('-m', '--make',    dest='make', default=False, action="store_true")
+parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
+                                       help="select year" )
 parser.add_argument('-s', '--samples', dest='samples', type=str, nargs='+', default=[ ], action="store",
                                        help="samples to run over, glob patterns (wildcards * and ?) are allowed.")
 args = parser.parse_args()
@@ -29,11 +31,26 @@ class bcolors:
 
 
 def main():
-    batchSystem = 'psibatch_runner.sh'
     
-    for directory in sorted(os.listdir("./")):
+    batchSystem = 'psibatch_runner.sh'    
+    year        = args.year
+    channel     = args.channel
+    outdir      = "output_%s/"%(year)
+    os.chdir(outdir)
+    
+    # GET LIST
+    samplelist = [ ]
+    for directory in sorted(os.listdir('./')):
         if not os.path.isdir(directory): continue
-        if args.samples and not matchSample(args.samples,directory): continue
+        if args.samples and not matchSampleToPattern(args.samples,directory): continue
+        samplelist.append(directory)
+    if not samplelist:
+      print "No samples found in %s!"%(outdir)
+    if args.verbose:
+      print samplelist
+    
+    # RESUBMIT samples
+    for directory in samplelist:
         #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
         filelist = glob.glob(directory + '/*_' + args.channel + '.root')
         if not filelist: continue
@@ -42,7 +59,7 @@ def main():
         ispnfs = False
         if directory.find('LQ')!=-1:
             ispnfs = True
-
+        
         if ispnfs:
           #print 'Here!'
           files = getFileListPNFS(directory)
