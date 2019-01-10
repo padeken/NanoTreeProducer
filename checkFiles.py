@@ -5,7 +5,6 @@ from fnmatch import fnmatch
 import subprocess
 from ROOT import TFile, TTree, Double
 from argparse import ArgumentParser
-args = None
 
 class bcolors:
     HEADER = '\033[95m'
@@ -235,10 +234,12 @@ def main(args):
      
 
 
+indexpattern = re.compile(r".*_(\d+)_[a-z]+\.root")
 def checkFiles(filelist,directory):
     if args.verbose:
       print "checkFiles: %s, %s"%(filelist,directory)
     badfiles = [ ]
+    ifound   = [ ]
     for filename in filelist:
       file  = TFile(filename, 'READ')
       tree  = isinstance(file.Get('tree'),TTree)
@@ -253,9 +254,19 @@ def checkFiles(filelist,directory):
         if not hist:
           print bcolors.FAIL + '[NG] no cutflow found in ' + filename + bcolors.ENDC
       file.Close()
+      match = indexpattern.search(filename)
+      if match: ifound.append(int(match.group(1)))
+    
     if len(badfiles)>0:
       print bcolors.FAIL + "[NG] %s:   %d out of %d files have no tree!"%(directory,len(badfiles),len(filelist)) + bcolors.ENDC
       return False
+    
+    imax = max(ifound)+1
+    if len(filelist)<imax:
+      imissing = [ i for i in range(0,max(ifound)) if i not in ifound ]
+      text = (' s' if len(imissing)>1 else ' ') + ', '.join(str(i) for i in imissing)
+      print bcolors.BOLD + bcolors.WARNING + "[WN] %s missing %d files (chunk%s) ?"%(directory,imax-len(filelist),text) + bcolors.ENDC
+    
     return True
     
 def compareEventsToDAS(filenames,dasname):
