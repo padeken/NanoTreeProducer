@@ -3,7 +3,7 @@
 import os, glob, sys, shlex
 from commands import getoutput
 from argparse import ArgumentParser
-from checkFiles import matchSample
+from checkFiles import getSampleShortName, matchSample
 from submit_qsub import bcolors, createJobs, getFileListPNFS, getFileListDAS, submitJobs, split_seq
 import itertools
 import subprocess
@@ -82,7 +82,7 @@ def main():
           # BAD CHUNKS
           if len(badchunks)>0:
             chunktext = ('chunks' if len(badchunks)>1 else 'chunk') + ', '.join(str(ch) for ch in badchunks)
-            print bcolors.BOLD + bcolors.WARNING + '[NG] %s, %d/%d failed ! Resubmitting %s...'%(directory,len(ids),len(outfilelist),chunktext) + bcolors.ENDC
+            print bcolors.BOLD + bcolors.WARNING + '[NG] %s, %d/%d failed! Resubmitting %s...'%(directory,len(ids),len(outfilelist),chunktext) + bcolors.ENDC
           
           # MISSING CHUNKS
           if len(misschunks)>0:
@@ -93,9 +93,10 @@ def main():
               createJobs(jobslog,infiles,outdir,directory,chunk,channel,year=year)
         
         # RESUBMIT
+        jobName = getSampleShortName(directory)[1]
         nchunks = len(badchunks)+len(misschunks)
         if nchunks>0:
-            submitJobs(jobList,nchunks,directory,batchSystem)
+            submitJobs(jobName,jobList,nchunks,directory,batchSystem)
         else:
             print bcolors.BOLD + bcolors.OKBLUE + '[OK] ' + directory + bcolors.ENDC
         
