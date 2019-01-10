@@ -263,9 +263,9 @@ def checkFiles(filelist,directory):
     
     imax = max(ifound)+1
     if len(filelist)<imax:
-      imissing = [ i for i in range(0,max(ifound)) if i not in ifound ]
-      text = (' s' if len(imissing)>1 else ' ') + ', '.join(str(i) for i in imissing)
-      print bcolors.BOLD + bcolors.WARNING + "[WN] %s missing %d files (chunk%s) ?"%(directory,imax-len(filelist),text) + bcolors.ENDC
+      imiss = [ i for i in range(0,max(ifound)) if i not in ifound ]
+      chunktext = ('chunks' if len(imiss)>1 else 'chunk') + ', '.join(str(i) for i in imiss)
+      print bcolors.BOLD + bcolors.WARNING + "[WN] %s missing %d files (%s) ?"%(directory,imax-len(filelist),chunktext) + bcolors.ENDC
     
     return True
     
