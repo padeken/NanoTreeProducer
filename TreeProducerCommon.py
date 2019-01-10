@@ -9,27 +9,31 @@ var_dict = {
 }
 
 def setYear(year):
+  """Help function to change the name of some variables that depend on the year."""
   if year==2018:
     print "setYear: setting var_dict to year %s"%(year)
     var_dict['Electron_mvaFall17Iso_WPL']  = 'Electron_mvaFall17V1Iso_WPL'
     var_dict['Electron_mvaFall17Iso_WP90'] = 'Electron_mvaFall17V1Iso_WP90'
 
 def getvar(obj,var):
+  """Help function to get some variable's real name from the dictionary."""
   return getattr(obj,var_dict[var])
+
 
 
 class TreeProducerCommon(object):
 
     def __init__(self, name):
-
+        
         print 'TreeProducerCommon is called', name
-
+        
         # create file
-        self.outputfile = ROOT.TFile(name, 'recreate')
+        self.outputfile = ROOT.TFile(name, 'RECREATE')
         self.tree = ROOT.TTree('tree','tree')
 
         # histogram for cutflow
-        self.cutflow = ROOT.TH1F("cutflow", "cutflow", 25, 0, 25)
+        self.cutflow = ROOT.TH1F('cutflow', 'cutflow',  25, 0,  25)
+        self.pileup  = ROOT.TH1F('pileup',  'pileup',  100, 0, 100)
         
         
         ###################
@@ -45,10 +49,10 @@ class TreeProducerCommon(object):
         self.GenMET_phi                 = num.zeros(1, dtype=float)
         self.PuppiMET_pt                = num.zeros(1, dtype=float)
         self.PuppiMET_phi               = num.zeros(1, dtype=float)
-        self.MET_significance           = num.zeros(1, dtype=float)
-        self.MET_covXX                  = num.zeros(1, dtype=float)
-        self.MET_covXY                  = num.zeros(1, dtype=float)
-        self.MET_covYY                  = num.zeros(1, dtype=float)
+        ###self.MET_significance           = num.zeros(1, dtype=float)
+        ###self.MET_covXX                  = num.zeros(1, dtype=float)
+        ###self.MET_covXY                  = num.zeros(1, dtype=float)
+        ###self.MET_covYY                  = num.zeros(1, dtype=float)
         self.nPU                        = num.zeros(1, dtype=int)
         self.nTrueInt                   = num.zeros(1, dtype=int)
         self.npvs                       = num.zeros(1, dtype=int)
@@ -72,7 +76,10 @@ class TreeProducerCommon(object):
         self.tree.Branch('GenMET_phi'                , self.GenMET_phi, 'GenMET_phi/D')
         self.tree.Branch('PuppiMET_pt'               , self.PuppiMET_pt, 'PuppiMET_pt/D')
         self.tree.Branch('PuppiMET_phi'              , self.PuppiMET_phi, 'PuppiMET_phi/D')
-        self.tree.Branch('MET_significance'          , self.MET_significance, 'MET_significance/D')
+        ###self.tree.Branch('MET_significance'          , self.MET_significance, 'MET_significance/D')
+        ###self.tree.Branch('MET_covXX'                 , self.MET_covXX, 'MET_covXX/D')
+        ###self.tree.Branch('MET_covXY'                 , self.MET_covXY, 'MET_covXY/D')
+        ###self.tree.Branch('MET_covYY'                 , self.MET_covYY, 'MET_covYY/D')
         self.tree.Branch('nPU'                       , self.nPU, 'nPU/I')
         self.tree.Branch('nTrueInt'                  , self.nTrueInt, 'nTrueInt/I')
         self.tree.Branch('npvs'                      , self.npvs, 'npvs/I')
