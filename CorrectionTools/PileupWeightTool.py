@@ -13,8 +13,8 @@ class PileupWeightTool:
           self.datafile = ensureTFile( path+'Data_PileUp_2017_69p2.root', 'READ')
           self.mcfile   = ensureTFile( path+'MC_PileUp_Winter17_PU25ns_V2_fromMC.root', 'READ')
         else:
-          self.datafile = ensureTFile( path+'Data_PileUp_2017_69p2.root', 'READ')
-          self.mcfile   = ensureTFile( path+'MC_PileUp_Winter17_PU25ns_V2_fromMC.root', 'READ')
+          self.datafile = ensureTFile( path+'Data_PileUp_2018_69p2.root', 'READ')
+          self.mcfile   = ensureTFile( path+'MC_PileUp_2018_Autumn18.root', 'READ')
         self.datahist = self.datafile.Get('pileup')
         self.mchist   = self.mcfile.Get('pileup')
         self.datahist.SetDirectory(0)
@@ -27,8 +27,8 @@ class PileupWeightTool:
     
     def getWeight(self,npu):
         """Get pileup weight for a given number of pileup interactions."""
-        data = self.datahist.GetBinContent(self.datahist.FindBin(npu))
-        mc   = self.mchist.GetBinContent(self.mchist.FindBin(npu))
+        data = self.datahist.GetBinContent(self.datahist.GetXaxis().FindBin(npu))
+        mc   = self.mchist.GetBinContent(self.mchist.GetXaxis().FindBin(npu))
         if mc>0.:
           return data/mc
         print ">>> Warning! PileupWeightTools::getWeight: Could not make pileup weight for npu=%s data=%s, mc=%s"%(npu,data,mc)  
