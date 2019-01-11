@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+
 import os, glob, sys, shlex, re
 #import time
 from fnmatch import fnmatch
@@ -65,7 +66,7 @@ sample_dict = [
    ('LQ',             "VectorLQ3ToTauB_s-channel_M$MASS", "VectorLQ3ToTauB_Fall2017_5f_Madgraph_LO_s_channel_M$MASS" ),
    ('LQ',             "VectorLQ3ToTauB_pair_M$MASS",      "VectorLQ3ToTauB_Fall2017_5f_Madgraph_LO_pair_M$MASS"      ),
 ]
-sample_dict = [(d,s,p.replace('.*','*').replace('$MASS','(\d+)').replace('$RUN','(Run201\d[A-H])')) for d,s,p in sample_dict] # convert to regex pattern
+sample_dict = [(d,s,p.replace('*','.*').replace('$MASS','(\d+)').replace('$RUN','(Run201\d[A-H])')) for d,s,p in sample_dict] # convert to regex pattern
 #sample_dict = { k: v.lstrip('/').replace('/','__') for k, v in sample_dict.iteritems() }
 haddsets = [
   ('DY',             "DYJetsToLL_M-50",         [ 'DYJetsToLL_M-50_*'       ]),
@@ -98,7 +99,7 @@ def main(args):
   if not samplelist:
     print "No samples found in %s!"%(indir)
   if args.verbose:
-    print samplelist
+    print 'samplelist = %s\n'%(samplelist)
   
   # CHECK samples
   for channel in channels:
@@ -111,6 +112,12 @@ def main(args):
           outdir  = "%s/%s"%(args.outdir,subdir)
           outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
           infiles = '%s/*_%s.root'%(directory,channel)
+          
+          if args.verbose:
+            print "directory = %s"%(directory)
+            print "outdir    = %s"%(outdir)
+            print "outfile   = %s"%(outfile)
+            print "infiles   = %s"%(infiles)
           
           #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
           filelist = glob.glob(infiles)
@@ -310,11 +317,15 @@ def getSampleShortName(dasname):
   #  dasname = dasname[:dasname.lower().index('__nanoaod')]
   #if '__user' in dasname.lower():
   #  dasname = dasname[:dasname.lower().index('__user')]
+  if args.verbose:
+    print "getSampleShortName: %s"%(dasname)
   dasname = dasname.replace('__','/').lstrip('/')
   for subdir, samplename, pattern in sample_dict:
     matches = re.findall(pattern,dasname)
     if matches:
       samplename = samplename.replace('$MASS',matches[0]).replace('$RUN',matches[0])
+      if args.verbose:
+         print "getSampleShortName: MATCH! subdir=%s, samplename=%s, pattern=%s"%(subdir, samplename, pattern)
       return subdir, samplename
   print bcolors.BOLD + bcolors.WARNING + '[WN] getSampleShortName: did not find subdir and short sample name for "%s"! Will save in subdir \'unknown\''%(dasname) + bcolors.ENDC 
   return "unknown", dasname.replace('/','__')
@@ -355,7 +366,8 @@ def ensureDirectory(dirname):
 
 if __name__ == '__main__':
     
-    parser = ArgumentParser()
+    description = '''Check if the job output files are valid, compare the number of events to DAS (-d), hadd them into one file per sample (-m), and merge datasets (-a).'''
+    parser = ArgumentParser(prog="checkFiles",description=description,epilog="Good luck!")
     parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
                                            help="select year" )
     parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=["tautau"], action='store' )
@@ -380,7 +392,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
                                            help="set verbose" )
     args = parser.parse_args()
-    
+        
     print
     main(args)
     print
