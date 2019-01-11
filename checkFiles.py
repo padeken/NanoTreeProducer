@@ -46,34 +46,19 @@ sample_dict = [
    ('VV',             "WZ",                        "WZ_TuneCP5_13TeV-pythia8"                                  ),
    ('VV',             "ZZ",                        "ZZ_TuneCP5_13TeV-pythia8"                                  ),
    ('Tau',            "Tau_$RUN",                  "Tau/$RUN"                                                  ),
-#    ('Tau',            "Tau_Run2017B",              "Tau/Run2017B"                                              ),
-#    ('Tau',            "Tau_Run2017C",              "Tau/Run2017C"                                              ),
-#    ('Tau',            "Tau_Run2017D",              "Tau/Run2017D"                                              ),
-#    ('Tau',            "Tau_Run2017E",              "Tau/Run2017E"                                              ),
-#    ('Tau',            "Tau_Run2017F",              "Tau/Run2017F"                                              ),
    ('Tau',            "Tau_Run2017B",              "Tau/ytakahas-NanoTest_20180507_B"                          ),
    ('Tau',            "Tau_Run2017C",              "Tau/ytakahas-NanoTest_20180507_C"                          ),
    ('Tau',            "Tau_Run2017D",              "Tau/ytakahas-NanoTest_20180507_D"                          ),
    ('Tau',            "Tau_Run2017E",              "Tau/ytakahas-NanoTest_20180507_E"                          ),
    ('Tau',            "Tau_Run2017F",              "Tau/ytakahas-NanoTest_20180507_F"                          ),
    ('SingleMuon',     "SingleMuon_$RUN",           "SingleMuon/$RUN"                                           ),
-#    ('SingleMuon',     "SingleMuon_Run2017B",       "SingleMuon/Run2017B"                                       ),
-#    ('SingleMuon',     "SingleMuon_Run2017C",       "SingleMuon/Run2017C"                                       ),
-#    ('SingleMuon',     "SingleMuon_Run2017D",       "SingleMuon/Run2017D"                                       ),
-#    ('SingleMuon',     "SingleMuon_Run2017E",       "SingleMuon/Run2017E"                                       ),
-#    ('SingleMuon',     "SingleMuon_Run2017F",       "SingleMuon/Run2017F"                                       ),
    ('SingleMuon',     "SingleMuon_$RUN",           "SingleMuon/manzoni-$RUN"                                   ),
    ('SingleElectron', "SingleElectron_$RUN",       "SingleElectron/$RUN"                                       ),
-#    ('SingleElectron', "SingleElectron_Run2017B",   "SingleElectron/Run2017B"                                   ),
-#    ('SingleElectron', "SingleElectron_Run2017C",   "SingleElectron/Run2017C"                                   ),
-#    ('SingleElectron', "SingleElectron_Run2017D",   "SingleElectron/Run2017D"                                   ),
-#    ('SingleElectron', "SingleElectron_Run2017E",   "SingleElectron/Run2017E"                                   ),
-#    ('SingleElectron', "SingleElectron_Run2017F",   "SingleElectron/Run2017F"                                   ),
-   ('SingleElectron', "SingleElectron_Run2017B", "SingleElectron/ytakahas-Nano_SingleElectron_20180507_B"    ),
-   ('SingleElectron', "SingleElectron_Run2017C", "SingleElectron/ytakahas-Nano_SingleElectron_20180507_C"    ),
-   ('SingleElectron', "SingleElectron_Run2017D", "SingleElectron/ytakahas-Nano_SingleElectron_20180507_D"    ),
-   ('SingleElectron', "SingleElectron_Run2017E", "SingleElectron/ytakahas-Nano_SingleElectron_20180507_E"    ),
-   ('SingleElectron', "SingleElectron_Run2017F", "SingleElectron/ytakahas-Nano_SingleElectron_20180507_F"    ),
+   ('SingleElectron', "SingleElectron_Run2017B",   "SingleElectron/ytakahas-Nano_SingleElectron_20180507_B"    ),
+   ('SingleElectron', "SingleElectron_Run2017C",   "SingleElectron/ytakahas-Nano_SingleElectron_20180507_C"    ),
+   ('SingleElectron', "SingleElectron_Run2017D",   "SingleElectron/ytakahas-Nano_SingleElectron_20180507_D"    ),
+   ('SingleElectron', "SingleElectron_Run2017E",   "SingleElectron/ytakahas-Nano_SingleElectron_20180507_E"    ),
+   ('SingleElectron', "SingleElectron_Run2017F",   "SingleElectron/ytakahas-Nano_SingleElectron_20180507_F"    ),
    ('LQ',             "LQ3ToTauB_t-channel_M$MASS",       "LQ3ToTauB_Fall2017_5f_Madgraph_LO_t-channel-M$MASS"       ),
    ('LQ',             "LQ3ToTauB_s-channel_M$MASS",       "LQ3ToTauB_Fall2017_5f_Madgraph_LO_s-channel-M$MASS"       ),
    ('LQ',             "LQ3ToTauB_pair_M$MASS",            "LQ3ToTauB_Fall2017_5f_Madgraph_LO_pair-M$MASS"            ),
@@ -107,8 +92,8 @@ def main(args):
   samplelist = [ ]
   for directory in sorted(os.listdir('./')):
       if not os.path.isdir(directory): continue
-      if args.samples and not matchSampleToPattern(args.samples,directory): continue
-      if args.veto and matchSampleToPattern(args.veto,directory): continue
+      if args.samples and not matchSampleToPattern(directory,args.samples): continue
+      if args.veto and matchSampleToPattern(directory,args.veto): continue
       samplelist.append(directory)
   if not samplelist:
     print "No samples found in %s!"%(indir)
@@ -181,8 +166,8 @@ def main(args):
     # HADD other
     if args.haddother:
       for subdir, samplename, sampleset in haddsets:
-          if args.samples and not matchSampleToPattern(args.samples,samplename): continue
-          if args.veto and matchSampleToPattern(args.veto,directory): continue
+          if args.samples and not matchSampleToPattern(samplename,args.samples): continue
+          if args.veto and matchSampleToPattern(directory,args.veto): continue
           if 'SingleMuon' in subdir and channel not in ['mutau','mumu']: continue
           if 'SingleElectron' in subdir and channel!='etau': continue
           if 'Tau' in subdir and channel!='tautau': continue
@@ -261,11 +246,12 @@ def checkFiles(filelist,directory):
       print bcolors.FAIL + "[NG] %s:   %d out of %d files have no tree!"%(directory,len(badfiles),len(filelist)) + bcolors.ENDC
       return False
     
+    # TODO: check all chunks (those>imax)
     imax = max(ifound)+1
     if len(filelist)<imax:
       imiss = [ i for i in range(0,max(ifound)) if i not in ifound ]
-      chunktext = ('chunks' if len(imiss)>1 else 'chunk') + ', '.join(str(i) for i in imiss)
-      print bcolors.BOLD + bcolors.WARNING + "[WN] %s missing %d files (%s) ?"%(directory,imax-len(filelist),chunktext) + bcolors.ENDC
+      chunktext = ('chunks ' if len(imiss)>1 else 'chunk ') + ', '.join(str(i) for i in imiss)
+      print bcolors.BOLD + bcolors.WARNING + "[WN] %s missing %d/%d files (%s) ?"%(directory,len(imiss),len(filelist),chunktext) + bcolors.ENDC
     
     return True
     
@@ -343,7 +329,7 @@ def getSubdir(dir):
         return subdir
   return "unknown"
   
-def matchSampleToPattern(patterns,sample):
+def matchSampleToPattern(sample,patterns):
   """Match sample name to some pattern."""
   if not isinstance(patterns,list):
     patterns = [patterns]
@@ -387,7 +373,7 @@ if __name__ == '__main__':
                                            help="remove all output files after hadd" )
     parser.add_argument('-o', '--outdir',  dest='outdir', type=str, default=None, action='store' )
     parser.add_argument('-t', '--tag',     dest='tag', type=str, default="", action='store' )
-    parser.add_argument('-s', '--samples', dest='samples', type=str, nargs='+', default=[ ], action='store',
+    parser.add_argument('-s', '--sample',  dest='samples', type=str, nargs='+', default=[ ], action='store',
                                            help="samples to run over, glob patterns (wildcards * and ?) are allowed." )
     parser.add_argument('-x', '--veto',    dest='veto', action='store', type=str, default=None,
                                            help="veto this sample" )
@@ -398,6 +384,6 @@ if __name__ == '__main__':
     print
     main(args)
     print
-
+    
 
 
