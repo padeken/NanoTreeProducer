@@ -20,7 +20,7 @@ parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=in
                                        help="select year" )
 parser.add_argument('-T', '--tes',     dest='tes', type=float, default=1.0, action='store',
                                        help="tau energy scale" )
-parser.add_argument('-n', '--njob',    dest='njob', action='store', type=int, default=4,
+parser.add_argument('-n', '--njob',    dest='nFilesPerJob', action='store', type=int, default=4,
                                        help="number of files per job" )
 parser.add_argument('-m', '--mock',    dest='mock', action='store_true', default=False,
                                        help="mock submit jobs for debugging purposes" )
@@ -160,7 +160,7 @@ def main():
         if 'SingleMuon' in directory and channel not in ['mutau','mumu']: continue
         if 'SingleElectron' in directory and channel!='etau': continue
         if 'Tau' in directory and channel!='tautau': continue
-          
+        
         print bcolors.BOLD + bcolors.OKGREEN + directory + bcolors.ENDC
         files = None
         name = None
@@ -187,14 +187,14 @@ def main():
         try: os.stat('joblist/')
         except: os.mkdir('joblist/')
         jobName = getSampleShortName(directory)[1]
-        jobs = open(jobList, 'w')
-        njob = args.njob
-        outdir = "output_%s/%s"%(year,name)
+        jobs    = open(jobList, 'w')
+        nFilesPerJob = args.nFilesPerJob
+        outdir  = "output_%s/%s"%(year,name)
         
-        # NJOBS CHECKS
-        if njob>1 and any(v==jobName for v in [ 'WW', 'WZ', 'ZZ' ]):
-          print bcolors.BOLD + bcolors.WARNING + "Warning: Setting number of files per job from %s to 1 for %s"%(njob,jobName) + bcolors.ENDC
-          njob = 1
+        # NFILESPERJOBS CHECKS
+        if nFilesPerJob>1 and any(vv==jobName for vv in [ 'WW', 'WZ', 'ZZ' ]):
+          print bcolors.BOLD + bcolors.WARNING + "Warning: Setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
+          nFilesPerJob = 1
         
         try: os.stat(outdir)
         except: os.mkdir(outdir)
@@ -203,7 +203,7 @@ def main():
         
         # CREATE JOBS
         nChunks = 0
-        filelists = list(split_seq(files,njob))
+        filelists = list(split_seq(files,nFilesPerJob))
         checkExistingFiles(outdir,channel,len(filelists))
         #filelists = list(split_seq(files,1))
         for file in filelists:

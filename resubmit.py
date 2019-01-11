@@ -10,28 +10,15 @@ import itertools
 import subprocess
 from ROOT import TFile, Double
 
-# parser = ArgumentParser()
-# parser.add_argument('-c', '--channel', dest='channel', type=str, default="tautau", action="store")
-# parser.add_argument('-n', '--njob',    dest='njob', type=int, default=10, action="store")
-# #parser.add_argument('-m', '--make',    dest='make', default=False, action="store_true")
-# parser.add_argument('-m', '--mock',    dest='mock', action='store_true', default=False,
-#                                        help="mock submit jobs for debugging purposes" )
-# parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
-#                                        help="select year" )
-# parser.add_argument('-s', '--samples', dest='samples', type=str, nargs='+', default=[ ], action="store",
-#                                        help="samples to run over, glob patterns (wildcards * and ?) are allowed.")
-# parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
-#                                        help="set verbose" )
-# args = parser.parse_args()
-
 
 
 def main():
     
-    batchSystem = 'psibatch_runner.sh'    
-    year        = args.year
-    channel     = args.channel
-    outdir      = "output_%s/"%(year)
+    batchSystem  = 'psibatch_runner.sh'    
+    year         = args.year
+    channel      = args.channel
+    nFilesPerJob = args.nFilesPerJob
+    outdir       = "output_%s/"%(year)
     chunkpattern = re.compile(r".*_(\d+)_[a-z]+\.root")
     
     # GET LIST
@@ -59,7 +46,12 @@ def main():
         else:
           infiles = getFileListDAS('/' + directory.replace('__', '/'))
         
-        infilelists = list(split_seq(infiles, args.njob))
+        # NFILESPERJOBS CHECKS
+        if nFilesPerJob>1 and any(vv==jobName for vv in [ 'WW', 'WZ', 'ZZ' ]):
+          print bcolors.BOLD + bcolors.WARNING + "Warning: Setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
+          nFilesPerJob = 1
+        
+        infilelists = list(split_seq(infiles,nFilesPerJob))
         
         badchunks   = [ ]
         misschunks  = range(0,len(infilelists))
@@ -102,7 +94,7 @@ def main():
         jobName = getSampleShortName(directory)[1]
         nchunks = len(badchunks)+len(misschunks)
         if nchunks>0:
-            submitJobs(jobName,jobList,nchunks,directory,batchSystem)
+            submitJobs(jobName,jobList,nchunks,outdir,batchSystem)
         else:
             print bcolors.BOLD + bcolors.OKBLUE + '[OK] ' + directory + bcolors.ENDC
         
