@@ -282,7 +282,6 @@ class MuTauProducer(Module):
           self.out.GenMET_phi[0]               = event.GenMET_phi
           self.out.nPU[0]                      = event.Pileup_nPU
           self.out.nTrueInt[0]                 = event.Pileup_nTrueInt
-          self.out.genWeight[0]                = event.genWeight
           try:
             self.out.LHE_Njets[0]              = event.LHE_Njets
           except RuntimeError:
@@ -355,11 +354,12 @@ class MuTauProducer(Module):
         
         # WEIGHTS
         if not self.isData:
+          self.out.genWeight[0]     = event.genWeight
           self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.trigweight[0]    = self.muSFs.getTriggerSF(self.out.pt_1[0],self.out.eta_1[0])
           self.out.idisoweight_1[0] = self.muSFs.getIdIsoSF(self.out.pt_1[0],self.out.eta_1[0])
           self.out.idisoweight_2[0] = self.ltfSFs.getSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
-          self.out.weight[0]        = self.out.trigweight[0]*self.out.puweight[0]
+          self.out.weight[0]        = self.out.genWeight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0]*self.out.idisoweight_2[0]
         
         
         self.out.tree.Fill()

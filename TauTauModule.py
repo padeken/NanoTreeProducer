@@ -494,7 +494,7 @@ class TauTauProducer(Module):
           self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.idisoweight_1[0] = self.ltfSFs.getSF(self.out.genPartFlav_1[0],self.out.eta_1[0])
           self.out.idisoweight_2[0] = self.ltfSFs.getSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
-          self.out.weight[0]        = self.out.trigweight[0]*self.out.puweight[0]
+          self.out.weight[0]        = self.out.genWeight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0]*self.out.idisoweight_2[0]
         
         
         self.out.tree.Fill() 
