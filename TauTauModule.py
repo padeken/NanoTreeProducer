@@ -33,6 +33,15 @@ class TauTauProducer(Module):
             self.isData = False
         
         setYear(year)
+        if year==2017:
+          self.trigger = lambda e: e.HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg or e.HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg or e.HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg
+        else:
+          if self.isData:
+            self.trigger = lambda e: e.HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg or e.HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg or e.HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg \
+                                       if e.run<317509 else e.HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg
+          else:
+            self.trigger = lambda e: e.HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg
+        
         self.tauSFs   = TauTauSFs('tight',year=year)
         self.tauSFsVT = TauTauSFs('vtight',year=year)
         self.ltfSFs   = LeptonTauFakeSFs('loose','vloose',year=year)
@@ -65,7 +74,7 @@ class TauTauProducer(Module):
     
     def beginJob(self):
         pass
-
+    
     def endJob(self):
         #check = self.out.outputfile.mkdir('check')
         #self.pileup.SetDirectory(check)
@@ -166,9 +175,8 @@ class TauTauProducer(Module):
         
         #if event.HLT_DoubleMediumChargedIsoPFTau35_Trk1_eta2p1_Reg or : 
         #print 'trig = ', event.HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg, event.HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg, event.HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg
-        if event.HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg > 0.5 or event.HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg > 0.5 or event.HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg > 0.5:
-            pass
-        else:
+        #if event.HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg > 0.5 or event.HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg > 0.5 or event.HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg > 0.5:
+        if not self.trigger(event):
             return False
         
         
@@ -354,9 +362,9 @@ class TauTauProducer(Module):
         if not self.isData:
             self.out.genPartFlav_2[0]          = ord(event.Tau_genPartFlav[ditau.id2])
             genvistau = Collection(event, 'GenVisTau')
-            dRmax = 1000
-            gendm = -1
-            genpt = -1
+            dRmax  = 1000
+            gendm  = -1
+            genpt  = -1
             geneta = -1
             genphi = -1
             for igvt in range(event.nGenVisTau):
