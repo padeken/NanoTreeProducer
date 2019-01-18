@@ -17,7 +17,6 @@ def main():
     batchSystem  = 'psibatch_runner.sh'    
     year         = args.year
     channel      = args.channel
-    nFilesPerJob = args.nFilesPerJob
     outdir       = "output_%s/"%(year)
     chunkpattern = re.compile(r".*_(\d+)_[a-z]+\.root")
     
@@ -36,8 +35,10 @@ def main():
     # RESUBMIT samples
     for directory in samplelist:
         #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
-        outdir = "output_%s/%s"%(year,directory)
-        outfilelist = glob.glob(outdir + '/*_' + args.channel + '.root')
+        outdir       = "output_%s/%s"%(year,directory)
+        outfilelist  = glob.glob(outdir + '/*_' + args.channel + '.root')
+        nFilesPerJob = args.nFilesPerJob
+        jobName      = getSampleShortName(directory)[1]
         if not outfilelist: continue
         
         # GET INPUT FILES
@@ -47,8 +48,10 @@ def main():
           infiles = getFileListDAS('/' + directory.replace('__', '/'))
         
         # NFILESPERJOBS CHECKS
-        if nFilesPerJob>1 and any(vv==jobName for vv in [ 'WW', 'WZ', 'ZZ' ]):
-          print bcolors.BOLD + bcolors.WARNING + "Warning: Setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
+        # Diboson (WW, WZ, ZZ) have very large files and acceptance,
+        # and the jet-binned DY and WJ files need to be run separately because of a bug affecting LHE_Njets
+        if nFilesPerJob>1 and any(vv in jobName[:4] for vv in [ 'WW', 'WZ', 'ZZ', 'DY', 'WJ', 'W1J', 'W2J', 'W3J', 'W4J' ]):
+          print bcolors.BOLD + bcolors.WARNING + "[WN] setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
           nFilesPerJob = 1
         
         infilelists = list(split_seq(infiles,nFilesPerJob))
@@ -67,9 +70,9 @@ def main():
               if chunk in misschunks:
                 misschunks.remove(chunk)
               elif chunk >= len(infilelists):
-                print bcolors.BOLD + bcolors.FAIL + '[WN] %s: found chunk %s >= total number of chunks %s ! Please make sure you have chosen the correct -n !'%(filename,chunk,len(infilelists)) + bcolors.ENDC
+                print bcolors.BOLD + bcolors.FAIL + '[WN] %s: found chunk %s >= total number of chunks %s ! Please make sure you have chosen the correct number of files per job (-n=%s) !'%(filename,chunk,len(infilelists),nFilesPerJob) + bcolors.ENDC
               else:
-                print bcolors.BOLD + bcolors.FAIL + '[WN] %s: found weird chunk %s ! Please check if there is overcounting !'%(filename,chunk,len(infilelists)) + bcolors.ENDC
+                print bcolors.BOLD + bcolors.FAIL + '[WN] %s: found weird chunk %s ! Please check if there is any overcounting !'%(filename,chunk,len(infilelists)) + bcolors.ENDC
               file = TFile(filename,'READ')
               if not file.IsZombie() and file.GetListOfKeys().Contains('tree') and file.GetListOfKeys().Contains('cutflow'):
                 continue
@@ -79,8 +82,9 @@ def main():
           
           # BAD CHUNKS
           if len(badchunks)>0:
+            badchunks.sort()
             chunktext = ('chunks ' if len(badchunks)>1 else 'chunk ') + ', '.join(str(ch) for ch in badchunks)
-            print bcolors.BOLD + bcolors.WARNING + '[NG] %s, %d/%d failed! Resubmitting %s...'%(directory,len(ids),len(outfilelist),chunktext) + bcolors.ENDC
+            print bcolors.BOLD + bcolors.WARNING + '[NG] %s, %d/%d failed! Resubmitting %s...'%(directory,len(badchunks),len(outfilelist),chunktext) + bcolors.ENDC
           
           # MISSING CHUNKS
           if len(misschunks)>0:
@@ -91,12 +95,25 @@ def main():
               createJobs(jobslog,infiles,outdir,directory,chunk,channel,year=year)
         
         # RESUBMIT
-        jobName = getSampleShortName(directory)[1]
-        nchunks = len(badchunks)+len(misschunks)
-        if nchunks>0:
-            submitJobs(jobName,jobList,nchunks,outdir,batchSystem)
-        else:
+        jobName += "_%s_%s"%(channel,year)
+        nChunks = len(badchunks)+len(misschunks)
+        if nChunks==0:
             print bcolors.BOLD + bcolors.OKBLUE + '[OK] ' + directory + bcolors.ENDC
+        elif args.force:
+            submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
+        else:
+          submit = raw_input("Do you also want to submit %d jobs to the batch system? [y/n] "%(nChunks))
+          if submit.lower()=='force':
+            submit = 'y'
+            args.force = True
+          if submit.lower()=='quit':
+            exit(0)
+          if submit.lower()=='y':
+            submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
+          else:
+            print "Not submitting jobs"
+        print
+
         
 #    if flag:
 #        print bcolors.FAIL + "[NG]" + directory + bcolors.ENDC
