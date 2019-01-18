@@ -4,8 +4,9 @@ import os, glob, sys, shlex, re
 #import time
 from fnmatch import fnmatch
 import subprocess
-from ROOT import TFile, TTree, Double
 from argparse import ArgumentParser
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
+from ROOT import TFile, TTree, TH1, Double
 
 class bcolors:
     HEADER = '\033[95m'
@@ -16,6 +17,34 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+if __name__ == '__main__':    
+    description = '''Check if the job output files are valid, compare the number of events to DAS (-d), hadd them into one file per sample (-m), and merge datasets (-a).'''
+    parser = ArgumentParser(prog="checkFiles",description=description,epilog="Good luck!")
+    parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
+                                           help="select year" )
+    parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=["tautau"], action='store' )
+    parser.add_argument('-m', '--make',    dest='make', default=False, action='store_true',
+                                           help="hadd all output files" )
+    parser.add_argument('-a', '--hadd',    dest='haddother', default=False, action='store_true',
+                                           help="hadd some samples into one (e.g. all data sets, or the extensions)" )
+    parser.add_argument('-d', '--das',     dest='compareToDas', default=False, action='store_true',
+                                           help="compare number of events in output to das" )
+    parser.add_argument('-D', '--das-ex',  dest='compareToDasExisting', default=False, action='store_true',
+                                           help="compare number of events in existing output to das" )
+    parser.add_argument('-f', '--force',   dest='force', default=False, action='store_true',
+                                           help="overwrite existing hadd'ed files" )
+    parser.add_argument('-r', '--clean',   dest='cleanup', default=False, action='store_true',
+                                           help="remove all output files after hadd" )
+    parser.add_argument('-o', '--outdir',  dest='outdir', type=str, default=None, action='store' )
+    parser.add_argument('-t', '--tag',     dest='tag', type=str, default="", action='store' )
+    parser.add_argument('-s', '--sample',  dest='samples', type=str, nargs='+', default=[ ], action='store',
+                                           help="samples to run over, glob patterns (wildcards * and ?) are allowed." )
+    parser.add_argument('-x', '--veto',    dest='veto', action='store', type=str, default=None,
+                                           help="veto this sample" )
+    parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
+                                           help="set verbose" )
+    args = parser.parse_args()
 
 subdirs = [ 'TT', 'DY', 'W*J', 'ST', 'LQ', 'Tau', 'SingleMuon', 'SingleElectron' ]
 sample_dict = [
@@ -189,7 +218,8 @@ def main(args):
           # OVERWRITE ?
           if os.path.isfile(outfile):
             if args.force:
-              print bcolors.BOLD + bcolors.WARNING + "[WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
+              if args.verbose:
+                print bcolors.BOLD + bcolors.WARNING + "[WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
             else:
               print bcolors.BOLD + bcolors.FAIL + "[NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
               continue
@@ -234,17 +264,21 @@ def checkFiles(filelist,directory):
     ifound   = [ ]
     for filename in filelist:
       file  = TFile(filename, 'READ')
-      tree  = isinstance(file.Get('tree'),TTree)
-      hist  = file.Get('cutflow')
-      if not tree or not hist:
+      isbad = False
+      if file.IsZombie():
+        print bcolors.FAIL + '[NG] file %s is a zombie'%(filename) + bcolors.ENDC
+        isbad = True
+      elif not isinstance(file.Get('tree'),TTree):
+        print bcolors.FAIL + '[NG] no tree found in ' + filename + bcolors.ENDC
+        isbad = True
+      elif not isinstance(file.Get('cutflow'),TH1):
+        print bcolors.FAIL + '[NG] no cutflow found in ' + filename + bcolors.ENDC
+        isbad = True
+      if isbad:
         badfiles.append(filename)
         #rmcmd = 'rm %s' %filename
         #print rmcmd
         #os.system(rmcmd)
-        if not tree:
-          print bcolors.FAIL + '[NG] no tree found in ' + filename + bcolors.ENDC
-        if not hist:
-          print bcolors.FAIL + '[NG] no cutflow found in ' + filename + bcolors.ENDC
       file.Close()
       match = indexpattern.search(filename)
       if match: ifound.append(int(match.group(1)))
@@ -279,14 +313,16 @@ def compareEventsToDAS(filenames,dasname):
       nfiles = len(filenames)
       for filename in filenames:
         file = TFile(filename, 'READ')
+        if file.IsZombie():
+          continue
         hist = file.Get('cutflow')
         if hist:
           events_processed = hist.GetBinContent(1)
           if args.verbose:
             print "%12d events processed in %s "%(events_processed,filename)
           total_processed += events_processed
-        else:
-          print bcolors.FAIL + '[NG] no cutflow found in ' + filename + bcolors.ENDC
+        #else:
+        #  print bcolors.FAIL + '[NG] compareEventsToDAS: no cutflow found in ' + filename + bcolors.ENDC
     
     instance = 'prod/phys03' if 'USER' in dasname else 'prod/global'
     dascmd   = 'das_client --limit=0 --query=\"summary dataset=/%s  instance=%s\"'%(dasname,instance)
@@ -342,6 +378,7 @@ def getSubdir(dir):
   
 def matchSampleToPattern(sample,patterns):
   """Match sample name to some pattern."""
+  sample = sample.lstrip('/')
   if not isinstance(patterns,list):
     patterns = [patterns]
   for pattern in patterns:
@@ -349,7 +386,7 @@ def matchSampleToPattern(sample,patterns):
       if fnmatch(sample,pattern+'*'):
         return True
     else:
-      if pattern in sample[:len(pattern)]:
+      if pattern in sample[:len(pattern)+1]:
         return True
   return False
   
@@ -366,33 +403,6 @@ def ensureDirectory(dirname):
 
 if __name__ == '__main__':
     
-    description = '''Check if the job output files are valid, compare the number of events to DAS (-d), hadd them into one file per sample (-m), and merge datasets (-a).'''
-    parser = ArgumentParser(prog="checkFiles",description=description,epilog="Good luck!")
-    parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
-                                           help="select year" )
-    parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=["tautau"], action='store' )
-    parser.add_argument('-m', '--make',    dest='make', default=False, action='store_true',
-                                           help="hadd all output files" )
-    parser.add_argument('-a', '--hadd',    dest='haddother', default=False, action='store_true',
-                                           help="hadd some samples into one (e.g. all data sets, or the extensions)" )
-    parser.add_argument('-d', '--das',     dest='compareToDas', default=False, action='store_true',
-                                           help="compare number of events in output to das" )
-    parser.add_argument('-D', '--das-ex',  dest='compareToDasExisting', default=False, action='store_true',
-                                           help="compare number of events in existing output to das" )
-    parser.add_argument('-f', '--force',   dest='force', default=False, action='store_true',
-                                           help="overwrite existing hadd'ed files" )
-    parser.add_argument('-r', '--clean',   dest='cleanup', default=False, action='store_true',
-                                           help="remove all output files after hadd" )
-    parser.add_argument('-o', '--outdir',  dest='outdir', type=str, default=None, action='store' )
-    parser.add_argument('-t', '--tag',     dest='tag', type=str, default="", action='store' )
-    parser.add_argument('-s', '--sample',  dest='samples', type=str, nargs='+', default=[ ], action='store',
-                                           help="samples to run over, glob patterns (wildcards * and ?) are allowed." )
-    parser.add_argument('-x', '--veto',    dest='veto', action='store', type=str, default=None,
-                                           help="veto this sample" )
-    parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
-                                           help="set verbose" )
-    args = parser.parse_args()
-        
     print
     main(args)
     print
