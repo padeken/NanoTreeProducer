@@ -6,7 +6,7 @@
 
 import os, sys
 from argparse import ArgumentParser
-import ROOT
+import ROOT; ROOT.PyConfig.IgnoreCommandLineOptions = True
 from ROOT import TFile, TTree
 
 argv = sys.argv
