@@ -5,7 +5,8 @@ from commands import getoutput
 from fnmatch import fnmatch
 import itertools
 from argparse import ArgumentParser
-from checkFiles import getSampleShortName
+import checkFiles
+from checkFiles import getSampleShortName, matchSampleToPattern
 
 parser = ArgumentParser()
 parser.add_argument('-f', '--force',   dest='force', action='store_true', default=False,
@@ -27,6 +28,7 @@ parser.add_argument('-m', '--mock',    dest='mock', action='store_true', default
 parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
                                        help="set verbose" )
 args = parser.parse_args()
+checkFiles.args = args
 
 class bcolors:
     HEADER = '\033[95m'
@@ -143,8 +145,8 @@ def main():
         line = line.rstrip().lstrip().split(' ')[0]
         if line[:2].count('#')>0: continue
         if line=='': continue
-        if args.samples and not matchSampleToPattern(directory,args.samples): continue
-        if args.veto and matchSampleToPattern(directory,args.veto): continue
+        if args.samples and not matchSampleToPattern(line,args.samples): continue
+        if args.veto and matchSampleToPattern(line,args.veto): continue
         #if line.count('/')!=3:
         #    continue
         directories.append(line)
@@ -192,8 +194,10 @@ def main():
         outdir  = "output_%s/%s"%(year,name)
         
         # NFILESPERJOBS CHECKS
-        if nFilesPerJob>1 and any(vv==jobName for vv in [ 'WW', 'WZ', 'ZZ' ]):
-          print bcolors.BOLD + bcolors.WARNING + "Warning: Setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
+        # Diboson (WW, WZ, ZZ) have very large files and acceptance,
+        # and the jet-binned DY and WJ files need to be run separately because of a bug affecting LHE_Njets
+        if nFilesPerJob>1 and any(vv in jobName[:4] for vv in [ 'WW', 'WZ', 'ZZ', 'DY', 'WJ', 'W1J', 'W2J', 'W3J', 'W4J' ]):
+          print bcolors.BOLD + bcolors.WARNING + "[WN] setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
           nFilesPerJob = 1
         
         try: os.stat(outdir)
@@ -213,6 +217,7 @@ def main():
         jobs.close()
         
         # SUBMIT
+        jobName += "_%s_%s"%(channel,year)
         if args.force:
           submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
         else:
