@@ -6,19 +6,21 @@ from fnmatch import fnmatch
 import itertools
 from argparse import ArgumentParser
 import checkFiles
-from checkFiles import getSampleShortName, matchSampleToPattern
+from checkFiles import getSampleShortName, matchSampleToPattern, header
 
 parser = ArgumentParser()
 parser.add_argument('-f', '--force',   dest='force', action='store_true', default=False,
-                                       help="do not ask for confirmation before submission of jobs" )
-parser.add_argument('-c', '--channel', dest='channel', action='store', type=str, default="mutau",
+                                       help="submit jobs without asking confirmation" )
+parser.add_argument('-y', '--year',    dest='years', choices=[2017,2018], type=int, nargs='+', default=2017, action='store',
+                                       help="select year" )
+parser.add_argument('-c', '--channel', dest='channels', choices=['eletau','mutau','tautau'], type=str, nargs='+', default='mutau', action='store',
                                        help="channels to submit" )
 parser.add_argument('-s', '--sample',  dest='samples', type=str, nargs='+', default=[ ], action='store',
                                        help="filter these samples, glob patterns (wildcards * and ?) are allowed." )
 parser.add_argument('-x', '--veto',    dest='veto', action='store', type=str, default=None,
                                        help="veto this sample" )
-parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
-                                       help="select year" )
+parser.add_argument('-t', '--type',    dest='type', choices=['data','mc'], type=str, default=None, action='store',
+                                       help="filter data or MC to submit" )
 parser.add_argument('-T', '--tes',     dest='tes', type=float, default=1.0, action='store',
                                        help="tau energy scale" )
 parser.add_argument('-n', '--njob',    dest='nFilesPerJob', action='store', type=int, default=4,
@@ -26,7 +28,7 @@ parser.add_argument('-n', '--njob',    dest='nFilesPerJob', action='store', type
 parser.add_argument('-q', '--queue',   dest='queue', choices=['all.q','short.q','long.q'], type=str, default=None, action='store',
                                        help="select queue for submission" )
 parser.add_argument('-m', '--mock',    dest='mock', action='store_true', default=False,
-                                       help="mock submit jobs for debugging purposes" )
+                                       help="mock-submit jobs for debugging purposes" )
 parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
                                        help="set verbose" )
 args = parser.parse_args()
@@ -103,7 +105,7 @@ def getFileListPNFS(dataset):
     return files
 
 
-def createJobs(jobsfile, filelist, outdir, name, nchunks, channel, year=2017):
+def createJobs(jobsfile, filelist, outdir, name, nchunks, channel, year):
   infiles = [ ]
   for file in filelist:
       #if pattern.find('pnfs')!=-1:
@@ -114,7 +116,7 @@ def createJobs(jobsfile, filelist, outdir, name, nchunks, channel, year=2017):
           infiles.append("dcap://t3se01.psi.ch:22125/"+file)
       else:
           infiles.append("root://cms-xrd-global.cern.ch/"+file)
-  cmd = 'python job.py -i %s -o %s -N %s -n %i -c %s -y %s \n'%(','.join(infiles),outdir,name,nchunks,channel,args.year)
+  cmd = 'python job.py -i %s -o %s -N %s -n %i -c %s -y %s \n'%(','.join(infiles),outdir,name,nchunks,channel,year)
   if args.verbose:
     print cmd
   jobsfile.write(cmd)
@@ -139,105 +141,110 @@ def submitJobs(jobName, jobList, nchunks, outdir, batchSystem):
 
 def main():
     
-    batchSystem = 'psibatch_runner.sh'
-    channel     = args.channel
-    year        = args.year
+    channels    = args.channels
+    years       = args.years
     tes         = args.tes
-    samplelist  = "samples_%s.cfg"%(year)
+    batchSystem = 'psibatch_runner.sh'
     
-    # READ SAMPLES
-    directories = [ ]
-    for line in open(samplelist, 'r'):
-        line = line.rstrip().lstrip().split(' ')[0]
-        if line[:2].count('#')>0: continue
-        if line=='': continue
-        if args.samples and not matchSampleToPattern(line,args.samples): continue
-        if args.veto and matchSampleToPattern(line,args.veto): continue
-        #if line.count('/')!=3:
-        #    continue
-        directories.append(line)
-    #print directories
-	
-	# SUBMIT SAMPLES
-    for directory in directories:
+    for year in years:
+      
+      # READ SAMPLES
+      directories = [ ]
+      samplelist  = "samples_%s.cfg"%(year)
+      for line in open(samplelist, 'r'):
+          line = line.rstrip().lstrip().split(' ')[0]
+          if line[:2].count('#')>0: continue
+          if line=='': continue
+          if args.samples and not matchSampleToPattern(line,args.samples): continue
+          if args.veto and matchSampleToPattern(line,args.veto): continue
+          if args.type=='mc' and any(s in line[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
+          if args.type=='data' and not any(s in line[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
+          directories.append(line)
+      #print directories
+      
+      for channel in channels:
+        print header(year,channel)
         
-        if args.verbose:
-          print "\ndirectory =",directory
-        
-        # FILTER
-        if 'SingleMuon' in directory and channel not in ['mutau','mumu']: continue
-        if 'SingleElectron' in directory and channel!='etau': continue
-        if 'Tau' in directory and channel!='tautau': continue
-        
-        print bcolors.BOLD + bcolors.OKGREEN + directory + bcolors.ENDC
-        files = None
-        name = None
-        
-        if 'pnfs' in directory:
-            name = directory.split('/')[8].replace('/','') + '__' + directory.split('/')[9].replace('/','') + '__' + directory.split('/')[10].replace('/','')
-            #files = getFileListPNFS(directory)
-            files = getFileListPNFS(name)
-        else:
-            files = getFileListDAS(directory)
-            name = directory.split('/')[1].replace('/','') + '__' + directory.split('/')[2].replace('/','') + '__' + directory.split('/')[3].replace('/','')
-        
-        if not files:
-          print bcolors.BOLD + bcolors.WARNING + "Warning!!! FILELIST empty" + bcolors.ENDC
-          continue
-        elif args.verbose:
-          print "FILELIST = "+files[0]
-          for file in files[1:]:
-            print "           "+file
-        
-        # JOBLIST
-        jobList = 'joblist/joblist%s_%s.txt'%(name,channel)
-        print "Creating job file %s..."%(jobList)
-        try: os.stat('joblist/')
-        except: os.mkdir('joblist/')
-        jobName = getSampleShortName(directory)[1]
-        jobs    = open(jobList, 'w')
-        nFilesPerJob = args.nFilesPerJob
-        outdir  = "output_%s/%s"%(year,name)
-        
-        # NFILESPERJOBS CHECKS
-        # Diboson (WW, WZ, ZZ) have very large files and acceptance,
-        # and the jet-binned DY and WJ files need to be run separately because of a bug affecting LHE_Njets
-        if nFilesPerJob>1 and any(vv in jobName[:4] for vv in [ 'WW', 'WZ', 'ZZ', 'DY', 'WJ', 'W1J', 'W2J', 'W3J', 'W4J' ]):
-          print bcolors.BOLD + bcolors.WARNING + "[WN] setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
-          nFilesPerJob = 1
-        
-        try: os.stat(outdir)
-        except: os.mkdir(outdir)
-        try: os.stat(outdir+'/logs/')
-        except: os.mkdir(outdir+'/logs/')
-        
-        # CREATE JOBS
-        nChunks = 0
-        filelists = list(split_seq(files,nFilesPerJob))
-        checkExistingFiles(outdir,channel,len(filelists))
-        #filelists = list(split_seq(files,1))
-        for file in filelists:
-        #print "FILES = ",f
-            createJobs(jobs,file,outdir,name,nChunks,channel,year=year)
-            nChunks = nChunks+1
-        jobs.close()
-        
-        # SUBMIT
-        jobName += "_%s_%s"%(channel,year)
-        if args.force:
-          submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
-        else:
-          submit = raw_input("Do you also want to submit %d jobs to the batch system? [y/n] "%(nChunks))
-          if submit.lower()=='force':
-            submit = 'y'
-            args.force = True
-          if submit.lower()=='quit':
-            exit(0)
-          if submit.lower()=='y':
-            submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
-          else:
-            print "Not submitting jobs"
-        print
+        # SUBMIT SAMPLES
+        for directory in directories:
+            
+            if args.verbose:
+              print "\ndirectory =",directory
+            
+            # FILTER
+            if 'SingleMuon' in directory and channel not in ['mutau','mumu']: continue
+            if 'SingleElectron' in directory and channel!='etau': continue
+            if 'Tau' in directory[:5] and channel!='tautau': continue
+            
+            print bcolors.BOLD + bcolors.OKGREEN + directory + bcolors.ENDC
+            files = None
+            name = None
+            
+            if 'pnfs' in directory:
+                name = directory.split('/')[8].replace('/','') + '__' + directory.split('/')[9].replace('/','') + '__' + directory.split('/')[10].replace('/','')
+                #files = getFileListPNFS(directory)
+                files = getFileListPNFS(name)
+            else:
+                files = getFileListDAS(directory)
+                name = directory.split('/')[1].replace('/','') + '__' + directory.split('/')[2].replace('/','') + '__' + directory.split('/')[3].replace('/','')
+            
+            if not files:
+              print bcolors.BOLD + bcolors.WARNING + "Warning!!! FILELIST empty" + bcolors.ENDC
+              continue
+            elif args.verbose:
+              print "FILELIST = "+files[0]
+              for file in files[1:]:
+                print "           "+file
+            
+            # JOBLIST
+            jobList = 'joblist/joblist%s_%s.txt'%(name,channel)
+            print "Creating job file %s..."%(jobList)
+            try: os.stat('joblist/')
+            except: os.mkdir('joblist/')
+            jobName = getSampleShortName(directory)[1]
+            jobs    = open(jobList, 'w')
+            nFilesPerJob = args.nFilesPerJob
+            outdir  = "output_%s/%s"%(year,name)
+            
+            # NFILESPERJOBS CHECKS
+            # Diboson (WW, WZ, ZZ) have very large files and acceptance,
+            # and the jet-binned DY and WJ files need to be run separately because of a bug affecting LHE_Njets
+            if nFilesPerJob>1 and any(vv in jobName[:4] for vv in [ 'WW', 'WZ', 'ZZ', 'DY', 'WJ', 'W1J', 'W2J', 'W3J', 'W4J' ]):
+              print bcolors.BOLD + bcolors.WARNING + "[WN] setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
+              nFilesPerJob = 1
+            
+            try: os.stat(outdir)
+            except: os.mkdir(outdir)
+            try: os.stat(outdir+'/logs/')
+            except: os.mkdir(outdir+'/logs/')
+            
+            # CREATE JOBS
+            nChunks = 0
+            filelists = list(split_seq(files,nFilesPerJob))
+            checkExistingFiles(outdir,channel,len(filelists))
+            #filelists = list(split_seq(files,1))
+            for file in filelists:
+            #print "FILES = ",f
+                createJobs(jobs,file,outdir,name,nChunks,channel,year=year)
+                nChunks = nChunks+1
+            jobs.close()
+            
+            # SUBMIT
+            jobName += "_%s_%s"%(channel,year)
+            if args.force:
+              submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
+            else:
+              submit = raw_input("Do you also want to submit %d jobs to the batch system? [y/n] "%(nChunks))
+              if submit.lower()=='force':
+                submit = 'y'
+                args.force = True
+              if submit.lower()=='quit':
+                exit(0)
+              if submit.lower()=='y':
+                submitJobs(jobName,jobList,nChunks,outdir,batchSystem)
+              else:
+                print "Not submitting jobs"
+            print
 
 
 

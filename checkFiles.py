@@ -21,7 +21,7 @@ class bcolors:
 if __name__ == '__main__':    
     description = '''Check if the job output files are valid, compare the number of events to DAS (-d), hadd them into one file per sample (-m), and merge datasets (-a).'''
     parser = ArgumentParser(prog="checkFiles",description=description,epilog="Good luck!")
-    parser.add_argument('-y', '--year',    dest='year', choices=[2017,2018], type=int, default=2017, action='store',
+    parser.add_argument('-y', '--year',    dest='years', choices=[2017,2018], type=int, nargs='+', default=[2017], action='store',
                                            help="select year" )
     parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=["tautau"], action='store' )
     parser.add_argument('-m', '--make',    dest='make', default=False, action='store_true',
@@ -37,11 +37,13 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--clean',   dest='cleanup', default=False, action='store_true',
                                            help="remove all output files after hadd" )
     parser.add_argument('-o', '--outdir',  dest='outdir', type=str, default=None, action='store' )
-    parser.add_argument('-t', '--tag',     dest='tag', type=str, default="", action='store' )
     parser.add_argument('-s', '--sample',  dest='samples', type=str, nargs='+', default=[ ], action='store',
                                            help="samples to run over, glob patterns (wildcards * and ?) are allowed." )
     parser.add_argument('-x', '--veto',    dest='veto', action='store', type=str, default=None,
                                            help="veto this sample" )
+    parser.add_argument('-t', '--type',    dest='type', choices=['data','mc'], type=str, default=None, action='store',
+                                           help="filter data or MC to submit" )
+    #parser.add_argument('-t', '--tag',     dest='tag', type=str, default="", action='store' )
     parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
                                            help="set verbose" )
     args = parser.parse_args()
@@ -110,149 +112,153 @@ haddsets = [
 
 def main(args):
   
-  year       = args.year
+  years      = args.years
   channels   = args.channels
-  indir      = "output_%s/"%(year)
-  os.chdir(indir)
   
-  if not args.outdir:
-    args.outdir = "/scratch/ineuteli/analysis/LQ_%s"%(year)
-  
-  # GET LIST
-  samplelist = [ ]
-  for directory in sorted(os.listdir('./')):
-      if not os.path.isdir(directory): continue
-      if args.samples and not matchSampleToPattern(directory,args.samples): continue
-      if args.veto and matchSampleToPattern(directory,args.veto): continue
-      samplelist.append(directory)
-  if not samplelist:
-    print "No samples found in %s!"%(indir)
-  if args.verbose:
-    print 'samplelist = %s\n'%(samplelist)
-  
-  # CHECK samples
-  for channel in channels:
+  for year in years:
+    indir      = "output_%s/"%(year)
+    samplesdir = args.outdir if args.outdir else "/scratch/ineuteli/analysis/LQ_%s"%(year)
+    os.chdir(indir)
     
-    # HADD samples
-    if not args.haddother or args.make:
-      for directory in samplelist:
-                    
-          subdir, samplename = getSampleShortName(directory)
-          outdir  = "%s/%s"%(args.outdir,subdir)
-          outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
-          infiles = '%s/*_%s.root'%(directory,channel)
-          
-          if args.verbose:
-            print "directory = %s"%(directory)
-            print "outdir    = %s"%(outdir)
-            print "outfile   = %s"%(outfile)
-            print "infiles   = %s"%(infiles)
-          
-          #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
-          filelist = glob.glob(infiles)
-          if not filelist: continue
-          
-          if checkFiles(filelist,directory):
-            print bcolors.BOLD + bcolors.OKGREEN + '[OK] ' + directory + ' ... can be hadded ' + bcolors.ENDC
-          
-          if 'LQ3' not in directory:
-            if args.compareToDas:
-              compareEventsToDAS(filelist,directory)
-            if args.compareToDasExisting and os.path.isfile(outfile):
-              print '   check existing file %s:'%(outfile)
-              compareEventsToDAS(outfile,directory)
-            #else:
-            #  print bcolors.BOLD + bcolors.OKBLUE + '   [OK] ' + directory + bcolors.ENDC
-            #print
-          
-          # HADD
-          if args.make:
-              ensureDirectory(outdir)
-              if os.path.isfile(outfile):
-                if args.force:
-                  print bcolors.BOLD + bcolors.WARNING + "   [WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
-                else:
-                  print bcolors.BOLD + bcolors.FAIL + "   [NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
-                  continue
+    # GET LIST
+    samplelist = [ ]
+    for directory in sorted(os.listdir('./')):
+        if not os.path.isdir(directory): continue
+        if args.samples and not matchSampleToPattern(directory,args.samples): continue
+        if args.veto and matchSampleToPattern(directory,args.veto): continue
+        if args.type=='mc' and any(s in line[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
+        if args.type=='data' and not any(s in line[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
+        samplelist.append(directory)
+    if not samplelist:
+      print "No samples found in %s!"%(indir)
+    if args.verbose:
+      print 'samplelist = %s\n'%(samplelist)
+    
+    # CHECK samples
+    for channel in channels:
+      print header(year,channel)
+      
+      # HADD samples
+      if not args.haddother or args.make:
+        for directory in samplelist:
+            
+            subdir, samplename = getSampleShortName(directory)
+            outdir  = "%s/%s"%(samplesdir,subdir)
+            outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
+            infiles = '%s/*_%s.root'%(directory,channel)
+            
+            if args.verbose:
+              print "directory = %s"%(directory)
+              print "outdir    = %s"%(outdir)
+              print "outfile   = %s"%(outfile)
+              print "infiles   = %s"%(infiles)
+            
+            #if directory.find('W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8__ytakahas-NanoTest_20180507_W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8-a7a5b67d3e3590e4899e147be08660be__USER')==-1: continue
+            filelist = glob.glob(infiles)
+            if not filelist: continue
+            
+            if checkFiles(filelist,directory):
+              print bcolors.BOLD + bcolors.OKGREEN + '[OK] ' + directory + ' ... can be hadded ' + bcolors.ENDC
+            
+            if 'LQ3' not in directory:
+              if args.compareToDas:
+                compareEventsToDAS(filelist,directory)
+              if args.compareToDasExisting and os.path.isfile(outfile):
+                print '   check existing file %s:'%(outfile)
+                compareEventsToDAS(outfile,directory)
+              #else:
+              #  print bcolors.BOLD + bcolors.OKBLUE + '   [OK] ' + directory + bcolors.ENDC
+              #print
+            
+            # HADD
+            if args.make:
+                ensureDirectory(outdir)
+                if os.path.isfile(outfile):
+                  if args.force:
+                    print bcolors.BOLD + bcolors.WARNING + "   [WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
+                  else:
+                    print bcolors.BOLD + bcolors.FAIL + "   [NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
+                    continue
               
-              haddcmd = 'hadd -f %s %s'%(outfile,infiles)
+                haddcmd = 'hadd -f %s %s'%(outfile,infiles)
+                print haddcmd
+                os.system(haddcmd)
+                
+                #if 'LQ3' not in directory:
+                #    skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
+                #    rmcmd = 'rm %s'%(infiles)
+                #    #os.system(skimcmd)
+                #    #os.system(rmcmd)
+                #    continue
+                compareEventsToDAS(outfile,directory)
+              
+                #skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
+                #os.system(skimcmd)
+                
+                # CLEAN UP
+                if args.cleanup:
+                  rmcmd = 'rm %s'%(infiles)
+                  print bcolors.BOLD + bcolors.OKBLUE + "   removing %d output files..."%(len(infiles)) + bcolors.ENDC
+                  if verbose:
+                    print rmcmd
+                  os.system(rmcmd)
+                print
+    
+      # HADD other
+      if args.haddother:
+        for subdir, samplename, sampleset in haddsets:
+            if args.samples and not matchSampleToPattern(samplename,args.samples): continue
+            if args.veto and matchSampleToPattern(directory,args.veto): continue
+            if 'SingleMuon' in subdir and channel not in ['mutau','mumu']: continue
+            if 'SingleElectron' in subdir and channel!='etau': continue
+            if 'Tau' in subdir and channel!='tautau': continue
+            if '2017' in samplename and year!=2017: continue
+            if '2018' in samplename and year!=2018: continue
+            
+            outdir  = "%s/%s"%(samplesdir,subdir)
+            outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
+            infiles = ['%s/%s_%s.root'%(outdir,s,channel) for s in sampleset] #.replace('ele','e')
+            ensureDirectory(outdir)
+            
+            # OVERWRITE ?
+            if os.path.isfile(outfile):
+              if args.force:
+                if args.verbose:
+                  print bcolors.BOLD + bcolors.WARNING + "[WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
+              else:
+                print bcolors.BOLD + bcolors.FAIL + "[NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
+                continue
+            
+            # CHECK FILES
+            allinfiles = [ ]
+            for infile in infiles[:]:
+              if '*' in infile or '?' in infile:
+                files = glob.glob(infile)
+                allinfiles += files
+                if not files:
+                  print bcolors.BOLD + bcolors.FAIL + '[NG] no match for the glob pattern %s! Removing pattern from hadd list for "%s"...'%(infile,samplename) + bcolors.ENDC
+                  infiles.remove(infile)
+              elif not os.path.isfile(infile):
+                print bcolors.BOLD + bcolors.FAIL + '[NG] infile %s does not exists! Removing from hadd list for "%s"...'%(infile,samplename) + bcolors.ENDC
+                infiles.remove(infile)
+              else:
+                allinfiles.append(infile)
+            
+            # HADD
+            if args.verbose:
+              print "infiles =", infiles
+              print "allfiles =", allinfiles
+            if len(allinfiles)==1:
+              print bcolors.BOLD + bcolors.WARNING + "[WN] found only one file (%s) to hadd to %s!"%(allinfiles[0],outfile) + bcolors.ENDC 
+            elif len(allinfiles)>1:
+              print bcolors.BOLD + bcolors.OKGREEN + '[OK] hadding %s' %(outfile) + bcolors.ENDC
+              haddcmd = 'hadd -f %s %s'%(outfile,' '.join(infiles))
               print haddcmd
               os.system(haddcmd)
-              
-              #if 'LQ3' not in directory:
-              #    skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
-              #    rmcmd = 'rm %s'%(infiles)
-              #    #os.system(skimcmd)
-              #    #os.system(rmcmd)
-              #    continue
-              compareEventsToDAS(outfile,directory)
-              
-              #skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
-              #os.system(skimcmd)
-              
-              # CLEAN UP
-              if args.cleanup:
-                rmcmd = 'rm %s'%(infiles)
-                print bcolors.BOLD + bcolors.OKBLUE + "   removing %d output files..."%(len(infiles)) + bcolors.ENDC
-                if verbose:
-                  print rmcmd
-                os.system(rmcmd)
-              print
-    
-    # HADD other
-    if args.haddother:
-      for subdir, samplename, sampleset in haddsets:
-          if args.samples and not matchSampleToPattern(samplename,args.samples): continue
-          if args.veto and matchSampleToPattern(directory,args.veto): continue
-          if 'SingleMuon' in subdir and channel not in ['mutau','mumu']: continue
-          if 'SingleElectron' in subdir and channel!='etau': continue
-          if 'Tau' in subdir and channel!='tautau': continue
-          if '2017' in samplename and year!=2017: continue
-          if '2018' in samplename and year!=2018: continue
-          
-          outdir  = "%s/%s"%(args.outdir,subdir)
-          outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
-          infiles = ['%s/%s_%s.root'%(outdir,s,channel) for s in sampleset] #.replace('ele','e')
-          ensureDirectory(outdir)
-          
-          # OVERWRITE ?
-          if os.path.isfile(outfile):
-            if args.force:
-              if args.verbose:
-                print bcolors.BOLD + bcolors.WARNING + "[WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
             else:
-              print bcolors.BOLD + bcolors.FAIL + "[NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
-              continue
-          
-          # CHECK FILES
-          allinfiles = [ ]
-          for infile in infiles[:]:
-            if '*' in infile or '?' in infile:
-              files = glob.glob(infile)
-              allinfiles += files
-              if not files:
-                print bcolors.BOLD + bcolors.FAIL + '[NG] no match for the glob pattern %s! Removing pattern from hadd list for "%s"...'%(infile,samplename) + bcolors.ENDC
-                infiles.remove(infile)
-            elif not os.path.isfile(infile):
-              print bcolors.BOLD + bcolors.FAIL + '[NG] infile %s does not exists! Removing from hadd list for "%s"...'%(infile,samplename) + bcolors.ENDC
-              infiles.remove(infile)
-            else:
-              allinfiles.append(infile)
-          
-          # HADD
-          if args.verbose:
-            print "infiles =", infiles
-            print "allfiles =", allinfiles
-          if len(allinfiles)==1:
-            print bcolors.BOLD + bcolors.WARNING + "[WN] found only one file (%s) to hadd to %s!"%(allinfiles[0],outfile) + bcolors.ENDC 
-          elif len(allinfiles)>1:
-            print bcolors.BOLD + bcolors.OKGREEN + '[OK] hadding %s' %(outfile) + bcolors.ENDC
-            haddcmd = 'hadd -f %s %s'%(outfile,' '.join(infiles))
-            print haddcmd
-            os.system(haddcmd)
-          else:
-            print bcolors.BOLD + bcolors.WARNING + "[WN] no files to hadd!" + bcolors.ENDC
-          print
+              print bcolors.BOLD + bcolors.WARNING + "[WN] no files to hadd!" + bcolors.ENDC
+            print
+    os.chdir('..')
      
 
 
@@ -399,6 +405,16 @@ def ensureDirectory(dirname):
       print '>>> failed to make directory "%s"'%(dirname)
   return dirname
   
+headeri = 0
+def header(year,channel):
+  global headeri
+  title  = "%s, %s"%(year,channel)
+  string = ("\n\n" if headeri>0 else "") +\
+           "   ###%s\n"    % ('#'*(len(title)+3)) +\
+           "   #  %s  #\n" % (title) +\
+           "   ###%s\n"    % ('#'*(len(title)+3))
+  headeri += 1
+  return string
 
 
 if __name__ == '__main__':
