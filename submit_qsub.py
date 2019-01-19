@@ -23,6 +23,8 @@ parser.add_argument('-T', '--tes',     dest='tes', type=float, default=1.0, acti
                                        help="tau energy scale" )
 parser.add_argument('-n', '--njob',    dest='nFilesPerJob', action='store', type=int, default=4,
                                        help="number of files per job" )
+parser.add_argument('-q', '--queue',   dest='queue', choices=['all.q','short.q','long.q'], type=str, default=None, action='store',
+                                       help="select queue for submission" )
 parser.add_argument('-m', '--mock',    dest='mock', action='store_true', default=False,
                                        help="mock submit jobs for debugging purposes" )
 parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
@@ -123,8 +125,12 @@ def submitJobs(jobName, jobList, nchunks, outdir, batchSystem):
     if args.verbose:
       print 'Reading joblist...'
       print jobList
+    extraopts = "-t 1-%s -N %s -o %s/logs/"%(nchunks,jobName,outdir)
+    if args.queue:
+      extraopts += " -q %s"%(args.queue)
     #subCmd = 'qsub -t 1-%s -o logs nafbatch_runner_GEN.sh %s' %(nchunks,jobList)
-    subCmd = 'qsub -t 1-%s -N %s -o %s/logs/ %s %s'%(nchunks,jobName,outdir,batchSystem,jobList)
+    subCmd = 'qsub %s %s %s'%(extraopts,batchSystem,jobList)
+    subCmd = subCmd.rstrip()
     print bcolors.BOLD + bcolors.OKBLUE + "Submitting %d jobs with \n    %s"%(nchunks,subCmd) + bcolors.ENDC
     if not args.mock:
       os.system(subCmd)
