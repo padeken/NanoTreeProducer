@@ -223,8 +223,8 @@ class LeptonTauPair(DiLeptonBasicClass):
         """Override for tau isolation."""
         if   self.pt1  != oltau.pt1:  return self.pt1  > oltau.pt1  # greater = higher pT
         elif self.pt2  != oltau.pt2:  return self.pt2  > oltau.pt2  # greater = higher pT
-        elif self.iso1 != oltau.iso1: return self.iso1 > oltau.iso1 # greater = larger tau isolation
-        elif self.iso2 != oltau.iso2: return self.iso2 < oltau.iso2 # greater = smaller lepton isolation
+        elif self.iso1 != oltau.iso1: return self.iso1 < oltau.iso1 # greater = smaller lepton isolation
+        elif self.iso2 != oltau.iso2: return self.iso2 > oltau.iso2 # greater = larger tau isolation
         return True
     
 class DiTauPair(DiLeptonBasicClass):
@@ -232,7 +232,7 @@ class DiTauPair(DiLeptonBasicClass):
         """Override for tau isolation."""
         if   self.pt1  != oditau.pt1:  return self.pt1  > oditau.pt1  # greater = higher pT
         elif self.pt2  != oditau.pt2:  return self.pt2  > oditau.pt2  # greater = higher pT
-        elif self.iso1 != oditau.iso1: return self.iso1 > oditau.iso1 # greater = smaller lepton isolation
+        elif self.iso1 != oditau.iso1: return self.iso1 > oditau.iso1 # greater = larger tau isolation
         elif self.iso2 != oditau.iso2: return self.iso2 > oditau.iso2 # greater = larger tau isolation
         return True
     
@@ -243,7 +243,7 @@ def bestDiLepton(diLeptons):
     
     if len(diLeptons)==1:
         return diLeptons[0]
-        
+    
     #least_iso_highest_pt = lambda dl: (-dl.tau1_pt, -dl.tau2_pt, dl.tau2_iso, -dl.tau1_iso)
     #return sorted(diLeptons, key=lambda dl: least_iso_highest_pt(dl), reverse=False)[0]
     return sorted(diLeptons, reverse=True)[0]
