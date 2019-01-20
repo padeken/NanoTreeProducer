@@ -68,9 +68,13 @@ class ScaleFactor:
     def getSF(self, pt, eta):
         """Get SF for a given pT, eta."""
         #abseta = abs(eta)
-        xbin   = self.hist.GetXaxis().FindBin(eta)
-        ybin   = self.hist.GetYaxis().FindBin(pt)
-        sf     = self.hist.GetBinContent(xbin,ybin)
+        xbin = self.hist.GetXaxis().FindBin(eta)
+        ybin = self.hist.GetYaxis().FindBin(pt)
+        if xbin==0: xbin = 1
+        elif xbin>self.hist.GetXaxis().GetNbins(): xbin -= 1
+        if ybin==0: ybin = 1
+        elif ybin>self.hist.GetYaxis().GetNbins(): ybin -= 1
+        sf   = self.hist.GetBinContent(xbin,ybin)
         #print "ScaleFactor::getSF: %s, pt = %6.2f, eta = %6.3f, data = %6.3f, mc = %6.3f, sf = %6.3f"%(self.name,pt,eta,data,mc,sf)
         #print "ScaleFactor::getSF: %s, pt = %6.2f, eta = %6.3f, sf = %6.3f"%(self.name,pt,eta,sf)
         return sf
