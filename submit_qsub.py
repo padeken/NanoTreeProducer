@@ -6,14 +6,14 @@ from fnmatch import fnmatch
 import itertools
 from argparse import ArgumentParser
 import checkFiles
-from checkFiles import getSampleShortName, matchSampleToPattern, header
+from checkFiles import getSampleShortName, matchSampleToPattern, header, ensureDirectory
 
 parser = ArgumentParser()
 parser.add_argument('-f', '--force',   dest='force', action='store_true', default=False,
                                        help="submit jobs without asking confirmation" )
-parser.add_argument('-y', '--year',    dest='years', choices=[2017,2018], type=int, nargs='+', default=2017, action='store',
+parser.add_argument('-y', '--year',    dest='years', choices=[2017,2018], type=int, nargs='+', default=[2017], action='store',
                                        help="select year" )
-parser.add_argument('-c', '--channel', dest='channels', choices=['eletau','mutau','tautau'], type=str, nargs='+', default='mutau', action='store',
+parser.add_argument('-c', '--channel', dest='channels', choices=['eletau','mutau','tautau'], type=str, nargs='+', default=['mutau'], action='store',
                                        help="channels to submit" )
 parser.add_argument('-s', '--sample',  dest='samples', type=str, nargs='+', default=[ ], action='store',
                                        help="filter these samples, glob patterns (wildcards * and ?) are allowed." )
@@ -197,14 +197,13 @@ def main():
                 print "           "+file
             
             # JOBLIST
+            ensureDirectory('joblist')
             jobList = 'joblist/joblist%s_%s.txt'%(name,channel)
             print "Creating job file %s..."%(jobList)
-            try: os.stat('joblist/')
-            except: os.mkdir('joblist/')
             jobName = getSampleShortName(directory)[1]
-            jobs    = open(jobList, 'w')
+            jobs    = open(jobList,'w')
             nFilesPerJob = args.nFilesPerJob
-            outdir  = "output_%s/%s"%(year,name)
+            outdir  = ensureDirectory("output_%s/%s"%(year,name))
             
             # NFILESPERJOBS CHECKS
             # Diboson (WW, WZ, ZZ) have very large files and acceptance,

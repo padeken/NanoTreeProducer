@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(prog="checkFiles",description=description,epilog="Good luck!")
     parser.add_argument('-y', '--year',    dest='years', choices=[2017,2018], type=int, nargs='+', default=[2017], action='store',
                                            help="select year" )
-    parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=["tautau"], action='store' )
+    parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=['tautau'], action='store' )
     parser.add_argument('-m', '--make',    dest='make', default=False, action='store_true',
                                            help="hadd all output files" )
     parser.add_argument('-a', '--hadd',    dest='haddother', default=False, action='store_true',
@@ -126,8 +126,8 @@ def main(args):
         if not os.path.isdir(directory): continue
         if args.samples and not matchSampleToPattern(directory,args.samples): continue
         if args.veto and matchSampleToPattern(directory,args.veto): continue
-        if args.type=='mc' and any(s in line[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
-        if args.type=='data' and not any(s in line[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
+        if args.type=='mc' and any(s in directory[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
+        if args.type=='data' and not any(s in directory[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
         samplelist.append(directory)
     if not samplelist:
       print "No samples found in %s!"%(indir)
@@ -331,7 +331,7 @@ def compareEventsToDAS(filenames,dasname):
         #  print bcolors.FAIL + '[NG] compareEventsToDAS: no cutflow found in ' + filename + bcolors.ENDC
     
     instance = 'prod/phys03' if 'USER' in dasname else 'prod/global'
-    dascmd   = 'das_client --limit=0 --query=\"summary dataset=/%s  instance=%s\"'%(dasname,instance)
+    dascmd   = 'das_client --limit=0 --query=\"summary dataset=/%s instance=%s\"'%(dasname,instance)
     if args.verbose:
       print dascmd
     dasargs  = shlex.split(dascmd)
