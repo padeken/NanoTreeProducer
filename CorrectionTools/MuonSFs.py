@@ -1,4 +1,3 @@
-from ROOT import TFile
 from ScaleFactorTool import ScaleFactor, ScaleFactorHTT
 
 # /shome/ytakahas/work/Leptoquark/CMSSW_9_4_4/src/PhysicsTools/NanoAODTools/NanoTreeProducer/leptonSF
@@ -23,7 +22,8 @@ class MuonSFs:
         self.sftool_idiso = ScaleFactorHTT(pathHTT+"Muon_IdIso_IsoLt0p15_eff_RerecoFall17.root","ZMass",'mu_idiso')
         
         ## ID (Muon POG)
-        #self.sftool_trig = ScaleFactor(path+"EfficienciesAndSF_RunBtoF_Nov17Nov2017.root","IsoMu27_PtEtaBins/pt_abseta_ratio",'mu_trig')
+        #self.sftool_id  = ScaleFactor(path+"RunBCDEF_SF_ID.root","NUM_MediumID_DEN_genTracks",'mu_id')
+        #self.sftool_iso = ScaleFactor(path+"RunBCDEF_SF_ISO.root","NUM_TightRelIso_DEN_MediumID",'mu_iso')
         
     def getTriggerSF(self, pt, eta):
         """Get SF for single muon trigger."""
