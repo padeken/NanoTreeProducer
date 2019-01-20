@@ -9,6 +9,7 @@ from CorrectionTools.LeptonTauFakeSFs import *
 from CorrectionTools.BTaggingTool import BTagWeightTool, BTagWPs
 
 
+
 class declareVariables(TreeProducerMuTau):
     
     def __init__(self, name):
@@ -103,6 +104,7 @@ class MuTauProducer(Module):
             if abs(event.Muon_dz[imuon]) > 0.2: continue
             if abs(event.Muon_dxy[imuon]) > 0.045: continue
             if not event.Muon_mediumId[imuon]: continue
+            #if event.Muon_pfRelIso04_all[imuon]>0.50: continue
             idx_goodmuons.append(imuon)
         
         if len(idx_goodmuons)==0:
@@ -142,11 +144,10 @@ class MuTauProducer(Module):
             for idx2 in idx_goodtaus:
                 dR = taus[idx2].p4().DeltaR(muons[idx1].p4())
                 if dR < 0.5: continue
-                #muon_reliso = event.Muon_pfRelIso04_all[idx1]/event.Muon_pt[idx1]
-                muon_reliso = event.Muon_pfRelIso04_all[idx1]
-                ltau = LeptonTauPair(idx1, event.Muon_pt[idx1], muon_reliso, idx2, event.Tau_pt[idx2], event.Tau_rawMVAoldDM2017v2[idx2])
+                ltau = LeptonTauPair(idx1, event.Muon_pt[idx1], event.Muon_pfRelIso04_all[idx1],
+                                     idx2, event.Tau_pt[idx2],  event.Tau_rawMVAoldDM2017v2[idx2])
                 ltaus.append(ltau)
-
+        
         if len(ltaus)==0:
             return False
         
@@ -239,7 +240,6 @@ class MuTauProducer(Module):
         
         
         # GENERATOR
-        #print type(event.Tau_genPartFlav[ltau.id2])
         if not self.isData:
           self.out.genPartFlav_1[0]          = ord(event.Muon_genPartFlav[ltau.id1])
           self.out.genPartFlav_2[0]          = ord(event.Tau_genPartFlav[ltau.id2])

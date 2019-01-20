@@ -220,7 +220,8 @@ class TauTauProducer(Module):
                 if idx1 >= idx2: continue
                 dR = taus[idx1].p4().DeltaR(taus[idx2].p4())
                 if dR < 0.5: continue
-                ditau = DiTauPair(idx1, event.Tau_pt[idx1], event.Tau_rawMVAoldDM[idx1], idx2, event.Tau_pt[idx2], event.Tau_rawMVAoldDM[idx2])
+                ditau = DiTauPair(idx1, event.Tau_pt[idx1], event.Tau_rawMVAoldDM[idx1],
+                                  idx2, event.Tau_pt[idx2], event.Tau_rawMVAoldDM[idx2])
                 ditaus.append(ditau)
         
         if len(ditaus)==0:

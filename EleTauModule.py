@@ -151,8 +151,8 @@ class EleTauProducer(Module):
             for idx2 in idx_goodtaus:
                 dR = taus[idx2].p4().DeltaR(electrons[idx1].p4())
                 if dR < 0.5: continue
-                electron_reliso = event.Electron_pfRelIso03_all[idx1]
-                ltau = LeptonTauPair(idx1, event.Electron_pt[idx1], electron_reliso, idx2, event.Tau_pt[idx2], event.Tau_rawMVAoldDM2017v2[idx2])
+                ltau = LeptonTauPair(idx1, event.Electron_pt[idx1], event.Electron_pfRelIso03_all[idx1],
+                                     idx2, event.Tau_pt[idx2],      event.Tau_rawMVAoldDM2017v2[idx2])
                 ltaus.append(ltau)
         
         if len(ltaus)==0:
