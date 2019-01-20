@@ -66,6 +66,8 @@ class TreeProducerCommon(object):
         self.puweight                   = num.zeros(1, dtype=float)
         self.idisoweight_1              = num.zeros(1, dtype=float)
         self.idisoweight_2              = num.zeros(1, dtype=float)
+        self.btagweight                 = num.zeros(1, dtype=float)
+        self.btagweight_deep            = num.zeros(1, dtype=float)
         
         self.tree.Branch('run'                       , self.run, 'run/I')
         self.tree.Branch('luminosityBlock'           , self.luminosityBlock, 'luminosityBlock/I')
@@ -91,15 +93,19 @@ class TreeProducerCommon(object):
         self.tree.Branch('weight'                    , self.weight, 'weight/D')
         self.tree.Branch('trigweight'                , self.trigweight, 'trigweight/D')
         self.tree.Branch('puweight'                  , self.puweight, 'puweight/D')
-        self.tree.Branch('idisoweight_1'             , self.idisoweight_1, 'idisoweight_1/D') # TODO: update
+        self.tree.Branch('idisoweight_1'             , self.idisoweight_1, 'idisoweight_1/D')
         self.tree.Branch('idisoweight_2'             , self.idisoweight_2, 'idisoweight_2/D')
+        self.tree.Branch('btagweight'                , self.btagweight, 'btagweight/D')
+        self.tree.Branch('btagweight_deep'           , self.btagweight_deep, 'btagweight_deep/D')
         
-        self.weight[0]        = 1.
-        self.genWeight[0]     = 1.
-        self.trigweight[0]    = 1.
-        self.puweight[0]      = 1.
-        self.idisoweight_1[0] = 1.
-        self.idisoweight_2[0] = 1.
+        self.weight[0]          = 1.
+        self.genWeight[0]       = 1.
+        self.trigweight[0]      = 1.
+        self.puweight[0]        = 1.
+        self.idisoweight_1[0]   = 1.
+        self.idisoweight_2[0]   = 1.
+        self.btagweight[0]      = 1.
+        self.btagweight_deep[0] = 1.
         
         
         self.njets                      = num.zeros(1, dtype=int)
@@ -121,6 +127,12 @@ class TreeProducerCommon(object):
         self.jphi_2                     = num.zeros(1, dtype=float)
         self.jcsvv2_2                   = num.zeros(1, dtype=float)
         self.jdeepb_2                   = num.zeros(1, dtype=float)
+        
+        self.bpt_1                      = num.zeros(1, dtype=float)
+        self.beta_1                     = num.zeros(1, dtype=float)
+        
+        self.bpt_2                      = num.zeros(1, dtype=float)
+        self.beta_2                     = num.zeros(1, dtype=float)
         
         self.m_vis                      = num.zeros(1, dtype=float)
         self.pt_tt                      = num.zeros(1, dtype=float)
@@ -159,6 +171,12 @@ class TreeProducerCommon(object):
         self.tree.Branch('jcsvv2_2'                    , self.jcsvv2_2, 'jcsvv2_2/D')
         self.tree.Branch('jdeepb_2'                    , self.jdeepb_2, 'jdeepb_2/D')
         
+        self.tree.Branch('bpt_1'                       , self.bpt_1, 'bpt_1/D')
+        self.tree.Branch('beta_1'                      , self.beta_1, 'beta_1/D')
+        
+        self.tree.Branch('bpt_2'                       , self.bpt_2, 'bpt_2/D')
+        self.tree.Branch('beta_2'                      , self.beta_2, 'beta_2/D')
+        
         self.tree.Branch('m_vis'                       , self.m_vis, 'm_vis/D')
         self.tree.Branch('pt_tt'                       , self.pt_tt, 'pt_tt/D')
         self.tree.Branch('dR_ll'                       , self.dR_ll, 'dR_ll/D')
@@ -179,7 +197,6 @@ class TreeProducerCommon(object):
         self.GenMET_phi[0] = -9
         self.nPU[0]        = -1
         self.nTrueInt[0]   = -1
-        self.genWeight[0]  =  1
         self.LHE_Njets[0]  = -1
         
 

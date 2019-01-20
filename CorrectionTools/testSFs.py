@@ -22,6 +22,10 @@ print ">>>   imported MuonSFs classes after %.1f seconds"%(time.time()-start1)
 start1 = time.time()
 from ElectronSFs import *
 print ">>>   imported ElectronSFs classes after %.1f seconds"%(time.time()-start1)
+
+start1 = time.time()
+from BTagWeightTool import *
+print ">>>   imported BTagWeightTool classes after %.1f seconds"%(time.time()-start1)
 print ">>>   imported everything after %.1f seconds"%(time.time()-start0)
 print ">>> "
 
@@ -31,7 +35,7 @@ pathHTT_mu = 'CorrectionTools/leptonEfficiencies/HTT/Muon/Run2017/'
 pathHTT_el = 'CorrectionTools/leptonEfficiencies/HTT/Electron/Run2017/'
 
 # PT & ETA
-ptvals  = [ 10., 20., 21., 22., 24., 26., 27., 34., 60., 156., 223., 410., 560. ]
+ptvals  = [ 10., 20., 21., 22., 24., 26., 27., 34., 35., 36., 40., 60., 156., 223., 410., 560. ]
 etavals = [ 0.0, 0.5, 1.1, 1.9, 2.0, 2.3, 2.4, 2.8, 3.4 ]
 etavals = [-eta for eta in reversed(etavals)]+etavals
 points  = [ ]
@@ -49,6 +53,7 @@ def printMatrix(name,method):
   for pt in ptvals:
     print ">>>    %10.2f"%(pt)+' '.join('%10.3f'%method(pt,eta) for eta in etavals)
   print ">>>   got %d SFs in %.3f seconds"%(len(ptvals)*len(etavals),time.time()-start2)
+  print ">>> "
   
 
 def muonPOG():
@@ -92,7 +97,6 @@ def electronHTT():
   # ID ISO (HTT)
   sftool_ele_idiso_HTT = ScaleFactorHTT(pathHTT_el+"Electron_IdIso_IsoLt0.15_IsoID_eff.root","ZMass",'ele_idiso')
   printMatrix('idiso HTT',sftool_ele_idiso_HTT.getSF)
-  print ">>> "
   
 
 def muonSFs():
@@ -121,17 +125,35 @@ def electronSFs():
   # GET SFs
   printMatrix('trigger',eleSFs.getTriggerSF)
   printMatrix('idiso',eleSFs.getIdIsoSF)
-  print ">>> "
   
 
+def btagSFs(tagger='CSVv2'):
+  
+  # BTAG SFs
+  print ">>> "
+  start1 = time.time()
+  print ">>> initializing BTagWeightTool(%s) object..."%tagger
+  btagSFs = BTagWeightTool(tagger)
+  print ">>>   initialized in %.1f seconds"%(time.time()-start1)
+  
+  # GET SFs
+  printMatrix('%s g'%tagger,lambda p,e: btagSFs.getSF(p,e,0))
+  #printMatrix('%s u'%tagger,lambda p,e: btagSFs.getSF(p,e,1))
+  #printMatrix('%s d'%tagger,lambda p,e: btagSFs.getSF(p,e,2))
+  #printMatrix('%s s'%tagger,lambda p,e: btagSFs.getSF(p,e,3))
+  printMatrix('%s c'%tagger,lambda p,e: btagSFs.getSF(p,e,4))
+  printMatrix('%s b'%tagger,lambda p,e: btagSFs.getSF(p,e,5))
+  
 
 if __name__ == "__main__":
   
-  muonPOG()
-  muonHTT()
+  #muonPOG()
+  #muonHTT()
   #electronHTT()
   #muonSFs()
   #electronSFs()
+  btagSFs('CSVv2')
+  btagSFs('DeepCSV')
   print ">>> "
   print ">>> done after %.1f seconds"%(time.time()-start0)
   print

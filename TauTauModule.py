@@ -5,9 +5,10 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from TreeProducerTauTau import *
 
 # for trigger efficiencies
-from CorrectionTools.TauTauSFs import *
-from CorrectionTools.PileupWeightTool import *
-from CorrectionTools.LeptonTauFakeSFs import *
+from CorrectionTools.TauTauSFs import TauTauSFs
+from CorrectionTools.PileupWeightTool import PileupWeightTool
+from CorrectionTools.LeptonTauFakeSFs import LeptonTauFakeSFs
+from CorrectionTools.BTaggingTool import BTagWeightTool, BTagWPs
 
 
 class declareVariables(TreeProducerTauTau):
@@ -26,11 +27,7 @@ class TauTauProducer(Module):
         
         self.name = name
         self.out = declareVariables(name)
-        
-        if dataType=='data':
-            self.isData = True
-        else:
-            self.isData = False
+        self.isData = dataType=='data'
         
         setYear(year)
         if year==2017:
@@ -46,6 +43,10 @@ class TauTauProducer(Module):
         self.tauSFsVT = TauTauSFs('vtight',year=year)
         self.ltfSFs   = LeptonTauFakeSFs('loose','vloose',year=year)
         self.puTool   = PileupWeightTool(year=year)
+        self.btagTool      = BTagWeightTool('CSVv2','medium',year=year)
+        self.btagTool_deep = BTagWeightTool('DeepCSV','medium',year=year)
+        self.csvv2_wp      = BTagWPs('CSVv2',year=year)
+        self.deepcsv_wp    = BTagWPs('DeepCSV',year=year)
         
         self.Nocut = 0
         self.Trigger = 1
@@ -71,16 +72,18 @@ class TauTauProducer(Module):
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted,       "no cut, weighted"       )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted_no0PU, "no cut, weighted, PU>0" )
         self.out.cutflow.GetXaxis().SetLabelSize(0.041)
-    
+        
     def beginJob(self):
         pass
-    
+        
     def endJob(self):
         #check = self.out.outputfile.mkdir('check')
         #self.pileup.SetDirectory(check)
+        self.btagTool.setDirectory(self.out.outputfile,'btag')
+        self.btagTool_deep.setDirectory(self.out.outputfile,'btag')
         self.out.outputfile.Write()
         self.out.outputfile.Close()
-
+        
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
         
@@ -234,14 +237,15 @@ class TauTauProducer(Module):
         #    self.out.cutflow.Fill(self.GoodDiTau_GT)
         #####################################
         
-        jetIds = [ ]
-        jets = Collection(event, 'Jet')
+        
+        jetIds  = [ ]
+        bjetIds = [ ]
+        jets    = Collection(event, 'Jet')
         #jets = filter(self.jetSel,jets):
-        nfjets = 0
-        ncjets = 0
-        nbtag = 0
+        nfjets  = 0
+        ncjets  = 0
+        nbtag   = 0
         for ijet in range(event.nJet):
-        #for j in filter(self.jetSel,jets):
             if event.Jet_pt[ijet] < 30: continue
             if abs(event.Jet_eta[ijet]) > 4.7: continue
             dR = taus[ditau.id1].p4().DeltaR(jets[ijet].p4())
@@ -253,12 +257,15 @@ class TauTauProducer(Module):
             jetIds.append(ijet)
             
             if abs(event.Jet_eta[ijet]) > 2.4:
-                nfjets += 1
+              nfjets += 1
             else:
-                ncjets += 1
+              ncjets += 1
             
-            if event.Jet_btagCSVV2[ijet] > 0.8838:
-                nbtag += 1
+            if event.Jet_btagDeepB[ijet] > self.deepcsv_wp.medium:
+              nbtag += 1
+              bjetIds.append(ijet)
+        self.btagTool.fillEfficiencies(event,jetIds)
+        self.btagTool_deep.fillEfficiencies(event,jetIds)
         
         #eventSum = ROOT.TLorentzVector()
         #
@@ -313,13 +320,13 @@ class TauTauProducer(Module):
           geneta = -1
           genphi = -1
           for igvt in range(event.nGenVisTau):
-              _dr_ = genvistau[igvt].p4().DeltaR(taus[ditau.id1].p4())
-              if _dr_ < 0.5 and _dr_ < _drmax_:
-                  _drmax_ = _dr_
-                  gendm = event.GenVisTau_status[igvt]
-                  genpt = event.GenVisTau_pt[igvt]
-                  geneta = event.GenVisTau_eta[igvt]
-                  genphi = event.GenVisTau_phi[igvt]
+            _dr_ = genvistau[igvt].p4().DeltaR(taus[ditau.id1].p4())
+            if _dr_ < 0.5 and _dr_ < _drmax_:
+              _drmax_ = _dr_
+              gendm = event.GenVisTau_status[igvt]
+              genpt = event.GenVisTau_pt[igvt]
+              geneta = event.GenVisTau_eta[igvt]
+              genphi = event.GenVisTau_phi[igvt]
           self.out.gendecayMode_1[0]           = gendm
           self.out.genvistaupt_1[0]            = genpt
           self.out.genvistaueta_1[0]           = geneta
@@ -360,26 +367,26 @@ class TauTauProducer(Module):
         # GENERATOR 2
         #print type(event.Tau_genPartFlav[ditau.id2])
         if not self.isData:
-            self.out.genPartFlav_2[0]          = ord(event.Tau_genPartFlav[ditau.id2])
-            genvistau = Collection(event, 'GenVisTau')
-            dRmax  = 1000
-            gendm  = -1
-            genpt  = -1
-            geneta = -1
-            genphi = -1
-            for igvt in range(event.nGenVisTau):
-                dR = genvistau[igvt].p4().DeltaR(taus[ditau.id2].p4())
-                if dR < 0.5 and dR < dRmax:
-                    dRmax = dR
-                    gendm = event.GenVisTau_status[igvt]
-                    genpt = event.GenVisTau_pt[igvt]
-                    geneta = event.GenVisTau_eta[igvt]
-                    genphi = event.GenVisTau_phi[igvt]
-            
-            self.out.gendecayMode_2[0]         = gendm
-            self.out.genvistaupt_2[0]          = genpt
-            self.out.genvistaueta_2[0]         = geneta
-            self.out.genvistauphi_2[0]         = genphi
+          self.out.genPartFlav_2[0]          = ord(event.Tau_genPartFlav[ditau.id2])
+          genvistau = Collection(event, 'GenVisTau')
+          dRmax  = 1000
+          gendm  = -1
+          genpt  = -1
+          geneta = -1
+          genphi = -1
+          for igvt in range(event.nGenVisTau):
+            dR = genvistau[igvt].p4().DeltaR(taus[ditau.id2].p4())
+            if dR < 0.5 and dR < dRmax:
+              dRmax = dR
+              gendm = event.GenVisTau_status[igvt]
+              genpt = event.GenVisTau_pt[igvt]
+              geneta = event.GenVisTau_eta[igvt]
+              genphi = event.GenVisTau_phi[igvt]
+          
+          self.out.gendecayMode_2[0]         = gendm
+          self.out.genvistaupt_2[0]          = genpt
+          self.out.genvistaueta_2[0]         = geneta
+          self.out.genvistauphi_2[0]         = genphi
         
         
         # EVENT
@@ -423,6 +430,12 @@ class TauTauProducer(Module):
         
         
         # JETS
+        self.out.njets[0]                      = len(jetIds)
+        self.out.njets50[0]                    = len([j for j in jetIds if event.Jet_pt[j]>50])
+        self.out.nfjets[0]                     = nfjets
+        self.out.ncjets[0]                     = ncjets
+        self.out.nbtag[0]                      = nbtag
+        
         if len(jetIds)>0:
           self.out.jpt_1[0]                    = event.Jet_pt[jetIds[0]]
           self.out.jeta_1[0]                   = event.Jet_eta[jetIds[0]]
@@ -449,11 +462,19 @@ class TauTauProducer(Module):
           self.out.jcsvv2_2[0]                 = -9.
           self.out.jdeepb_2[0]                 = -9.
         
-        self.out.njets[0]                      = len(jetIds)
-        self.out.njets50[0]                    = len([j for j in jetIds if event.Jet_pt[j]>50])
-        self.out.nfjets[0]                     = nfjets
-        self.out.ncjets[0]                     = ncjets
-        self.out.nbtag[0]                      = nbtag
+        if len(bjetIds)>0:
+          self.out.bpt_1[0]                    = event.Jet_pt[bjetIds[0]]
+          self.out.beta_1[0]                   = event.Jet_eta[bjetIds[0]]
+        else:
+          self.out.bpt_1[0]                    = -9.
+          self.out.beta_1[0]                   = -9.
+        
+        if len(bjetIds)>1:
+          self.out.bpt_2[0]                    = event.Jet_pt[bjetIds[1]]
+          self.out.beta_2[0]                   = event.Jet_eta[bjetIds[1]]
+        else:
+          self.out.bpt_2[0]                    = -9.
+          self.out.beta_2[0]                   = -9.
         
         self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) );
         self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
@@ -473,11 +494,11 @@ class TauTauProducer(Module):
         met_tlv = ROOT.TLorentzVector()
         met_tlv.SetPxPyPzE(self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), 
                            self.out.MET_pt[0]*math.sin(self.out.MET_phi[0]),
-                           0, 
+                           0,
                            self.out.MET_pt[0])
         #print self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), '0', self.out.MET_pt[0]
-        metleg = met_tlv.Vect()
-        zetaAxis = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
+        metleg    = met_tlv.Vect()
+        zetaAxis  = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
         pZetaVis_ = leg1*zetaAxis + leg2*zetaAxis
         pZetaMET_ = metleg*zetaAxis
         #print 'pZetaVis = ', pZetaVis_, ' pZetaMET = ', pZetaMET_
@@ -496,13 +517,15 @@ class TauTauProducer(Module):
           diTauLeg2SF   = self.tauSFs.getTriggerSF(   self.out.pt_2, self.out.eta_2, self.out.phi_2 )
           diTauLeg1SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_1, self.out.eta_1, self.out.phi_1 )
           diTauLeg2SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_2, self.out.eta_2, self.out.phi_2 )
-          self.out.genWeight[0]     = event.genWeight
-          self.out.trigweight[0]    = diTauLeg1SF*diTauLeg2SF
-          self.out.trigweightVT[0]  = diTauLeg1SFVT*diTauLeg2SFVT
-          self.out.puweight[0]      = self.puTool.getWeight(event.Pileup_nTrueInt)
-          self.out.idisoweight_1[0] = self.ltfSFs.getSF(self.out.genPartFlav_1[0],self.out.eta_1[0])
-          self.out.idisoweight_2[0] = self.ltfSFs.getSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
-          self.out.weight[0]        = self.out.genWeight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0]*self.out.idisoweight_2[0]
+          self.out.genWeight[0]       = event.genWeight
+          self.out.trigweight[0]      = diTauLeg1SF*diTauLeg2SF
+          self.out.trigweightVT[0]    = diTauLeg1SFVT*diTauLeg2SFVT
+          self.out.puweight[0]        = self.puTool.getWeight(event.Pileup_nTrueInt)
+          self.out.idisoweight_1[0]   = self.ltfSFs.getSF(self.out.genPartFlav_1[0],self.out.eta_1[0])
+          self.out.idisoweight_2[0]   = self.ltfSFs.getSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
+          self.out.btagweight[0]      = self.btagTool.getWeight(event,jetIds)
+          self.out.btagweight_deep[0] = self.btagTool_deep.getWeight(event,jetIds)
+          self.out.weight[0]          = self.out.genWeight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0]*self.out.idisoweight_2[0]
         
         
         self.out.tree.Fill() 
