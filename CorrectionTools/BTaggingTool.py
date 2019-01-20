@@ -86,35 +86,41 @@ class BTagWeightTool:
         # TAGGING WP
         self.wp     = getattr(BTagWPs(tagger,year),wp)
         if 'deep' in tagger.lower():
-          self.tagged = lambda e,i: e.Jet_btagCSVV2[i]>self.wp
+          tagged = lambda e,i: e.Jet_btagDeepB[i]>self.wp
         else:
-          self.tagged = lambda e,i: e.Jet_btagDeepB[i]>self.wp
+          tagged = lambda e,i: e.Jet_btagCSVV2[i]>self.wp
         
         # CSV READER
-        op          = OP_LOOSE if wp=='loose' else OP_MEDIUM if wp=='medium' else OP_TIGHT if wp=='tight' else OP_RESHAPING
-        type_udsg   = 'incl'
-        type_bc     = 'comb' # 'mujets' for QCD; 'comb' for QCD+TT
-        calib       = BTagCalibration(tagger, csvname)
-        self.reader = BTagCalibrationReader(op, sigma)
-        self.reader.load(calib, FLAV_B, type_bc)
-        self.reader.load(calib, FLAV_C, type_bc)
-        self.reader.load(calib, FLAV_UDSG, type_udsg)
+        op        = OP_LOOSE if wp=='loose' else OP_MEDIUM if wp=='medium' else OP_TIGHT if wp=='tight' else OP_RESHAPING
+        type_udsg = 'incl'
+        type_bc   = 'comb' # 'mujets' for QCD; 'comb' for QCD+TT
+        calib     = BTagCalibration(tagger, csvname)
+        reader    = BTagCalibrationReader(op, sigma)
+        reader.load(calib, FLAV_B, type_bc)
+        reader.load(calib, FLAV_C, type_bc)
+        reader.load(calib, FLAV_UDSG, type_udsg)
         
         # EFFICIENCIES
         ptbins     = array('d',[10,20,30,50,70,100,140,200,300,500,1000,1500])
         etabins    = array('d',[-2.5,-1.5,0.0,1.5,2.5])
         bins       = (len(ptbins)-1,ptbins,len(etabins)-1,etabins)
-        self.hists = { }
-        self.effs  = { }
+        hists      = { }
+        effs       = { }
         #efffile    = ensureTFile(effname)
         for flavor in [0,4,5]:
-          flavor = flavorToString(flavor)
+          flavor   = flavorToString(flavor)
           histname = "%s_%s_%s"%(tagger,flavor,wp)
           effname  = "eff_%s_%s_%s"%(tagger,flavor,wp)
-          self.hists[flavor]        = TH2F(histname,histname,*bins)
-          self.hists[flavor+'_all'] = TH2F(histname+'_all',histname+'_all',*bins)
+          hists[flavor]        = TH2F(histname,histname,*bins)
+          hists[flavor+'_all'] = TH2F(histname+'_all',histname+'_all',*bins)
           #effhist = efffile.Get('effname')
-          #self.effs[effname] = effhist
+          #effs[effname] = effhist
+        
+        self.tagged = tagged
+        self.reader = reader
+        self.calib  = calib
+        self.hists  = hists
+        self.effs   = effs
         
     def getWeight(self,event,jetids):
         """Get event weight for a given set of jets."""
@@ -147,18 +153,18 @@ class BTagWeightTool:
           self.hists[flavor+'_all'].Fill(event.Jet_pt[id],event.Jet_eta[id])
     
     def setDirectory(self,directory,subdirname=None):
-      if subdirname:
-        subdir = directory.Get(subdirname)
-        if not subdir:
-          subdir = directory.mkdir(subdirname)
-        directory = subdir
-      for histname, hist in self.hists.iteritems():
-        hist.SetDirectory(directory)
+        if subdirname:
+          subdir = directory.Get(subdirname)
+          if not subdir:
+            subdir = directory.mkdir(subdirname)
+          directory = subdir
+        for histname, hist in self.hists.iteritems():
+          hist.SetDirectory(directory)
         
 
 def flavorToString(flavor):
-  if flavor==5: return 'b'
-  if flavor==4: return 'c'
+  if abs(flavor)==5: return 'b'
+  if abs(flavor)==4: return 'c'
   return 'udsg'
   
 
