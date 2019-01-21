@@ -28,13 +28,14 @@ class EleTauProducer(Module):
         self.isData = dataType=='data'
         
         setYear(year)
-        self.eleSFs = ElectronSFs(year=year)
-        self.puTool = PileupWeightTool(year=year)
-        self.ltfSFs = LeptonTauFakeSFs('loose','tight',year=year)
-        self.btagTool      = BTagWeightTool('CSVv2','medium',year=year)
-        self.btagTool_deep = BTagWeightTool('DeepCSV','medium',year=year)
-        self.csvv2_wp      = BTagWPs('CSVv2',year=year)
-        self.deepcsv_wp    = BTagWPs('DeepCSV',year=year)
+        if not self.isData:
+          self.eleSFs   = ElectronSFs(year=year)
+          self.puTool   = PileupWeightTool(year=year)
+          self.ltfSFs   = LeptonTauFakeSFs('loose','tight',year=year)
+          self.btagTool      = BTagWeightTool('CSVv2','medium',year=year)
+          self.btagTool_deep = BTagWeightTool('DeepCSV','medium',year=year)
+        self.csvv2_wp   = BTagWPs('CSVv2',year=year)
+        self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
         
         self.Nocut = 0
         self.Trigger = 1
@@ -57,8 +58,9 @@ class EleTauProducer(Module):
         pass
 
     def endJob(self):
-        self.btagTool.setDirectory(self.out.outputfile,'btag')
-        self.btagTool_deep.setDirectory(self.out.outputfile,'btag')
+        if not self.isData:
+          self.btagTool.setDirectory(self.out.outputfile,'btag')
+          self.btagTool_deep.setDirectory(self.out.outputfile,'btag')
         self.out.outputfile.Write()
         self.out.outputfile.Close()
 
@@ -193,8 +195,10 @@ class EleTauProducer(Module):
             if event.Jet_btagDeepB[ijet] > self.deepcsv_wp.medium:
               nbtag += 1
               bjetIds.append(ijet)
-        self.btagTool.fillEfficiencies(event,jetIds)
-        self.btagTool_deep.fillEfficiencies(event,jetIds)
+        
+        if not self.isData:
+          self.btagTool.fillEfficiencies(event,jetIds)
+          self.btagTool_deep.fillEfficiencies(event,jetIds)
         
         #eventSum = ROOT.TLorentzVector()
         #

@@ -39,14 +39,15 @@ class TauTauProducer(Module):
           else:
             self.trigger = lambda e: e.HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg
         
-        self.tauSFs   = TauTauSFs('tight',year=year)
-        self.tauSFsVT = TauTauSFs('vtight',year=year)
-        self.ltfSFs   = LeptonTauFakeSFs('loose','vloose',year=year)
-        self.puTool   = PileupWeightTool(year=year)
-        self.btagTool      = BTagWeightTool('CSVv2','medium',year=year)
-        self.btagTool_deep = BTagWeightTool('DeepCSV','medium',year=year)
-        self.csvv2_wp      = BTagWPs('CSVv2',year=year)
-        self.deepcsv_wp    = BTagWPs('DeepCSV',year=year)
+        if not self.isData:
+          self.tauSFs   = TauTauSFs('tight',year=year)
+          self.tauSFsVT = TauTauSFs('vtight',year=year)
+          self.ltfSFs   = LeptonTauFakeSFs('loose','vloose',year=year)
+          self.puTool   = PileupWeightTool(year=year)
+          self.btagTool      = BTagWeightTool('CSVv2','medium',year=year)
+          self.btagTool_deep = BTagWeightTool('DeepCSV','medium',year=year)
+        self.csvv2_wp   = BTagWPs('CSVv2',year=year)
+        self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
         
         self.Nocut = 0
         self.Trigger = 1
@@ -79,8 +80,9 @@ class TauTauProducer(Module):
     def endJob(self):
         #check = self.out.outputfile.mkdir('check')
         #self.pileup.SetDirectory(check)
-        self.btagTool.setDirectory(self.out.outputfile,'btag')
-        self.btagTool_deep.setDirectory(self.out.outputfile,'btag')
+        if not self.isData:
+          self.btagTool.setDirectory(self.out.outputfile,'btag')
+          self.btagTool_deep.setDirectory(self.out.outputfile,'btag')
         self.out.outputfile.Write()
         self.out.outputfile.Close()
         
@@ -265,8 +267,10 @@ class TauTauProducer(Module):
             if event.Jet_btagDeepB[ijet] > self.deepcsv_wp.medium:
               nbtag += 1
               bjetIds.append(ijet)
-        self.btagTool.fillEfficiencies(event,jetIds)
-        self.btagTool_deep.fillEfficiencies(event,jetIds)
+        
+        if not self.isData:
+          self.btagTool.fillEfficiencies(event,jetIds)
+          self.btagTool_deep.fillEfficiencies(event,jetIds)
         
         #eventSum = ROOT.TLorentzVector()
         #
