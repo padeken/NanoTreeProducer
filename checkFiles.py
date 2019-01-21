@@ -83,6 +83,7 @@ sample_dict = [
    ('Tau',            "Tau_Run2017D",              "Tau/ytakahas-NanoTest_20180507_D"                          ),
    ('Tau',            "Tau_Run2017E",              "Tau/ytakahas-NanoTest_20180507_E"                          ),
    ('Tau',            "Tau_Run2017F",              "Tau/ytakahas-NanoTest_20180507_F"                          ),
+   ('Tau',            "Tau_$RUN",                  "Tau/manzoni-$RUN"                                          ),
    ('SingleMuon',     "SingleMuon_$RUN",           "SingleMuon/$RUN"                                           ),
    ('SingleMuon',     "SingleMuon_$RUN",           "SingleMuon/manzoni-$RUN"                                   ),
    ('SingleElectron', "SingleElectron_$RUN",       "SingleElectron/$RUN"                                       ),
@@ -100,12 +101,10 @@ sample_dict = [
 sample_dict = [(d,s,p.replace('*','.*').replace('$MASS','(\d+)').replace('$RUN','(Run201\d[A-H])')) for d,s,p in sample_dict] # convert to regex pattern
 #sample_dict = { k: v.lstrip('/').replace('/','__') for k, v in sample_dict.iteritems() }
 haddsets = [
-  ('DY',             "DYJetsToLL_M-50",         [ 'DYJetsToLL_M-50_*'       ]),
-  ('Tau',            "Tau_Run2017",             [ 'Tau_Run2017?'            ]),
-  ('SingleMuon',     "SingleMuon_Run2017",      [ 'SingleMuon_Run2017?'     ]),
-  ('SingleElectron', "SingleElectron_Run2017",  [ 'SingleElectron_Run2017?' ]),
-  ('SingleMuon',     "SingleMuon_Run2018",      [ 'SingleMuon_Run2018?'     ]),
-  ('SingleElectron', "SingleElectron_Run2018",  [ 'SingleElectron_Run2018?' ]),
+  ('DY',             "DYJetsToLL_M-50",      [ 'DYJetsToLL_M-50_*'    ]),
+  ('Tau',            "Tau_$RUN",             [ 'Tau_$RUN?'            ]),
+  ('SingleMuon',     "SingleMuon_$RUN",      [ 'SingleMuon_$RUN?'     ]),
+  ('SingleElectron', "SingleElectron_$RUN",  [ 'SingleElectron_$RUN?' ]),
 ]
 
 
@@ -141,6 +140,8 @@ def main(args):
       # HADD samples
       if not args.haddother or args.make:
         for directory in samplelist:
+            if args.verbose:
+              print directory
             
             subdir, samplename = getSampleShortName(directory)
             outdir  = "%s/%s"%(samplesdir,subdir)
@@ -184,13 +185,13 @@ def main(args):
                 print haddcmd
                 os.system(haddcmd)
                 
-                #if 'LQ3' not in directory:
+                if 'LQ3' not in directory:
+                     compareEventsToDAS(outfile,directory)
                 #    skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
                 #    rmcmd = 'rm %s'%(infiles)
                 #    #os.system(skimcmd)
                 #    #os.system(rmcmd)
                 #    continue
-                compareEventsToDAS(outfile,directory)
               
                 #skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
                 #os.system(skimcmd)
@@ -203,10 +204,12 @@ def main(args):
                     print rmcmd
                   os.system(rmcmd)
                 print
-    
+      
       # HADD other
       if args.haddother:
         for subdir, samplename, sampleset in haddsets:
+            if args.verbose:
+              print subdir, samplename, sampleset
             if args.samples and not matchSampleToPattern(samplename,args.samples): continue
             if args.veto and matchSampleToPattern(directory,args.veto): continue
             if 'SingleMuon' in subdir and channel not in ['mutau','mumu']: continue
@@ -214,6 +217,9 @@ def main(args):
             if 'Tau' in subdir and channel!='tautau': continue
             if '2017' in samplename and year!=2017: continue
             if '2018' in samplename and year!=2018: continue
+            if '$RUN' in samplename:
+              samplename = samplename.replace('$RUN','Run%d'%year)
+              sampleset  = [s.replace('$RUN','Run%d'%year) for s in sampleset]
             
             outdir  = "%s/%s"%(samplesdir,subdir)
             outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
@@ -223,8 +229,9 @@ def main(args):
             # OVERWRITE ?
             if os.path.isfile(outfile):
               if args.force:
-                if args.verbose:
-                  print bcolors.BOLD + bcolors.WARNING + "[WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
+                pass
+                #if args.verbose:
+                #  print bcolors.BOLD + bcolors.WARNING + "[WN] target %s already exists! Overwriting..."%(outfile) + bcolors.ENDC
               else:
                 print bcolors.BOLD + bcolors.FAIL + "[NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
                 continue
@@ -254,7 +261,7 @@ def main(args):
               print bcolors.BOLD + bcolors.OKGREEN + '[OK] hadding %s' %(outfile) + bcolors.ENDC
               haddcmd = 'hadd -f %s %s'%(outfile,' '.join(infiles))
               print haddcmd
-              os.system(haddcmd)
+              #os.system(haddcmd)
             else:
               print bcolors.BOLD + bcolors.WARNING + "[WN] no files to hadd!" + bcolors.ENDC
             print
@@ -274,17 +281,21 @@ def checkFiles(filelist,directory):
       if file.IsZombie():
         print bcolors.FAIL + '[NG] file %s is a zombie'%(filename) + bcolors.ENDC
         isbad = True
-      elif not isinstance(file.Get('tree'),TTree):
-        print bcolors.FAIL + '[NG] no tree found in ' + filename + bcolors.ENDC
-        isbad = True
-      elif not isinstance(file.Get('cutflow'),TH1):
-        print bcolors.FAIL + '[NG] no cutflow found in ' + filename + bcolors.ENDC
-        isbad = True
+      else:
+        tree = file.Get('tree')
+        if not isinstance(tree,TTree):
+          print bcolors.FAIL + '[NG] no tree found in ' + filename + bcolors.ENDC
+          isbad = True
+        elif not isinstance(file.Get('cutflow'),TH1):
+          print bcolors.FAIL + '[NG] no cutflow found in ' + filename + bcolors.ENDC
+          isbad = True
+        elif any(s in filename for s in ['DYJets','WJets']) and tree.GetMaximum('LHE_Njets')>10:
+          print bcolors.WARNING + '[WN] LHE_Njets = %d > 10 in %s'%(tree.GetMaximum('LHE_Njets'),filename) + bcolors.ENDC
       if isbad:
         badfiles.append(filename)
         #rmcmd = 'rm %s' %filename
         #print rmcmd
-        #os.system(rmcmd)
+        os.system(rmcmd)
       file.Close()
       match = indexpattern.search(filename)
       if match: ifound.append(int(match.group(1)))
