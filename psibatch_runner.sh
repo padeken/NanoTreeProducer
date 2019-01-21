@@ -1,12 +1,13 @@
-#!/bin/zsh
+#! /bin/zsh
 ## make sure the right shell will be used
 #$ -S /bin/zsh
 #######################################################
 ## Black list nodes
-##$ -l h=!bird234.desy.de
+##$ -l h=!t3wn34.psi.ch
+##$ -l h=!(t3wn34.psi.ch|t3wn5*.psi.ch)
 #######################################################
 ## the cpu time for this job
-#$ -l h_rt=08:59:00
+#$ -l h_rt=03:59:00
 ## the maximum memory usage of this job
 #$ -l h_vmem=5900M
 ## Job Name
