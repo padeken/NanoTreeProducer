@@ -11,7 +11,7 @@ from checkFiles import getSampleShortName, matchSampleToPattern, header, ensureD
 parser = ArgumentParser()
 parser.add_argument('-f', '--force',   dest='force', action='store_true', default=False,
                                        help="submit jobs without asking confirmation" )
-parser.add_argument('-y', '--year',    dest='years', choices=[2017,2018], type=int, nargs='+', default=[2017], action='store',
+parser.add_argument('-y', '--year',    dest='years', choices=[2016,2017,2018], type=int, nargs='+', default=[2017], action='store',
                                        help="select year" )
 parser.add_argument('-c', '--channel', dest='channels', choices=['eletau','mutau','tautau'], type=str, nargs='+', default=['mutau'], action='store',
                                        help="channels to submit" )

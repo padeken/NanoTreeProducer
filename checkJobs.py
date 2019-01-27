@@ -21,7 +21,7 @@ class bcolors:
 if __name__ == '__main__':    
     description = '''Check if the job output files are valid, compare the number of events to DAS (-d), hadd them into one file per sample (-m), and merge datasets (-a).'''
     parser = ArgumentParser(prog="checkFiles",description=description,epilog="Good luck!")
-    parser.add_argument('-y', '--year',    dest='years', choices=[2017,2018], type=int, nargs='+', default=[2017], action='store',
+    parser.add_argument('-y', '--year',    dest='years', choices=[2016,2017,2018], type=int, nargs='+', default=[2017], action='store',
                                            help="select year" )
     parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=['tautau'], action='store' )
     parser.add_argument('-n', '--njobs',   dest='njobs', type=int, default=1, action='store',
