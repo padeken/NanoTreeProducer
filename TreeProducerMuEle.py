@@ -48,7 +48,7 @@ class TreeProducerMuEle(TreeProducerCommon):
         self.phi_2                      = num.zeros(1, dtype=float)
         self.mass_2                     = num.zeros(1, dtype=float)
         self.dxy_2                      = num.zeros(1, dtype=float)
-        self.dz_2                       = num.zeros(1, dtype=float)        
+        self.dz_2                       = num.zeros(1, dtype=float)
         self.q_2                        = num.zeros(1, dtype=int)
         self.pfRelIso03_all_2           = num.zeros(1, dtype=float)
         self.genPartFlav_2              = num.zeros(1, dtype=int)
@@ -56,7 +56,7 @@ class TreeProducerMuEle(TreeProducerCommon):
         self.mvaFall17Iso_2             = num.zeros(1, dtype=float)
         self.mvaFall17Iso_WP80_2        = num.zeros(1, dtype=int)
         self.mvaFall17Iso_WP90_2        = num.zeros(1, dtype=int)
-        self.mvaFall17Iso_WPL_2        = num.zeros(1, dtype=int)
+        self.mvaFall17Iso_WPL_2         = num.zeros(1, dtype=int)
 
         self.tree.Branch('pt_2'                      , self.pt_2, 'pt_2/D')
         self.tree.Branch('eta_2'                     , self.eta_2, 'eta_2/D')
@@ -71,5 +71,5 @@ class TreeProducerMuEle(TreeProducerCommon):
         self.tree.Branch('mvaFall17Iso_2'            , self.mvaFall17Iso_2, 'mvaFall17Iso_2/D')
         self.tree.Branch('mvaFall17Iso_WP80_2'       , self.mvaFall17Iso_WP80_2, 'mvaFall17Iso_WP80_2/I')
         self.tree.Branch('mvaFall17Iso_WP90_2'       , self.mvaFall17Iso_WP90_2, 'mvaFall17Iso_WP90_2/I')
-        self.tree.Branch('mvaFall17Iso_WPL_2'       , self.mvaFall17Iso_WPL_2, 'mvaFall17Iso_WPL_2/I')
+        self.tree.Branch('mvaFall17Iso_WPL_2'        , self.mvaFall17Iso_WPL_2, 'mvaFall17Iso_WPL_2/I')
 
