@@ -38,7 +38,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 filepattern     = re.compile(r".*\.o(\d+)\.(\d+)")
-qstatpattern    = re.compile(r"(\d+) *\d\.\d+ *\w+ *\w+ *(\w+) *\d\d/\d\d/20\d\d *\d\d:\d\d:\d\d *(?:[^ ]+@[^ ]+)? *\d+ *(\d+)")
+qstatpattern    = re.compile(r"(\d+) *\d\.\d+ *\w+ *\w+ *(\w+) *\d\d/\d\d/20\d\d *\d\d:\d\d:\d\d *(?:[^ ]+@[^ ]+)? *\d+ *(\d+(?:-\d+:\d)?)")
 nodepattern     = re.compile(r"Running job on machine .* (t3wn\d+\.psi\.ch)")
 queuepattern    = re.compile(r"(\w+\.q)@(t3wn\d+\.psi\.ch)")
 rootpattern     = re.compile(r"root://.*?/.*?\.root")
@@ -64,6 +64,7 @@ class Job:
     node      = None
     ppstart   = False # post-processor started running
     running   = False
+    waiting   = False
     stuck     = False
     failed    = False
     files     = [ ]
@@ -77,8 +78,18 @@ class Job:
     status    = process.wait()
     for line in out.split('\n'):
       match = qstatpattern.match(line)
-      if match and jobid==int(match.group(1)) and taskid==int(match.group(3)):
+      if match and jobid==int(match.group(1)):
+        if '-' in match.group(3):
+          match2 = re.search(r"(\d+)-(\d+)",match.group(3))
+          cmin, cmax = match2.group(1), match2.group(2)
+          if taskid<cmin or taskid>taskid:
+            continue
+        elif taskid!=int(match.group(3)):
+          continue
+        else:
+          continue
         running = match.group(2)=='r'
+        waiting = match.group(2)=='qw'
         failed  = 'E' in match.group(2)
         match   = queuepattern.search(line)
         if match:
@@ -148,6 +159,7 @@ class Job:
     self.node     = node
     self.queue    = queue
     self.running  = running
+    self.waiting  = waiting
     self.stuck    = stuck
     self.done     = done
     self.failed   = failed
@@ -176,14 +188,21 @@ def getJobID(filename):
 def printTime(seconds):
   hours, remainder = divmod(seconds, 3600)
   minutes, seconds = divmod(remainder, 60)
-  string = ""
-  if hours>1:     string  = "%d hour "%(hours)
-  elif hours>0:   string  = "%d hours "%(hours)
-  if minutes>1:   string += "%d minute "%(minutes)
-  elif minutes>0: string += "%d minutes "%(minutes)
-  if seconds>1:   string += "%d second"%(seconds)
-  elif minutes>0: string += "%d seconds"%(seconds)
-  return string
+  #string = ""
+  #if hours>1:     string  = "%d hours "%(hours)
+  #elif hours>0:   string  = "%d hour "%(hours)
+  #if minutes>1:   string += "%d minutes "%(minutes)
+  #elif minutes>0: string += "%d minute "%(minutes)
+  #if seconds>1:   string += "%d seconds"%(seconds)
+  #elif minutes>0: string += "%d second"%(seconds)
+  #return string
+  return "%02d:%02d:%02d"%(hours,minutes,seconds)
+  
+
+
+def average(jobs):
+  runtimes = [j.runtime for j in jobs if j.runtime>0]
+  return printTime(sum(runtimes)/len(runtimes))
   
 
 
@@ -259,12 +278,12 @@ def main(args):
           done[jobid].sort()
           print ">>>   %d"%(jobid)
           if running[jobid]:
-            print ">>>     running: %4d /%5d "%(len(running[jobid]),ntot)
+            print ">>>     running: %4d /%4d, %12s"%(len(running[jobid]),ntot,average(running[jobid]))
           if failed[jobid]:
-            print ">>>     failed:  %4d /%5d "%(len(failed[jobid]),ntot) #+ ', '.join([str(j) for j in failed[jobid]])
+            print ">>>     failed:  %4d /%4d"%(len(failed[jobid]),ntot) #+ ', '.join([str(j) for j in failed[jobid]])
           if stuck[jobid]:
-            print ">>>     stuck:   %4d /%5d "%(len(stuck[jobid]),ntot)
-          print ">>>     done:    %4d /%5d "%(len(done[jobid]),ntot) #+ ', '.join([str(j) for j in done[jobid]])
+            print ">>>     stuck:   %4d /%4d"%(len(stuck[jobid]),ntot)
+          print ">>>     done:    %4d /%4d, %12s"%(len(done[jobid]),ntot,average(done[jobid]) if done[jobid] else "") #+ ', '.join([str(j) for j in done[jobid]])
         
         print ">>>"
 
