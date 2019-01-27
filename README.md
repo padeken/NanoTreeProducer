@@ -1,5 +1,6 @@
 # NanoTreeProducer
 Produce skimmed analysis trees directly from centrally-produced NanoAOD.
+This repository is meant for an analysis with a pair of tau leptons in several final states, and for 2016, 2017 and 2018 data.
 
 
 ## Installation
@@ -19,9 +20,10 @@ Then, install this package:
 git clone https://github.com/gitytakahas/NanoTreeProducer
 ```
 
+
 ## Analysis
 
-You might want to change the analyse code in the modules and tree basic classes for whatever analysis you want.
+You want to change the analyse code in the modules and tree branches for whatever analysis you want to perform.
 The examples below are for an analysis selecting for a muon and tau:
 ```
 MuTauModule.py
@@ -46,3 +48,15 @@ and then do, something like
 ./submit_qsub.py -c mutau -y 2017
 ```
 
+To check that the jobs were succesful, you need to ensure that all the output file contains the expected tree with the expected number of events (`-d`):
+```
+./submit_qsub.py -c mutau -y 2017 -d
+```
+If the output is fine, one can hadd (`-m`) all the output:
+```
+./checkFiles.py -c mutau -y 2017 -m
+```
+To resubmit failed jobs, do:
+```
+./resubmit.py -c mutau -y 2017
+```
