@@ -39,13 +39,14 @@ def getZPTMass(event):
       PID      = abs(particle.pdgId)
       #if PID==23 and particle.status==62:
       #  print "%3d: PID=%3d, mass=%3.1f, pt=%3.1f, status=%2d"%(id,particle.pdgId,particle.mass,particle.pt,particle.status)
-      if ((PID==11 or PID==13) and particle.status==1 and hasFlag(particle.statusFlags,9)) or\
-                     (PID==15  and particle.status==2 and hasFlag(particle.statusFlags,9)):
+      if ((PID==11 or PID==13) and particle.status==1 and hasBit(particle.statusFlags,9)) or\
+                     (PID==15  and particle.status==2 and hasBit(particle.statusFlags,9)):
         zboson += particle.p4()
-        #print "%3d: PID=%3d, mass=%3.1f, pt=%3.1f, status=%2d, statusFlags=%2d (%16s), fromHardProcess=%2d"%(id,particle.pdgId,particle.mass,particle.pt,particle.status,particle.statusFlags,bin(particle.statusFlags),int(bin(particle.statusFlags)[-9]))
+        #print "%3d: PID=%3d, mass=%3.1f, pt=%3.1f, status=%2d, statusFlags=%2d (%16s), fromHardProcess=%2d"%(id,particle.pdgId,particle.mass,particle.pt,particle.status,particle.statusFlags,bin(particle.statusFlags),hasBit(particle.statusFlags,9))
     #print "tlv: mass=%3.1f, pt=%3.1f"%(zboson.M(),zboson.Pt())
     return zboson
     
-def hasFlag(value,flag):
-  #bin(value)[-9]=='1'
-  return format(value,'b').zfill(flag)[-flag]=='1'
+def hasBit(value,bit):
+  #return bin(value)[-bit]=='1'
+  #return format(value,'b').zfill(bit)[-bit]=='1'
+  return (value & (1 << (bit-1)))>0
