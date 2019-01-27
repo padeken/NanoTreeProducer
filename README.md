@@ -1,8 +1,10 @@
 # NanoTreeProducer
-Produce analysis tree directly from NanoAODs
+Produce skimmed analysis trees directly from centrally-produced NanoAOD.
 
-Fisrt, install NanoAODTools:
 
+## Installation
+
+First, install NanoAODTools:
 ```
 cmsrel CMSSW_9_4_6
 cd CMSSW_9_4_6/src
@@ -13,28 +15,34 @@ scram b
 ```
 
 Then, install this package:
-
 ```
 git clone https://github.com/gitytakahas/NanoTreeProducer
 ```
 
-You might want to change analyzers and tree basic classes for whatever analysis you want.
-The examples below are for the mu-tau analysis
+## Analysis
 
+You might want to change the analyse code in the modules and tree basic classes for whatever analysis you want.
+The examples below are for an analysis selecting for a muon and tau:
 ```
 MuTauModule.py
-TreeProducerBaseMuTau.py
+TreeProducerMuTau.py
+TreeProducerCommon.py
 ```
 
-For job submission, you need to modify samples to which you want to process
 
+## Run
+
+For a local run, do something like
 ```
-samples.cfg
+./local.py -c mutau -y 2017
 ```
 
-and then do, something like, 
-
+For job submission, you need to modify the list of samples you want to process in the config file, e.g.
 ```
-python submit_qsub.py -c mutau
+samples_2017.cfg
+```
+and then do, something like
+```
+./submit_qsub.py -c mutau -y 2017
 ```
 
