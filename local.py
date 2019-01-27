@@ -8,7 +8,7 @@ parser = ArgumentParser()
 parser.add_argument('-i', '--infiles', dest='infiles', action='store', type=str, default=[ ])
 parser.add_argument('-c', '--channel', dest='channel', action='store', type=str, default='tautau')
 parser.add_argument('-t', '--type',    dest='type', action='store', choices=['data','mc'], default='mc')
-parser.add_argument('-y', '--year',    dest='year', action='store', choices=[2017,2018], type=int, default=2017)
+parser.add_argument('-y', '--year',    dest='year', action='store', choices=[2016,2017,2018], type=int, default=2017)
 parser.add_argument('-T', '--tes',     dest='tes', action='store', type=float, default=1.0)
 args = parser.parse_args()
 
