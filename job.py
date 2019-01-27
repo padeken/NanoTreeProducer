@@ -27,7 +27,7 @@ outdir   = args.outdir
 outfile  = args.outfile
 nchunck  = args.nchunck
 year     = args.year
-kwargs = {
+kwargs   = {
   'year':  args.year,
   'tes':   args.tes,
 }
@@ -44,11 +44,15 @@ dataType = 'mc'
 if infiles[0].find("/SingleMuon/")>0 or infiles[0].find("/Tau/")>0 or infiles[0].find("/SingleElectron/")>0:
   dataType = 'data'
 
-if year==2017:
-  json = '/shome/ineuteli/analysis/LQ_legacy/NanoTreeProducer/json/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+JSON = '/shome/ineuteli/analysis/LQ_legacy/NanoTreeProducer/json/'
+if year==2016:
+  json = JSON+'Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt'
+  #json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt'
+elif year==2017:
+  json = JSON+'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
   #json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
 else:
-  json = '/shome/ineuteli/analysis/LQ_legacy/NanoTreeProducer/json/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
+  json = JSON+'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
   #json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
 
 print '-'*80
