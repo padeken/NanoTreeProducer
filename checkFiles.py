@@ -21,31 +21,33 @@ class bcolors:
 if __name__ == '__main__':    
     description = '''Check if the job output files are valid, compare the number of events to DAS (-d), hadd them into one file per sample (-m), and merge datasets (-a).'''
     parser = ArgumentParser(prog="checkFiles",description=description,epilog="Good luck!")
-    parser.add_argument('-y', '--year',    dest='years', choices=[2017,2018], type=int, nargs='+', default=[2017], action='store',
-                                           help="select year" )
-    parser.add_argument('-c', '--channel', dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=['tautau'], action='store' )
-    parser.add_argument('-m', '--make',    dest='make', default=False, action='store_true',
-                                           help="hadd all output files" )
-    parser.add_argument('-a', '--hadd',    dest='haddother', default=False, action='store_true',
-                                           help="hadd some samples into one (e.g. all data sets, or the extensions)" )
-    parser.add_argument('-d', '--das',     dest='compareToDas', default=False, action='store_true',
-                                           help="compare number of events in output to das" )
-    parser.add_argument('-D', '--das-ex',  dest='compareToDasExisting', default=False, action='store_true',
-                                           help="compare number of events in existing output to das" )
-    parser.add_argument('-f', '--force',   dest='force', default=False, action='store_true',
-                                           help="overwrite existing hadd'ed files" )
-    parser.add_argument('-r', '--clean',   dest='cleanup', default=False, action='store_true',
-                                           help="remove all output files after hadd" )
-    parser.add_argument('-o', '--outdir',  dest='outdir', type=str, default=None, action='store' )
-    parser.add_argument('-s', '--sample',  dest='samples', type=str, nargs='+', default=[ ], action='store',
-                                           help="samples to run over, glob patterns (wildcards * and ?) are allowed." )
-    parser.add_argument('-x', '--veto',    dest='veto', action='store', type=str, default=None,
-                                           help="veto this sample" )
-    parser.add_argument('-t', '--type',    dest='type', choices=['data','mc'], type=str, default=None, action='store',
-                                           help="filter data or MC to submit" )
-    #parser.add_argument('-t', '--tag',     dest='tag', type=str, default="", action='store' )
-    parser.add_argument('-v', '--verbose', dest='verbose', default=False, action='store_true',
-                                           help="set verbose" )
+    parser.add_argument('-y', '--year',     dest='years', choices=[2016,2017,2018], type=int, nargs='+', default=[2017], action='store',
+                                            help="select year" )
+    parser.add_argument('-c', '--channel',  dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=['tautau'], action='store' )
+    parser.add_argument('-m', '--make',     dest='make', default=False, action='store_true',
+                                            help="hadd all output files" )
+    parser.add_argument('-a', '--hadd',     dest='haddother', default=False, action='store_true',
+                                            help="hadd some samples into one (e.g. all data sets, or the extensions)" )
+    parser.add_argument('-d', '--das',      dest='compareToDas', default=False, action='store_true',
+                                            help="compare number of events in output to das" )
+    parser.add_argument('-D', '--das-ex',   dest='compareToDasExisting', default=False, action='store_true',
+                                            help="compare number of events in existing output to das" )
+    parser.add_argument('-C', '--check-ex', dest='checkExisting', default=False, action='store_true',
+                                            help="check existing output (e.g. 'LHE_Njets')" )
+    parser.add_argument('-f', '--force',    dest='force', default=False, action='store_true',
+                                            help="overwrite existing hadd'ed files" )
+    parser.add_argument('-r', '--clean',    dest='cleanup', default=False, action='store_true',
+                                            help="remove all output files after hadd" )
+    parser.add_argument('-o', '--outdir',   dest='outdir', type=str, default=None, action='store' )
+    parser.add_argument('-s', '--sample',   dest='samples', type=str, nargs='+', default=[ ], action='store',
+                                            help="samples to run over, glob patterns (wildcards * and ?) are allowed." )
+    parser.add_argument('-x', '--veto',     dest='veto', action='store', type=str, default=None,
+                                            help="veto this sample" )
+    parser.add_argument('-t', '--type',     dest='type', choices=['data','mc'], type=str, default=None, action='store',
+                                            help="filter data or MC to submit" )
+    #parser.add_argument('-t', '--tag',      dest='tag', type=str, default="", action='store' )
+    parser.add_argument('-v', '--verbose',  dest='verbose', default=False, action='store_true',
+                                            help="set verbose" )
     args = parser.parse_args()
 
 subdirs = [ 'TT', 'DY', 'W*J', 'ST', 'LQ', 'Tau', 'SingleMuon', 'SingleElectron' ]
@@ -119,15 +121,23 @@ def main(args):
     samplesdir = args.outdir if args.outdir else "/scratch/ineuteli/analysis/LQ_%s"%(year)
     os.chdir(indir)
     
+    # CHECK EXISTING
+    if args.checkExisting:
+      for channel in channels:
+        infiles  = "%s/*/*_%s.root"%(channel)
+        filelist = glob.glob(infiles)
+        pattern  = infiles.split('/')[-1]
+        for file in filelist:
+          if not isValidSample(pattern): continue
+          checkFiles(file,pattern)
+      continue
+    
     # GET LIST
     samplelist = [ ]
     for directory in sorted(os.listdir('./')):
-        if not os.path.isdir(directory): continue
-        if args.samples and not matchSampleToPattern(directory,args.samples): continue
-        if args.veto and matchSampleToPattern(directory,args.veto): continue
-        if args.type=='mc' and any(s in directory[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
-        if args.type=='data' and not any(s in directory[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): continue
-        samplelist.append(directory)
+      if not os.path.isdir(directory): continue
+      if not isValidSample(directory): continue
+      samplelist.append(directory)
     if not samplelist:
       print "No samples found in %s!"%(indir)
     if args.verbose:
@@ -180,7 +190,7 @@ def main(args):
                   else:
                     print bcolors.BOLD + bcolors.FAIL + "   [NG] target %s already exists! Use --force or -f to overwrite."%(outfile) + bcolors.ENDC
                     continue
-              
+                
                 haddcmd = 'hadd -f %s %s'%(outfile,infiles)
                 print haddcmd
                 os.system(haddcmd)
@@ -192,7 +202,7 @@ def main(args):
                 #    #os.system(skimcmd)
                 #    #os.system(rmcmd)
                 #    continue
-              
+                
                 #skimcmd = 'python extractTrees.py -c %s -f %s'%(channel,outfile)
                 #os.system(skimcmd)
                 
@@ -269,10 +279,20 @@ def main(args):
      
 
 
+def isValidSample(pattern):
+  if args.samples and not matchSampleToPattern(pattern,args.samples): return False
+  if args.veto and matchSampleToPattern(pattern,args.veto): return False
+  if args.type=='mc' and any(s in pattern[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): return False
+  if args.type=='data' and not any(s in pattern[:len(s)+2] for s in ['SingleMuon','SingleElectron','Tau']): return False
+  return True
+
+
 indexpattern = re.compile(r".*_(\d+)_[a-z]+\.root")
 def checkFiles(filelist,directory):
     if args.verbose:
       print "checkFiles: %s, %s"%(filelist,directory)
+    if isinstance(filelist,str):
+      filelist = [filelist]
     badfiles = [ ]
     ifound   = [ ]
     for filename in filelist:
@@ -295,7 +315,7 @@ def checkFiles(filelist,directory):
         badfiles.append(filename)
         #rmcmd = 'rm %s' %filename
         #print rmcmd
-        os.system(rmcmd)
+        #os.system(rmcmd)
       file.Close()
       match = indexpattern.search(filename)
       if match: ifound.append(int(match.group(1)))
