@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(prog="checkFiles",description=description,epilog="Good luck!")
     parser.add_argument('-y', '--year',     dest='years', choices=[2016,2017,2018], type=int, nargs='+', default=[2017], action='store',
                                             help="select year" )
-    parser.add_argument('-c', '--channel',  dest='channels', choices=['mutau','eletau','tautau'], nargs='+', default=['tautau'], action='store' )
+    parser.add_argument('-c', '--channel',  dest='channels', choices=['mutau','eletau','tautau','mumu'], nargs='+', default=['tautau'], action='store' )
     parser.add_argument('-m', '--make',     dest='make', default=False, action='store_true',
                                             help="hadd all output files" )
     parser.add_argument('-a', '--hadd',     dest='haddother', default=False, action='store_true',

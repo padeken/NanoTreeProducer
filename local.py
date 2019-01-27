@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument('-i', '--infiles', dest='infiles', action='store', type=str, default=[ ])
-parser.add_argument('-c', '--channel', dest='channel', action='store', type=str, default='tautau')
+parser.add_argument('-c', '--channel', dest='channel', action='store', choices=['tautau','mutau','eletau','muele','mumu'], type=str, default='tautau')
 parser.add_argument('-t', '--type',    dest='type', action='store', choices=['data','mc'], default='mc')
 parser.add_argument('-y', '--year',    dest='year', action='store', choices=[2016,2017,2018], type=int, default=2017)
 parser.add_argument('-T', '--tes',     dest='tes', action='store', type=float, default=1.0)
@@ -63,10 +63,11 @@ else:
     else:
       infiles = ['root://cms-xrd-global.cern.ch//store/group/phys_tau/ProdNanoAODv4Priv/16dec18/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18NanoAODv4Priv-from_102X_upgrade2018_realistic_v15_ver1/181216_125011/0000/myNanoRunMc2018_NANO_101.root']      
 
-print ">>> %-8s = %s"%('channel',channel)
-print ">>> %-8s = %s"%('dataType',dataType)
-print ">>> %-8s = %s"%('year',kwargs['year'])
-print ">>> %-8s = %s"%('postfix',postfix)
+print ">>> %-10s = %s"%('channel',channel)
+print ">>> %-10s = %s"%('dataType',dataType)
+print ">>> %-10s = %s"%('year',kwargs['year'])
+print ">>> %-10s = %s"%('tes',kwargs['tes'])
+print ">>> %-10s = %s"%('postfix',postfix)
 
 if channel=='tautau':
     from TauTauModule import *
