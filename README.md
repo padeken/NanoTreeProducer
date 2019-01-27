@@ -5,7 +5,7 @@ This repository is meant for an analysis with a pair of tau leptons in several f
 
 ## Installation
 
-First, install NanoAODTools:
+First, install `NanoAODTools`:
 ```
 cmsrel CMSSW_9_4_6
 cd CMSSW_9_4_6/src
@@ -15,7 +15,7 @@ git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODT
 scram b
 ```
 
-Then, install this package:
+Then, install this `NanoTreeProducer`:
 ```
 git clone https://github.com/IzaakWN/NanoTreeProducer
 ```
@@ -23,7 +23,7 @@ git clone https://github.com/IzaakWN/NanoTreeProducer
 
 ## Analysis
 
-You need to change the **analyse code** in the modules and tree branches for the analysis you want to perform.
+You need to change the **analyse code** in the modules and **tree branches** for the analysis you want to perform.
 These are the examples for an analysis selecting for a muon and tau:
 ```
 MuTauModule.py
@@ -50,7 +50,7 @@ and then do, **submit** with something like
 ```
 ./submit_qsub.py -c mutau -y 2017
 ```
-To check that the jobs were succesful, you need to ensure that all the output file contains the expected tree with the expected number of events (`-d`):
+To **check job success**, you need to ensure that all the output file contains the expected tree with the expected number of events (`-d`):
 ```
 ./checkFiles.py -c mutau -y 2017 -d
 ```
