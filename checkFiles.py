@@ -223,8 +223,9 @@ def main(args):
             if args.samples and not matchSampleToPattern(samplename,args.samples): continue
             if args.veto and matchSampleToPattern(directory,args.veto): continue
             if 'SingleMuon' in subdir and channel not in ['mutau','mumu']: continue
-            if 'SingleElectron' in subdir and channel!='etau': continue
+            if 'SingleElectron' in subdir and channel!='eletau': continue
             if 'Tau' in subdir and channel!='tautau': continue
+            if 'LQ3' in subdir and channel not in ['mutau','tautau','eletau']: continue
             if '2017' in samplename and year!=2017: continue
             if '2018' in samplename and year!=2018: continue
             if '$RUN' in samplename:
