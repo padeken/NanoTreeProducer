@@ -1,5 +1,6 @@
 #! /bin/usr/env python
 # Author: Izaak Neutelings (January 2019)
+# https://twiki.cern.ch/twiki/bin/view/CMS/BTagSFMethods
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/BTagCalibration
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation80XReReco
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
@@ -52,7 +53,7 @@ class BTagWPs:
 
 class BTagWeightTool:
     
-    def __init__(self, tagger, wp='medium', sigma='central', year=2017):
+    def __init__(self, tagger, wp='medium', sigma='central', channel='mutau', year=2017):
         """Load b tag weights from CSV file."""
         print "Loading BTagWeightTool for %s (%s WP)..."%(tagger,wp)
         
@@ -64,24 +65,24 @@ class BTagWeightTool:
         if year==2016:
           if 'deep' in tagger.lower():
             csvname = path+'DeepCSV_Moriond17_B_H.csv'
-            effname = path+'DeepCSV_Moriond17_effs.root'
+            effname = path+'DeepCSV_94X_eff.root'
           else:
             csvname = path+'CSVv2_Moriond17_B_H.csv'
-            effname = path+'CSVv2_Moriond17_effs.root'
+            effname = path+'CSVv2_94X_eff.root'
         elif year==2017:
           if 'deep' in tagger.lower():
             csvname = path+'DeepCSV_94XSF_V3_B_F.csv'
-            effname = path+'DeepCSV_94X_effs.root'
+            effname = path+'DeepCSV_94X_eff.root'
           else:
             csvname = path+'CSVv2_94XSF_V2_B_F.csv'
-            effname = path+'CSVv2_94X_effs.root'
+            effname = path+'CSVv2_94X_eff.root'
         elif year==2018:
           if 'deep' in tagger.lower():
             csvname = path+'DeepCSV_94XSF_V3_B_F.csv'
-            effname = path+'DeepCSV_102X_effs.root'
+            effname = path+'DeepCSV_94X_eff.root'
           else:
             csvname = path+'CSVv2_94XSF_V2_B_F.csv'
-            effname = path+'CSVv2_102X_effs.root'
+            effname = path+'CSVv2_94X_eff.root'
         
         # TAGGING WP
         self.wp     = getattr(BTagWPs(tagger,year),wp)
@@ -106,19 +107,22 @@ class BTagWeightTool:
         bins       = (len(ptbins)-1,ptbins,len(etabins)-1,etabins)
         hists      = { }
         effs       = { }
-        #efffile    = ensureTFile(effname)
+        efffile    = ensureTFile(effname)
         for flavor in [0,4,5]:
           flavor   = flavorToString(flavor)
           histname = "%s_%s_%s"%(tagger,flavor,wp)
-          effname  = "eff_%s_%s_%s"%(tagger,flavor,wp)
+          effname  = "%s/eff_%s_%s_%s"%(channel,tagger,flavor,wp)
           hists[flavor]        = TH2F(histname,histname,*bins)
           hists[flavor+'_all'] = TH2F(histname+'_all',histname+'_all',*bins)
-          #effhist = efffile.Get('effname')
-          #effs[effname] = effhist
+          effs[flavor]         = efffile.Get(effname)
+          hists[flavor].SetDirectory(0)
+          hists[flavor+'_all'].SetDirectory(0)
+          effs[flavor].SetDirectory(0)
+        efffile.Close()
         
         self.tagged = tagged
-        self.reader = reader
         self.calib  = calib
+        self.reader = reader
         self.hists  = hists
         self.effs   = effs
         
@@ -131,8 +135,8 @@ class BTagWeightTool:
         
     def getSF(self,pt,eta,flavor,tagged):
         """Get SF for one jet."""
-        flavor = FLAV_B if abs(flavor)==5 else FLAV_C if abs(flavor)==4 or abs(flavor)==15 else FLAV_UDSG
-        SF     = self.reader.eval(flavor,abs(eta),pt)
+        FLAV = flavorToFLAV(flavor)
+        SF   = self.reader.eval(FLAV,abs(eta),pt)
         if tagged:
           weight = SF
         else:
@@ -142,7 +146,16 @@ class BTagWeightTool:
         
     def getEfficiency(self,pt,eta,flavor):
         """Get SF for one jet."""
-        return 0.6
+        flavor = flavorToString(flavor)
+        hist   = self.effs[flavor]
+        xbin   = hist.GetXaxis().FindBin(eta)
+        ybin   = hist.GetYaxis().FindBin(pt)
+        if xbin==0: xbin = 1
+        elif xbin>hist.GetXaxis().GetNbins(): xbin -= 1
+        if ybin==0: ybin = 1
+        elif ybin>hist.GetYaxis().GetNbins(): ybin -= 1
+        sf     = hist.GetBinContent(xbin,ybin)
+        return sf
         
     def fillEfficiencies(self,event,jetids):
         """Fill efficiency of MC."""
@@ -160,7 +173,9 @@ class BTagWeightTool:
           directory = subdir
         for histname, hist in self.hists.iteritems():
           hist.SetDirectory(directory)
-        
+
+def flavorToFLAV(flavor):
+  return FLAV_B if abs(flavor)==5 else FLAV_C if abs(flavor)==4 or abs(flavor)==15 else FLAV_UDSG       
 
 def flavorToString(flavor):
   if abs(flavor)==5: return 'b'
