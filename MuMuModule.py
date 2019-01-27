@@ -21,15 +21,14 @@ class MuMuProducer(Module):
     def __init__(self, name, dataType, **kwargs):
         
         year        = kwargs.get('year',  2017 )
-        tes         = kwargs.get('tes',   1.0  )
+        doZpt       = kwargs.get('doZpt', 'DY' in name )
         channel     = 'mumu'
         
         self.name   = name
         self.year   = year
-        self.tes    = tes
         self.out    = declareVariables(name)
         self.isData = dataType=='data'
-        self.doZpt  = 'DY' in self.name
+        self.doZpt  = doZpt
         
         setYear(year)
         self.vlooseIso    = getVLooseTauIso(year)
@@ -62,7 +61,7 @@ class MuMuProducer(Module):
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.Nocut,               "no cut"                 )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.Trigger,             "trigger"                )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodMuons,           "muon object"            )
-        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodSecondMuon,      "second muon object"            )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodSecondMuon,      "second muon object"     )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodDiLepton,        "mutau pair"             )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted,       "no cut, weighted"       )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted_no0PU, "no cut, weighted, PU>0" )
@@ -170,7 +169,7 @@ class MuMuProducer(Module):
         ncjets  = 0
         nbtag   = 0
         for ijet in range(event.nJet):
-            if event.Jet_pt[ijet] < 30: continue
+            if event.Jet_pt[ijet] < 20: continue # 20 for tau -> j fake measurement
             if abs(event.Jet_eta[ijet]) > 4.7: continue
             if muon1.DeltaR(jets[ijet].p4()) < 0.5: continue
             if muon2.DeltaR(jets[ijet].p4()) < 0.5: continue
@@ -199,7 +198,7 @@ class MuMuProducer(Module):
         #    eventSum += j.p4()
         
         
-        # MUON
+        # MUONS
         self.out.pt_1[0]                       = event.Muon_pt[dilepton.id1]
         self.out.eta_1[0]                      = event.Muon_eta[dilepton.id1]
         self.out.phi_1[0]                      = event.Muon_phi[dilepton.id1]
@@ -221,6 +220,50 @@ class MuMuProducer(Module):
         if not self.isData:
             self.out.genPartFlav_1[0]          = ord(event.Muon_genPartFlav[dilepton.id1])
             self.out.genPartFlav_2[0]          = ord(event.Muon_genPartFlav[dilepton.id2])
+        
+        
+        # TAU
+        maxId = -1
+        maxPt = 20
+        taus  = Collection(event, 'Tau')
+        for itau in range(event.nTau):
+          if event.Tau_pt[itau] < maxPt: continue
+          if muon1.DeltaR(taus[itau].p4())<0.5: continue
+          if muon2.DeltaR(taus[itau].p4())<0.5: continue
+          if abs(event.Tau_eta[itau])>2.3: continue
+          if abs(event.Tau_dz[itau])>0.2: continue
+          if event.Tau_decayMode[itau] not in [0,1,10,11]: continue
+          if abs(event.Tau_charge[itau])!=1: continue
+          if ord(event.Tau_idAntiEle[itau])<1: continue # VLoose
+          if ord(event.Tau_idAntiMu[itau])<1: continue # Loose
+          #if not self.vlooseIso(event,itau): continue
+          maxId = itau
+          maxPt = event.Tau_pt[itau]
+        if maxId>-1:
+          self.out.pt_3[0]                     = event.Tau_pt[maxId]
+          self.out.eta_3[0]                    = event.Tau_eta[maxId]
+          self.out.mass_3[0]                   = event.Tau_mass[maxId]
+          self.out.decayMode_3[0]              = event.Tau_decayMode[maxId]
+          self.out.idAntiEle_3[0]              = ord(event.Tau_idAntiEle[maxId])
+          self.out.idAntiMu_3[0]               = ord(event.Tau_idAntiMu[maxId])
+          self.out.idMVAoldDM_3[0]             = ord(event.Tau_idMVAoldDM[maxId])
+          self.out.idMVAoldDM2017v1_3[0]       = ord(event.Tau_idMVAoldDM2017v1[maxId])
+          self.out.idMVAoldDM2017v2_3[0]       = ord(event.Tau_idMVAoldDM2017v2[maxId])
+          self.out.idMVAnewDM2017v2_3[0]       = ord(event.Tau_idMVAnewDM2017v2[maxId])
+          if not self.isData:
+            self.out.genPartFlav_3[0]          = ord(event.Tau_genPartFlav[maxId])
+        else:
+          self.out.pt_3[0]                     = -1
+          self.out.eta_3[0]                    = -9
+          self.out.mass_3[0]                   = -1
+          self.out.decayMode_3[0]              = -1
+          self.out.idAntiEle_3[0]              = -1
+          self.out.idAntiMu_3[0]               = -1
+          self.out.idMVAoldDM_3[0]             = -1
+          self.out.idMVAoldDM2017v1_3[0]       = -1
+          self.out.idMVAoldDM2017v2_3[0]       = -1
+          self.out.idMVAnewDM2017v2_3[0]       = -1
+          self.out.genPartFlav_3[0]            = -1
         
         
         # EVENT
@@ -343,7 +386,7 @@ class MuMuProducer(Module):
             zboson = getZPTMass(event)
             self.out.m_genboson[0]    = zboson.M()
             self.out.pt_genboson[0]   = zboson.Pt()
-            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson)
+            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson.Pt(),zboson.M())
           self.out.genWeight[0]       = event.genWeight
           self.out.puweight[0]        = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.trigweight[0]      = self.muSFs.getTriggerSF(self.out.pt_1[0],self.out.eta_1[0])
