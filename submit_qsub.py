@@ -173,8 +173,9 @@ def main():
             
             # FILTER
             if 'SingleMuon' in directory and channel not in ['mutau','mumu']: continue
-            if 'SingleElectron' in directory and channel!='etau': continue
+            if 'SingleElectron' in directory and channel!='eletau': continue
             if 'Tau' in directory[:5] and channel!='tautau': continue
+            if 'LQ3' in directory[:5] and channel not in ['mutau','eletau','tautau']: continue
             
             print bcolors.BOLD + bcolors.OKGREEN + directory + bcolors.ENDC
             files = None
