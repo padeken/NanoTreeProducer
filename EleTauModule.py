@@ -7,6 +7,7 @@ from CorrectionTools.ElectronSFs import *
 from CorrectionTools.PileupWeightTool import *
 from CorrectionTools.LeptonTauFakeSFs import *
 from CorrectionTools.BTaggingTool import BTagWeightTool, BTagWPs
+from CorrectionTools.RecoilCorrectionTool import RecoilCorrectionTool, getZPTMass
 
 
 class declareVariables(TreeProducerEleTau):
@@ -20,24 +21,28 @@ class EleTauProducer(Module):
     
     def __init__(self, name, dataType, **kwargs):
         
-        year        = kwargs.get('year',  2017 )
-        tes         = kwargs.get('tes',   1.0  )
-        channel     = 'eletau'
+        year           = kwargs.get('year',  2017 )
+        tes            = kwargs.get('tes',   1.0  )
+        channel        = 'eletau'
         
-        self.name   = name
-        self.year   = year
-        self.tes    = tes
-        self.out    = declareVariables(name)
-        self.isData = dataType=='data'
+        self.name      = name
+        self.year      = year
+        self.tes       = tes
+        self.out       = declareVariables(name)
+        self.isData    = dataType=='data'
+        self.doZpt     = 'DY' in self.name
         
         setYear(year)
         self.vlooseIso = getVLooseTauIso(year)
         if year==2016:
           self.trigger = lambda e: e.HLT_Ele25_eta2p1_WPTight_Gsf or e.HLT_Ele45_WPLoose_Gsf_L1JetTauSeeded #or e.HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20_SingleL1 or e.HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20 or e.HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau30
+          self.electronCutPt = 26
         else:
           # HLT_Ele32_WPTight_Gsf_L1DoubleEG
           # HLT_Ele32_WPTight_Gsf
           self.trigger = lambda e: e.HLT_Ele35_WPTight_Gsf or e.HLT_Ele32_WPTight_Gsf
+          self.electronCutPt = 36
+        self.tauCutPt  = 20
         
         if not self.isData:
           self.eleSFs   = ElectronSFs(year=year)
@@ -45,6 +50,8 @@ class EleTauProducer(Module):
           self.ltfSFs   = LeptonTauFakeSFs('loose','tight',year=year)
           self.btagTool      = BTagWeightTool('CSVv2','medium',channel=channel,year=year)
           self.btagTool_deep = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
+          if self.doZpt:
+            self.recoilTool  = RecoilCorrectionTool(year=year)
         self.csvv2_wp   = BTagWPs('CSVv2',year=year)
         self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
         
@@ -115,7 +122,7 @@ class EleTauProducer(Module):
         
         idx_goodelectrons = [ ]
         for ielectron in range(event.nElectron):
-            if event.Electron_pt[ielectron] < 36: continue
+            if event.Electron_pt[ielectron] < self.electronCutPt: continue
             if abs(event.Electron_eta[ielectron]) > 2.1: continue
             if abs(event.Electron_dz[ielectron]) > 0.2: continue
             if abs(event.Electron_dxy[ielectron]) > 0.045: continue
@@ -134,7 +141,7 @@ class EleTauProducer(Module):
         
         idx_goodtaus = [ ]
         for itau in range(event.nTau):
-            if event.Tau_pt[itau] < 20: continue
+            if event.Tau_pt[itau] < self.tauCutPt: continue
             if abs(event.Tau_eta[itau]) > 2.3: continue
             if abs(event.Tau_dz[itau]) > 0.2: continue
             if event.Tau_decayMode[itau] not in [0,1,10]: continue
@@ -152,9 +159,8 @@ class EleTauProducer(Module):
         #####################################
         
         
-        # to check dR matching
         electrons = Collection(event, 'Electron')
-        taus = Collection(event, 'Tau')
+        taus  = Collection(event, 'Tau')
         ltaus = [ ]
         for idx1 in idx_goodelectrons:
             for idx2 in idx_goodtaus:
@@ -167,9 +173,11 @@ class EleTauProducer(Module):
         if len(ltaus)==0:
             return False
         
-        ltau = bestDiLepton(ltaus)
-        #print 'chosen tau1 (idx, pt) = ', ltau.id1, ltau.tau1_pt, 'check', taus[ltau.id1].p4().Pt()
-        #print 'chosen tau2 (idx, pt) = ', ltau.id2, ltau.tau2_pt, 'check', taus[ltau.id2].p4().Pt()
+        ltau     = bestDiLepton(ltaus)
+        electron = electrons[ltau.id1].p4()
+        tau      = taus[ltau.id2].p4()
+        #print 'chosen tau1 (idx, pt) = ', ltau.id1, ltau.tau1_pt, 'check', electron.p4().Pt()
+        #print 'chosen tau2 (idx, pt) = ', ltau.id2, ltau.tau2_pt, 'check', tau.p4().Pt()
         
         #####################################
         self.out.cutflow.Fill(self.GoodDiLepton)
@@ -185,11 +193,8 @@ class EleTauProducer(Module):
         for ijet in range(event.nJet):
             if event.Jet_pt[ijet] < 30: continue
             if abs(event.Jet_eta[ijet]) > 4.7: continue
-            dR = electrons[ltau.id1].p4().DeltaR(jets[ijet].p4())
-            if dR < 0.5: continue
-            dR = taus[ltau.id2].p4().DeltaR(jets[ijet].p4())
-            if dR < 0.5: continue
-            
+            if electron.DeltaR(jets[ijet].p4()) < 0.5: continue
+            if tau.DeltaR(jets[ijet].p4()) < 0.5: continue
             jetIds.append(ijet)
             
             if abs(event.Jet_eta[ijet]) > 2.4:
@@ -265,28 +270,28 @@ class EleTauProducer(Module):
         # GENERATOR
         #print type(event.Tau_genPartFlav[ltau.id2])        
         if not self.isData:
-          self.out.genPartFlav_1[0]          = ord(event.Electron_genPartFlav[ltau.id1])
-          self.out.genPartFlav_2[0]          = ord(event.Tau_genPartFlav[ltau.id2])
+          self.out.genPartFlav_1[0]            = ord(event.Electron_genPartFlav[ltau.id1])
+          self.out.genPartFlav_2[0]            = ord(event.Tau_genPartFlav[ltau.id2])
           
           genvistau = Collection(event, 'GenVisTau')
-          dRmax = 1000
-          gendm = -1
-          genpt = -1
+          dRmax  = 1000
+          gendm  = -1
+          genpt  = -1
           geneta = -1
           genphi = -1
           for igvt in range(event.nGenVisTau):
-            dR = genvistau[igvt].p4().DeltaR(taus[ltau.id2].p4())
+            dR = genvistau[igvt].p4().DeltaR(tau)
             if dR < 0.5 and dR < dRmax:
-              dRmax = dR
-              gendm = event.GenVisTau_status[igvt]
-              genpt = event.GenVisTau_pt[igvt]
+              dRmax  = dR
+              gendm  = event.GenVisTau_status[igvt]
+              genpt  = event.GenVisTau_pt[igvt]
               geneta = event.GenVisTau_eta[igvt]
               genphi = event.GenVisTau_phi[igvt]
           
-          self.out.gendecayMode_2[0]         = gendm
-          self.out.genvistaupt_2[0]          = genpt
-          self.out.genvistaueta_2[0]         = geneta
-          self.out.genvistauphi_2[0]         = genphi
+          self.out.gendecayMode_2[0]           = gendm
+          self.out.genvistaupt_2[0]            = genpt
+          self.out.genvistaueta_2[0]           = geneta
+          self.out.genvistauphi_2[0]           = genphi
         
         
         # EVENT
@@ -368,28 +373,28 @@ class EleTauProducer(Module):
         self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) );
         self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
         
-        self.out.m_vis[0]                      = (electrons[ltau.id1].p4() + taus[ltau.id2].p4()).M()
-        self.out.pt_tt[0]                      = (electrons[ltau.id1].p4() + taus[ltau.id2].p4()).Pt()
+        self.out.m_vis[0]                      = (electron + tau).M()
+        self.out.pt_tt[0]                      = (electron + tau).Pt()
         
-        self.out.dR_ll[0]                      = electrons[ltau.id1].p4().DeltaR(taus[ltau.id2].p4())
+        self.out.dR_ll[0]                      = electron.DeltaR(tau)
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
         
         
         # PZETA
-        leg1 = ROOT.TVector3(electrons[ltau.id1].p4().Px(), electrons[ltau.id1].p4().Py(), 0.)
-        leg2 = ROOT.TVector3(taus[ltau.id2].p4().Px(), taus[ltau.id2].p4().Py(), 0.)
-        met_tlv = ROOT.TLorentzVector()
+        leg1     = ROOT.TVector3(electron.Px(), electron.Py(), 0.)
+        leg2     = ROOT.TVector3(tau.Px(), tau.Py(), 0.)
+        met_tlv  = ROOT.TLorentzVector()
         met_tlv.SetPxPyPzE(self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), 
                            self.out.MET_pt[0]*math.sin(self.out.MET_phi[0]),
                            0, 
                            self.out.MET_pt[0])
-        metleg    = met_tlv.Vect()
-        zetaAxis  = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
-        pZetaVis_ = leg1*zetaAxis + leg2*zetaAxis
-        pZetaMET_ = metleg*zetaAxis
-        self.out.pzetamiss[0]  = pZetaMET_
-        self.out.pzetavis[0]   = pZetaVis_
-        self.out.pzeta_disc[0] = pZetaMET_ - 0.5*pZetaVis_
+        metleg   = met_tlv.Vect()
+        zetaAxis = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
+        pzetaVis = leg1*zetaAxis + leg2*zetaAxis
+        pzetaMET = metleg*zetaAxis
+        self.out.pzetamiss[0]  = pzetaMET
+        self.out.pzetavis[0]   = pzetaVis
+        self.out.pzeta_disc[0] = pzetaMET - 0.5*pzetaVis
         
         
         # VETOS
@@ -398,6 +403,11 @@ class EleTauProducer(Module):
         
         # WEIGHTS
         if not self.isData:
+          if self.doZpt:
+            zboson = getZPTMass(event)
+            self.out.m_genboson[0]    = zboson.M()
+            self.out.pt_genboson[0]   = zboson.Pt()
+            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson)
           self.out.genWeight[0]       = event.genWeight
           self.out.puweight[0]        = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.trigweight[0]      = self.eleSFs.getTriggerSF(self.out.pt_1[0], self.out.eta_1[0])

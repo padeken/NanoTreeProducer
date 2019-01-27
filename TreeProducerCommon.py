@@ -69,6 +69,7 @@ class TreeProducerCommon(object):
         self.weight                     = num.zeros(1, dtype=float)
         self.trigweight                 = num.zeros(1, dtype=float)
         self.puweight                   = num.zeros(1, dtype=float)
+        self.zptweight                  = num.zeros(1, dtype=float)
         self.idisoweight_1              = num.zeros(1, dtype=float)
         self.idisoweight_2              = num.zeros(1, dtype=float)
         self.btagweight                 = num.zeros(1, dtype=float)
@@ -98,6 +99,7 @@ class TreeProducerCommon(object):
         self.tree.Branch('weight'                    , self.weight, 'weight/D')
         self.tree.Branch('trigweight'                , self.trigweight, 'trigweight/D')
         self.tree.Branch('puweight'                  , self.puweight, 'puweight/D')
+        self.tree.Branch('zptweight'                 , self.zptweight, 'zptweight/D')
         self.tree.Branch('idisoweight_1'             , self.idisoweight_1, 'idisoweight_1/D')
         self.tree.Branch('idisoweight_2'             , self.idisoweight_2, 'idisoweight_2/D')
         self.tree.Branch('btagweight'                , self.btagweight, 'btagweight/D')
@@ -111,7 +113,7 @@ class TreeProducerCommon(object):
         self.idisoweight_2[0]   = 1.
         self.btagweight[0]      = 1.
         self.btagweight_deep[0] = 1.
-        
+        self.zptweight[0]       = 1.
         
         self.njets                      = num.zeros(1, dtype=int)
         self.njets50                    = num.zeros(1, dtype=int)
@@ -154,6 +156,8 @@ class TreeProducerCommon(object):
         
         self.ngentauhads                = num.zeros(1, dtype=int)
         self.ngentaus                   = num.zeros(1, dtype=int)
+        self.m_genboson                 = num.zeros(1, dtype=int)
+        self.pt_genboson                = num.zeros(1, dtype=int)
         
         self.tree.Branch('njets'                       , self.njets, 'njets/I')
         self.tree.Branch('njets50'                     , self.njets50, 'njets50/I')
@@ -197,12 +201,16 @@ class TreeProducerCommon(object):
         
         self.tree.Branch('ngentauhads'                 , self.ngentauhads, 'ngentauhads/I')
         self.tree.Branch('ngentaus'                    , self.ngentaus, 'ngentaus/I')
+        self.tree.Branch('m_genboson'                  , self.m_genboson, 'm_genboson/I')
+        self.tree.Branch('pt_genboson'                 , self.pt_genboson, 'pt_genboson/I')
         
-        self.GenMET_pt[0]  = -1
-        self.GenMET_phi[0] = -9
-        self.nPU[0]        = -1
-        self.nTrueInt[0]   = -1
-        self.LHE_Njets[0]  = -1
+        self.GenMET_pt[0]   = -1
+        self.GenMET_phi[0]  = -9
+        self.nPU[0]         = -1
+        self.nTrueInt[0]    = -1
+        self.LHE_Njets[0]   = -1
+        self.m_genboson[0]  = -1
+        self.pt_genboson[0] = -1
         
 
 

@@ -1,5 +1,5 @@
 import ROOT
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection 
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 from TreeProducerTauTau import *
@@ -9,6 +9,7 @@ from CorrectionTools.TauTauSFs import TauTauSFs
 from CorrectionTools.PileupWeightTool import PileupWeightTool
 from CorrectionTools.LeptonTauFakeSFs import LeptonTauFakeSFs
 from CorrectionTools.BTaggingTool import BTagWeightTool, BTagWPs
+from CorrectionTools.RecoilCorrectionTool import RecoilCorrectionTool, getZPTMass
 
 
 class declareVariables(TreeProducerTauTau):
@@ -22,15 +23,16 @@ class TauTauProducer(Module):
 
     def __init__(self, name, dataType, **kwargs):
         
-        year        = kwargs.get('year',  2017 )
-        tes         = kwargs.get('tes',   1.0  )
-        channel     = 'tautau'
+        year           = kwargs.get('year',  2017 )
+        tes            = kwargs.get('tes',   1.0  )
+        channel        = 'tautau'
         
-        self.name   = name
-        self.year   = year
-        self.tes    = tes
-        self.out    = declareVariables(name)
-        self.isData = dataType=='data'
+        self.name      = name
+        self.year      = year
+        self.tes       = tes
+        self.out       = declareVariables(name)
+        self.isData    = dataType=='data'
+        self.doZpt     = 'DY' in self.name
         
         setYear(year)
         self.vlooseIso = getVLooseTauIso(year)
@@ -42,6 +44,7 @@ class TauTauProducer(Module):
                                        if e.run<317509 else e.HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg
           else:
             self.trigger = lambda e: e.HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg
+        self.tauCutPt = 40
         
         if not self.isData:
           self.tauSFs   = TauTauSFs('tight',year=year)
@@ -50,6 +53,8 @@ class TauTauProducer(Module):
           self.puTool   = PileupWeightTool(year=year)
           self.btagTool      = BTagWeightTool('CSVv2','medium',channel=channel,year=year)
           self.btagTool_deep = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
+          if self.doZpt:
+            self.recoilTool  = RecoilCorrectionTool(year=year)
         self.csvv2_wp   = BTagWPs('CSVv2',year=year)
         self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
         
@@ -198,7 +203,7 @@ class TauTauProducer(Module):
         idx_goodtaus = [ ]
         for itau in range(event.nTau):
             #print 'pt=', event.Tau_pt[itau], abs(event.Tau_eta[itau])
-            if event.Tau_pt[itau] < 40: continue
+            if event.Tau_pt[itau] < self.tauCutPt: continue
             if abs(event.Tau_eta[itau]) > 2.1: continue
             if abs(event.Tau_dz[itau]) > 0.2: continue
             if event.Tau_decayMode[itau] not in [0,1,10]: continue
@@ -217,24 +222,25 @@ class TauTauProducer(Module):
         #####################################
         
         
-        # to check dR matching
         taus = Collection(event, 'Tau')
         ditaus = [ ]
         for idx1 in idx_goodtaus:
-            for idx2 in idx_goodtaus:
-                if idx1 >= idx2: continue
-                dR = taus[idx1].p4().DeltaR(taus[idx2].p4())
-                if dR < 0.5: continue
-                ditau = DiTauPair(idx1, event.Tau_pt[idx1], event.Tau_rawMVAoldDM[idx1],
-                                  idx2, event.Tau_pt[idx2], event.Tau_rawMVAoldDM[idx2])
-                ditaus.append(ditau)
+          for idx2 in idx_goodtaus:
+              if idx1 >= idx2: continue
+              dR = taus[idx1].p4().DeltaR(taus[idx2].p4())
+              if dR < 0.5: continue
+              ditau = DiTauPair(idx1, event.Tau_pt[idx1], event.Tau_rawMVAoldDM[idx1],
+                                idx2, event.Tau_pt[idx2], event.Tau_rawMVAoldDM[idx2])
+              ditaus.append(ditau)
         
         if len(ditaus)==0:
             return False
         
         ditau = bestDiLepton(ditaus)
-        #print 'chosen tau1 (idx, pt) = ', ditau.id1, ditau.tau1_pt, 'check', taus[ditau.id1].p4().Pt()
-        #print 'chosen tau2 (idx, pt) = ', ditau.id2, ditau.tau2_pt, 'check', taus[ditau.id2].p4().Pt()
+        tau1  = taus[ditau.id1].p4()
+        tau2  = taus[ditau.id2].p4()
+        #print 'chosen tau1 (idx, pt) = ', ditau.id1, ditau.tau1_pt, 'check', tau1.p4().Pt()
+        #print 'chosen tau2 (idx, pt) = ', ditau.id2, ditau.tau2_pt, 'check', tau2.p4().Pt()
         
         #####################################
         self.out.cutflow.Fill(self.GoodDiTau)
@@ -253,12 +259,8 @@ class TauTauProducer(Module):
         for ijet in range(event.nJet):
             if event.Jet_pt[ijet] < 30: continue
             if abs(event.Jet_eta[ijet]) > 4.7: continue
-            dR = taus[ditau.id1].p4().DeltaR(jets[ijet].p4())
-            if dR < 0.5: continue
-            dR = taus[ditau.id2].p4().DeltaR(jets[ijet].p4())
-            if dR < 0.5: continue
-            
-            #print '#', ijet, 'pt = ', jets[ijet].p4().Pt(), event.Jet_pt[ijet]
+            if tau1.DeltaR(jets[ijet].p4()) < 0.5: continue
+            if tau2.DeltaR(jets[ijet].p4()) < 0.5: continue
             jetIds.append(ijet)
             
             if abs(event.Jet_eta[ijet]) > 2.4:
@@ -322,18 +324,18 @@ class TauTauProducer(Module):
           self.out.genPartFlav_1[0]            = ord(event.Tau_genPartFlav[ditau.id1])
           genvistau = Collection(event, 'GenVisTau')
           _drmax_ = 1000
-          gendm = -1
-          genpt = -1
-          geneta = -1
-          genphi = -1
+          gendm   = -1
+          genpt   = -1
+          geneta  = -1
+          genphi  = -1
           for igvt in range(event.nGenVisTau):
-            _dr_ = genvistau[igvt].p4().DeltaR(taus[ditau.id1].p4())
+            _dr_ = genvistau[igvt].p4().DeltaR(tau1)
             if _dr_ < 0.5 and _dr_ < _drmax_:
               _drmax_ = _dr_
-              gendm = event.GenVisTau_status[igvt]
-              genpt = event.GenVisTau_pt[igvt]
-              geneta = event.GenVisTau_eta[igvt]
-              genphi = event.GenVisTau_phi[igvt]
+              gendm   = event.GenVisTau_status[igvt]
+              genpt   = event.GenVisTau_pt[igvt]
+              geneta  = event.GenVisTau_eta[igvt]
+              genphi  = event.GenVisTau_phi[igvt]
           self.out.gendecayMode_1[0]           = gendm
           self.out.genvistaupt_1[0]            = genpt
           self.out.genvistaueta_1[0]           = geneta
@@ -374,7 +376,7 @@ class TauTauProducer(Module):
         # GENERATOR 2
         #print type(event.Tau_genPartFlav[ditau.id2])
         if not self.isData:
-          self.out.genPartFlav_2[0]          = ord(event.Tau_genPartFlav[ditau.id2])
+          self.out.genPartFlav_2[0]            = ord(event.Tau_genPartFlav[ditau.id2])
           genvistau = Collection(event, 'GenVisTau')
           dRmax  = 1000
           gendm  = -1
@@ -382,18 +384,18 @@ class TauTauProducer(Module):
           geneta = -1
           genphi = -1
           for igvt in range(event.nGenVisTau):
-            dR = genvistau[igvt].p4().DeltaR(taus[ditau.id2].p4())
+            dR = genvistau[igvt].p4().DeltaR(tau2)
             if dR < 0.5 and dR < dRmax:
-              dRmax = dR
-              gendm = event.GenVisTau_status[igvt]
-              genpt = event.GenVisTau_pt[igvt]
+              dRmax  = dR
+              gendm  = event.GenVisTau_status[igvt]
+              genpt  = event.GenVisTau_pt[igvt]
               geneta = event.GenVisTau_eta[igvt]
               genphi = event.GenVisTau_phi[igvt]
           
-          self.out.gendecayMode_2[0]         = gendm
-          self.out.genvistaupt_2[0]          = genpt
-          self.out.genvistaueta_2[0]         = geneta
-          self.out.genvistauphi_2[0]         = genphi
+          self.out.gendecayMode_2[0]           = gendm
+          self.out.genvistaupt_2[0]            = genpt
+          self.out.genvistaueta_2[0]           = geneta
+          self.out.genvistauphi_2[0]           = genphi
         
         
         # EVENT
@@ -486,32 +488,28 @@ class TauTauProducer(Module):
         self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) );
         self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
         
-        self.out.m_vis[0]                      = (taus[ditau.id1].p4() + taus[ditau.id2].p4()).M()
-        self.out.pt_tt[0]                      = (taus[ditau.id1].p4() + taus[ditau.id2].p4()).Pt()
+        self.out.m_vis[0]                      = (tau1 + tau2).M()
+        self.out.pt_tt[0]                      = (tau1 + tau2).Pt()
         
-        self.out.dR_ll[0]                      = taus[ditau.id1].p4().DeltaR(taus[ditau.id2].p4())
+        self.out.dR_ll[0]                      = tau1.DeltaR(tau2)
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
         
         
         # PZETA
-        leg1 = ROOT.TVector3(taus[ditau.id1].p4().Px(), taus[ditau.id1].p4().Py(), 0.)
-        leg2 = ROOT.TVector3(taus[ditau.id2].p4().Px(), taus[ditau.id2].p4().Py(), 0.)
-        #print 'leg1 px,py,pz = ', taus[ditau.id1].p4().Px(), taus[ditau.id1].p4().Py(), '0'
-        #print 'leg2 px,py,pz = ', taus[ditau.id2].p4().Px(), taus[ditau.id2].p4().Py(), '0'
-        met_tlv = ROOT.TLorentzVector()
+        leg1     = ROOT.TVector3(tau1.Px(), tau1.Py(), 0.)
+        leg2     = ROOT.TVector3(tau2.Px(), tau2.Py(), 0.)
+        met_tlv  = ROOT.TLorentzVector()
         met_tlv.SetPxPyPzE(self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), 
                            self.out.MET_pt[0]*math.sin(self.out.MET_phi[0]),
                            0,
                            self.out.MET_pt[0])
-        #print self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), '0', self.out.MET_pt[0]
-        metleg    = met_tlv.Vect()
-        zetaAxis  = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
-        pZetaVis_ = leg1*zetaAxis + leg2*zetaAxis
-        pZetaMET_ = metleg*zetaAxis
-        #print 'pZetaVis = ', pZetaVis_, ' pZetaMET = ', pZetaMET_
-        self.out.pzetamiss[0]  = pZetaMET_
-        self.out.pzetavis[0]   = pZetaVis_
-        self.out.pzeta_disc[0] = pZetaMET_ - 0.5*pZetaVis_
+        metleg   = met_tlv.Vect()
+        zetaAxis = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
+        pzetaVis = leg1*zetaAxis + leg2*zetaAxis
+        pzetaMET = metleg*zetaAxis
+        self.out.pzetamiss[0]  = pzetaMET
+        self.out.pzetavis[0]   = pzetaVis
+        self.out.pzeta_disc[0] = pzetaMET - 0.5*pzetaVis
         
         
         # VETOS
@@ -520,6 +518,11 @@ class TauTauProducer(Module):
         
         # WEIGHTS
         if not self.isData:
+          if self.doZpt:
+            zboson = getZPTMass(event)
+            self.out.m_genboson[0]    = zboson.M()
+            self.out.pt_genboson[0]   = zboson.Pt()
+            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson)
           diTauLeg1SF   = self.tauSFs.getTriggerSF(   self.out.pt_1, self.out.eta_1, self.out.phi_1 )
           diTauLeg2SF   = self.tauSFs.getTriggerSF(   self.out.pt_2, self.out.eta_2, self.out.phi_2 )
           diTauLeg1SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_1, self.out.eta_1, self.out.phi_1 )

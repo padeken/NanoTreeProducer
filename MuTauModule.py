@@ -7,6 +7,7 @@ from CorrectionTools.MuonSFs import *
 from CorrectionTools.PileupWeightTool import *
 from CorrectionTools.LeptonTauFakeSFs import *
 from CorrectionTools.BTaggingTool import BTagWeightTool, BTagWPs
+from CorrectionTools.RecoilCorrectionTool import RecoilCorrectionTool, getZPTMass
 
 
 
@@ -21,31 +22,37 @@ class MuTauProducer(Module):
 
     def __init__(self, name, dataType, **kwargs):
         
-        year        = kwargs.get('year',  2017 )
-        tes         = kwargs.get('tes',   1.0  )
-        channel     = 'mutau'
+        year             = kwargs.get('year',  2017 )
+        tes              = kwargs.get('tes',   1.0  )
+        channel          = 'mutau'
         
-        self.name   = name
-        self.year   = year
-        self.tes    = tes
-        self.out    = declareVariables(name)
-        self.isData = dataType=='data'
+        self.name        = name
+        self.year        = year
+        self.tes         = tes
+        self.out         = declareVariables(name)
+        self.isData      = dataType=='data'
+        self.doZpt       = 'DY' in self.name
         
         setYear(year)
-        self.vlooseIso = getVLooseTauIso(year)
+        self.vlooseIso   = getVLooseTauIso(year)
         if year==2016:
-          self.trigger = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
+          self.trigger   = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
+          self.muonCutPt = 23
         else:
-          self.trigger = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27
+          self.trigger   = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27
+          self.muonCutPt = 25
+        self.tauCutPt    = 20
         
         if not self.isData:
-          self.muSFs    = MuonSFs(year=year)
-          self.puTool   = PileupWeightTool(year=year)
-          self.ltfSFs   = LeptonTauFakeSFs('tight','vloose',year=year)
+          self.muSFs     = MuonSFs(year=year)
+          self.puTool    = PileupWeightTool(year=year)
+          self.ltfSFs    = LeptonTauFakeSFs('tight','vloose',year=year)
           self.btagTool      = BTagWeightTool('CSVv2','medium',channel=channel,year=year)
           self.btagTool_deep = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
-        self.csvv2_wp   = BTagWPs('CSVv2',year=year)
-        self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
+          if self.doZpt:
+            self.recoilTool  = RecoilCorrectionTool(year=year)
+        self.csvv2_wp    = BTagWPs('CSVv2',year=year)
+        self.deepcsv_wp  = BTagWPs('DeepCSV',year=year)
         
         self.Nocut = 0
         self.Trigger = 1
@@ -112,7 +119,7 @@ class MuTauProducer(Module):
         
         idx_goodmuons = [ ]
         for imuon in range(event.nMuon):
-            if event.Muon_pt[imuon] < 25: continue
+            if event.Muon_pt[imuon] < self.muonCutPt: continue
             if abs(event.Muon_eta[imuon]) > 2.4: continue
             if abs(event.Muon_dz[imuon]) > 0.2: continue
             if abs(event.Muon_dxy[imuon]) > 0.045: continue
@@ -130,7 +137,7 @@ class MuTauProducer(Module):
         
         idx_goodtaus = [ ]
         for itau in range(event.nTau):
-            if event.Tau_pt[itau] < 20: continue
+            if event.Tau_pt[itau] < self.tauCutPt: continue
             if abs(event.Tau_eta[itau]) > 2.3: continue
             if abs(event.Tau_dz[itau]) > 0.2: continue
             if event.Tau_decayMode[itau] not in [0,1,10]: continue
@@ -148,29 +155,42 @@ class MuTauProducer(Module):
         #####################################
 
         
-        # to check dR matching
         muons = Collection(event, 'Muon')
         taus = Collection(event, 'Tau')
         ltaus = [ ]
         for idx1 in idx_goodmuons:
-            for idx2 in idx_goodtaus:
-                dR = taus[idx2].p4().DeltaR(muons[idx1].p4())
-                if dR < 0.5: continue
-                ltau = LeptonTauPair(idx1, event.Muon_pt[idx1], event.Muon_pfRelIso04_all[idx1],
-                                     idx2, event.Tau_pt[idx2],  event.Tau_rawMVAoldDM2017v2[idx2])
-                ltaus.append(ltau)
-        
+          for idx2 in idx_goodtaus:
+              dR = taus[idx2].p4().DeltaR(muons[idx1].p4())
+              if dR < 0.5: continue
+              ltau = LeptonTauPair(idx1, event.Muon_pt[idx1], event.Muon_pfRelIso04_all[idx1],
+                                   idx2, event.Tau_pt[idx2],  event.Tau_rawMVAoldDM2017v2[idx2])
+              ltaus.append(ltau)
+                
         if len(ltaus)==0:
             return False
         
         ltau = bestDiLepton(ltaus)
-        #print 'chosen tau1 (idx, pt) = ', ltau.id1, ltau.tau1_pt, 'check', taus[ltau.id1].p4().Pt()
-        #print 'chosen tau2 (idx, pt) = ', ltau.id2, ltau.tau2_pt, 'check', taus[ltau.id2].p4().Pt()
+        muon = muons[ltau.id1].p4()
+        tau  = taus[ltau.id2].p4()
+        #print 'chosen tau1 (idx, pt) = ', ltau.id1, ltau.tau1_pt, 'check', muon.Pt()
+        #print 'chosen tau2 (idx, pt) = ', ltau.id2, ltau.tau2_pt, 'check', tau.Pt()
         
         #####################################
         self.out.cutflow.Fill(self.GoodDiLepton)
         #####################################
         
+        
+        # TAU ES
+        pt_2 = event.Tau_pt[itau]
+        m_2  = event.Tau_mass[itau]
+        if self.tes!=1.0:
+          #print "before: pt_2=%2.2f, m_2=%1.3f, tau.Pt()=%2.2f, tau.M()=%1.3f"%(pt_2,m_2,tau.Pt(),tau.M())
+          pt_2 *= self.tes
+          m_2  *= self.tes
+          tau  *= self.tes
+          #print "after:  pt_2=%2.2f, m_2=%1.3f, tau.Pt()=%2.2f, tau.M()=%1.3f"%(pt_2,m_2,tau.Pt(),tau.M())
+          if pt_2<self.tauCutPt:
+            return False
         
         # JETS
         jetIds  = [ ]
@@ -182,11 +202,8 @@ class MuTauProducer(Module):
         for ijet in range(event.nJet):
             if event.Jet_pt[ijet] < 30: continue
             if abs(event.Jet_eta[ijet]) > 4.7: continue
-            dR = muons[ltau.id1].p4().DeltaR(jets[ijet].p4())
-            if dR < 0.5: continue
-            dR = taus[ltau.id2].p4().DeltaR(jets[ijet].p4())
-            if dR < 0.5: continue
-            
+            if muon.DeltaR(jets[ijet].p4()) < 0.5: continue
+            if tau.DeltaR(jets[ijet].p4()) < 0.5: continue
             jetIds.append(ijet)
             
             if abs(event.Jet_eta[ijet]) > 2.4:
@@ -224,10 +241,10 @@ class MuTauProducer(Module):
         
         
         # TAU
-        self.out.pt_2[0]                       = event.Tau_pt[ltau.id2]
+        self.out.pt_2[0]                       = pt_2
         self.out.eta_2[0]                      = event.Tau_eta[ltau.id2]
         self.out.phi_2[0]                      = event.Tau_phi[ltau.id2]
-        self.out.mass_2[0]                     = event.Tau_mass[ltau.id2]
+        self.out.mass_2[0]                     = m_2
         self.out.dxy_2[0]                      = event.Tau_dxy[ltau.id2]
         self.out.dz_2[0]                       = event.Tau_dz[ltau.id2]         
         self.out.leadTkPtOverTauPt_2[0]        = event.Tau_leadTkPtOverTauPt[ltau.id2]
@@ -260,17 +277,17 @@ class MuTauProducer(Module):
           self.out.genPartFlav_2[0]            = ord(event.Tau_genPartFlav[ltau.id2])
           
           genvistau = Collection(event, 'GenVisTau')
-          dRmax = 1000
-          gendm = -1
-          genpt = -1
+          dRmax  = 1000
+          gendm  = -1
+          genpt  = -1
           geneta = -1
           genphi = -1
           for igvt in range(event.nGenVisTau):
-            dR = genvistau[igvt].p4().DeltaR(taus[ltau.id2].p4())
+            dR = genvistau[igvt].p4().DeltaR(tau)
             if dR < 0.5 and dR < dRmax:
-              dRmax = dR
-              gendm = event.GenVisTau_status[igvt]
-              genpt = event.GenVisTau_pt[igvt]
+              dRmax  = dR
+              gendm  = event.GenVisTau_status[igvt]
+              genpt  = event.GenVisTau_pt[igvt]
               geneta = event.GenVisTau_eta[igvt]
               genphi = event.GenVisTau_phi[igvt]
           
@@ -355,31 +372,31 @@ class MuTauProducer(Module):
           self.out.bpt_2[0]                    = -9.
           self.out.beta_2[0]                   = -9.
         
-        self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) );
-        self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
+        self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) )
+        self.out.pfmt_2[0]                     = math.sqrt( 2 *          pt_2    * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) )
         
-        self.out.m_vis[0]                      = (muons[ltau.id1].p4() + taus[ltau.id2].p4()).M()
-        self.out.pt_tt[0]                      = (muons[ltau.id1].p4() + taus[ltau.id2].p4()).Pt()
+        self.out.m_vis[0]                      = (muon + tau).M()
+        self.out.pt_tt[0]                      = (muon + tau).Pt()
         
-        self.out.dR_ll[0]                      = muons[ltau.id1].p4().DeltaR(taus[ltau.id2].p4())
+        self.out.dR_ll[0]                      = muon.DeltaR(tau)
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
         
         
         # PZETA
-        leg1 = ROOT.TVector3(muons[ltau.id1].p4().Px(), muons[ltau.id1].p4().Py(), 0.)
-        leg2 = ROOT.TVector3(taus[ltau.id2].p4().Px(), taus[ltau.id2].p4().Py(), 0.)
-        met_tlv = ROOT.TLorentzVector()
+        leg1     = ROOT.TVector3(muon.Px(), muon.Py(), 0.)
+        leg2     = ROOT.TVector3(tau.Px(),  tau.Py(),  0.)
+        met_tlv  = ROOT.TLorentzVector()
         met_tlv.SetPxPyPzE(self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), 
                            self.out.MET_pt[0]*math.sin(self.out.MET_phi[0]),
                            0, 
                            self.out.MET_pt[0])
-        metleg    = met_tlv.Vect()
-        zetaAxis  = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
-        pZetaVis_ = leg1*zetaAxis + leg2*zetaAxis
-        pZetaMET_ = metleg*zetaAxis
-        self.out.pzetamiss[0]  = pZetaMET_
-        self.out.pzetavis[0]   = pZetaVis_
-        self.out.pzeta_disc[0] = pZetaMET_ - 0.5*pZetaVis_
+        metleg   = met_tlv.Vect()
+        zetaAxis = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
+        pzetaVis = leg1*zetaAxis + leg2*zetaAxis
+        pzetaMET = metleg*zetaAxis
+        self.out.pzetamiss[0]  = pzetaMET
+        self.out.pzetavis[0]   = pzetaVis
+        self.out.pzeta_disc[0] = pzetaMET - 0.5*pzetaVis
         
         
         # VETOS
@@ -388,6 +405,11 @@ class MuTauProducer(Module):
         
         # WEIGHTS
         if not self.isData:
+          if self.doZpt:
+            zboson = getZPTMass(event)
+            self.out.m_genboson[0]    = zboson.M()
+            self.out.pt_genboson[0]   = zboson.Pt()
+            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson)
           self.out.genWeight[0]       = event.genWeight
           self.out.puweight[0]        = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.trigweight[0]      = self.muSFs.getTriggerSF(self.out.pt_1[0],self.out.eta_1[0])
