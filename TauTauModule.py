@@ -522,7 +522,7 @@ class TauTauProducer(Module):
             zboson = getZPTMass(event)
             self.out.m_genboson[0]    = zboson.M()
             self.out.pt_genboson[0]   = zboson.Pt()
-            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson)
+            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson.Pt(),zboson.M())
           diTauLeg1SF   = self.tauSFs.getTriggerSF(   self.out.pt_1, self.out.eta_1, self.out.phi_1 )
           diTauLeg2SF   = self.tauSFs.getTriggerSF(   self.out.pt_2, self.out.eta_2, self.out.phi_2 )
           diTauLeg1SFVT = self.tauSFsVT.getTriggerSF( self.out.pt_1, self.out.eta_1, self.out.phi_1 )

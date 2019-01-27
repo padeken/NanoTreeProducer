@@ -409,7 +409,7 @@ class MuTauProducer(Module):
             zboson = getZPTMass(event)
             self.out.m_genboson[0]    = zboson.M()
             self.out.pt_genboson[0]   = zboson.Pt()
-            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson)
+            self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson.Pt(),zboson.M())
           self.out.genWeight[0]       = event.genWeight
           self.out.puweight[0]        = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.trigweight[0]      = self.muSFs.getTriggerSF(self.out.pt_1[0],self.out.eta_1[0])
