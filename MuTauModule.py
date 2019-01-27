@@ -21,20 +21,29 @@ class MuTauProducer(Module):
 
     def __init__(self, name, dataType, **kwargs):
         
-        year = kwargs.get('year',  2017 )
-        tes  = kwargs.get('tes',   1.0  )
+        year        = kwargs.get('year',  2017 )
+        tes         = kwargs.get('tes',   1.0  )
+        channel     = 'mutau'
         
-        self.name = name
-        self.out = declareVariables(name)
+        self.name   = name
+        self.year   = year
+        self.tes    = tes
+        self.out    = declareVariables(name)
         self.isData = dataType=='data'
         
         setYear(year)
+        self.vlooseIso = getVLooseTauIso(year)
+        if year==2016:
+          self.trigger = lambda e: e.HLT_IsoMu22 or e.HLT_IsoMu22_eta2p1 or e.HLT_IsoTkMu22 or e.HLT_IsoTkMu22_eta2p1 #or e.HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1
+        else:
+          self.trigger = lambda e: e.HLT_IsoMu24 or e.HLT_IsoMu27
+        
         if not self.isData:
           self.muSFs    = MuonSFs(year=year)
           self.puTool   = PileupWeightTool(year=year)
           self.ltfSFs   = LeptonTauFakeSFs('tight','vloose',year=year)
-          self.btagTool      = BTagWeightTool('CSVv2','medium',year=year)
-          self.btagTool_deep = BTagWeightTool('DeepCSV','medium',year=year)
+          self.btagTool      = BTagWeightTool('CSVv2','medium',channel=channel,year=year)
+          self.btagTool_deep = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
         self.csvv2_wp   = BTagWPs('CSVv2',year=year)
         self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
         
@@ -92,12 +101,14 @@ class MuTauProducer(Module):
             return False
         #####################################
         
-        if not (event.HLT_IsoMu24 or event.HLT_IsoMu27):
+        
+        if self.trigger(event):
             return False
         
         #####################################
         self.out.cutflow.Fill(self.Trigger)
         #####################################
+        
         
         idx_goodmuons = [ ]
         for imuon in range(event.nMuon):
@@ -112,7 +123,6 @@ class MuTauProducer(Module):
         if len(idx_goodmuons)==0:
             return False
         
-        
         #####################################
         self.out.cutflow.Fill(self.GoodMuons)
         #####################################
@@ -126,13 +136,13 @@ class MuTauProducer(Module):
             if event.Tau_decayMode[itau] not in [0,1,10]: continue
             if abs(event.Tau_charge[itau])!=1: continue
             #if ord(event.Tau_idAntiEle[itau])<1: continue
-            #if ord(event.Tau_idAntiMu[itau])<1: continue    
+            #if ord(event.Tau_idAntiMu[itau])<1: continue
+            if not self.vlooseIso(event,itau): continue
             idx_goodtaus.append(itau)
         
         if len(idx_goodtaus)==0:
             return False
-
-
+        
         #####################################
         self.out.cutflow.Fill(self.GoodTaus)
         #####################################
@@ -157,12 +167,12 @@ class MuTauProducer(Module):
         #print 'chosen tau1 (idx, pt) = ', ltau.id1, ltau.tau1_pt, 'check', taus[ltau.id1].p4().Pt()
         #print 'chosen tau2 (idx, pt) = ', ltau.id2, ltau.tau2_pt, 'check', taus[ltau.id2].p4().Pt()
         
-        
         #####################################
         self.out.cutflow.Fill(self.GoodDiLepton)
         #####################################
         
         
+        # JETS
         jetIds  = [ ]
         bjetIds = [ ]
         jets    = Collection(event, 'Jet')
@@ -188,10 +198,10 @@ class MuTauProducer(Module):
               nbtag += 1
               bjetIds.append(ijet)
         
-        if not self.isData:
+        if not self.isData and self.vlooseIso(event,ltau.id2) and event.Muon_pfRelIso04_all[ltau.id1]<0.50:
           self.btagTool.fillEfficiencies(event,jetIds)
           self.btagTool_deep.fillEfficiencies(event,jetIds)
-            
+        
         #eventSum = ROOT.TLorentzVector()
         #
         #for lep in muons :
@@ -200,6 +210,7 @@ class MuTauProducer(Module):
         #    eventSum += lep.p4()
         #for j in filter(self.jetSel,jets):
         #    eventSum += j.p4()   
+        
         
         # MUON
         self.out.pt_1[0]                       = event.Muon_pt[ltau.id1]
@@ -245,8 +256,8 @@ class MuTauProducer(Module):
         
         # GENERATOR
         if not self.isData:
-          self.out.genPartFlav_1[0]          = ord(event.Muon_genPartFlav[ltau.id1])
-          self.out.genPartFlav_2[0]          = ord(event.Tau_genPartFlav[ltau.id2])
+          self.out.genPartFlav_1[0]            = ord(event.Muon_genPartFlav[ltau.id1])
+          self.out.genPartFlav_2[0]            = ord(event.Tau_genPartFlav[ltau.id2])
           
           genvistau = Collection(event, 'GenVisTau')
           dRmax = 1000
@@ -263,10 +274,10 @@ class MuTauProducer(Module):
               geneta = event.GenVisTau_eta[igvt]
               genphi = event.GenVisTau_phi[igvt]
           
-          self.out.gendecayMode_2[0]         = gendm
-          self.out.genvistaupt_2[0]          = genpt
-          self.out.genvistaueta_2[0]         = geneta
-          self.out.genvistauphi_2[0]         = genphi
+          self.out.gendecayMode_2[0]           = gendm
+          self.out.genvistaupt_2[0]            = genpt
+          self.out.genvistaueta_2[0]           = geneta
+          self.out.genvistauphi_2[0]           = genphi
         
         
         # EVENT

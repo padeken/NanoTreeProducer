@@ -22,14 +22,18 @@ class TauTauProducer(Module):
 
     def __init__(self, name, dataType, **kwargs):
         
-        year = kwargs.get('year',  2017 )
-        tes  = kwargs.get('tes',   1.0  )
+        year        = kwargs.get('year',  2017 )
+        tes         = kwargs.get('tes',   1.0  )
+        channel     = 'tautau'
         
-        self.name = name
-        self.out = declareVariables(name)
+        self.name   = name
+        self.year   = year
+        self.tes    = tes
+        self.out    = declareVariables(name)
         self.isData = dataType=='data'
         
         setYear(year)
+        self.vlooseIso = getVLooseTauIso(year)
         if year==2017:
           self.trigger = lambda e: e.HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg or e.HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg or e.HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg
         else:
@@ -44,8 +48,8 @@ class TauTauProducer(Module):
           self.tauSFsVT = TauTauSFs('vtight',year=year)
           self.ltfSFs   = LeptonTauFakeSFs('loose','vloose',year=year)
           self.puTool   = PileupWeightTool(year=year)
-          self.btagTool      = BTagWeightTool('CSVv2','medium',year=year)
-          self.btagTool_deep = BTagWeightTool('DeepCSV','medium',year=year)
+          self.btagTool      = BTagWeightTool('CSVv2','medium',channel=channel,year=year)
+          self.btagTool_deep = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
         self.csvv2_wp   = BTagWPs('CSVv2',year=year)
         self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
         
@@ -184,7 +188,6 @@ class TauTauProducer(Module):
         if not self.trigger(event):
             return False
         
-        
         #####################################
         self.out.cutflow.Fill(self.Trigger)
         #if ngentauhads == 2:
@@ -201,18 +204,18 @@ class TauTauProducer(Module):
             if event.Tau_decayMode[itau] not in [0,1,10]: continue
             if abs(event.Tau_charge[itau])!=1: continue
             #print itau, 'decay mode = ', event.Tau_decayMode[itau] 
+            if not self.vlooseIso(event,itau): continue
             idx_goodtaus.append(itau)
-
+        
         if len(idx_goodtaus)<2:
             return False
-        
         
         #####################################
         self.out.cutflow.Fill(self.GoodTaus)
         #if ngentauhads == 2:
         #    self.out.cutflow.Fill(self.GoodTaus_GT)
         #####################################
-
+        
         
         # to check dR matching
         taus = Collection(event, 'Tau')
@@ -232,7 +235,6 @@ class TauTauProducer(Module):
         ditau = bestDiLepton(ditaus)
         #print 'chosen tau1 (idx, pt) = ', ditau.id1, ditau.tau1_pt, 'check', taus[ditau.id1].p4().Pt()
         #print 'chosen tau2 (idx, pt) = ', ditau.id2, ditau.tau2_pt, 'check', taus[ditau.id2].p4().Pt()
-        
         
         #####################################
         self.out.cutflow.Fill(self.GoodDiTau)
@@ -268,7 +270,7 @@ class TauTauProducer(Module):
               nbtag += 1
               bjetIds.append(ijet)
         
-        if not self.isData:
+        if not self.isData and self.vlooseIso(event,ditau.id1) and self.vlooseIso(event,ditau.id2):
           self.btagTool.fillEfficiencies(event,jetIds)
           self.btagTool_deep.fillEfficiencies(event,jetIds)
         

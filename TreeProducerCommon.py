@@ -19,7 +19,12 @@ def getvar(obj,var):
   """Help function to get some variable's real name from the dictionary."""
   return getattr(obj,var_dict[var])
 
-
+def getVLooseTauIso(year):
+  if year==2016:
+    return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0
+  else:
+    return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0 or ord(e.Tau_idMVAnewDM2017v2[i])>1 or ord(e.Tau_idMVAoldDM2017v1[i])>1 or ord(e.Tau_idMVAoldDM2017v2[i])>0
+  
 
 class TreeProducerCommon(object):
 

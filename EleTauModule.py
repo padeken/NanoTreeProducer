@@ -20,20 +20,31 @@ class EleTauProducer(Module):
     
     def __init__(self, name, dataType, **kwargs):
         
-        year = kwargs.get('year',  2017 )
-        tes  = kwargs.get('tes',   1.0  )
+        year        = kwargs.get('year',  2017 )
+        tes         = kwargs.get('tes',   1.0  )
+        channel     = 'eletau'
         
-        self.name = name
-        self.out = declareVariables(name)
+        self.name   = name
+        self.year   = year
+        self.tes    = tes
+        self.out    = declareVariables(name)
         self.isData = dataType=='data'
         
         setYear(year)
+        self.vlooseIso = getVLooseTauIso(year)
+        if year==2016:
+          self.trigger = lambda e: e.HLT_Ele25_eta2p1_WPTight_Gsf or e.HLT_Ele45_WPLoose_Gsf_L1JetTauSeeded #or e.HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20_SingleL1 or e.HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau20 or e.HLT_Ele24_eta2p1_WPLoose_Gsf_LooseIsoPFTau30
+        else:
+          # HLT_Ele32_WPTight_Gsf_L1DoubleEG
+          # HLT_Ele32_WPTight_Gsf
+          self.trigger = lambda e: e.HLT_Ele35_WPTight_Gsf or e.HLT_Ele32_WPTight_Gsf
+        
         if not self.isData:
           self.eleSFs   = ElectronSFs(year=year)
           self.puTool   = PileupWeightTool(year=year)
           self.ltfSFs   = LeptonTauFakeSFs('loose','tight',year=year)
-          self.btagTool      = BTagWeightTool('CSVv2','medium',year=year)
-          self.btagTool_deep = BTagWeightTool('DeepCSV','medium',year=year)
+          self.btagTool      = BTagWeightTool('CSVv2','medium',channel=channel,year=year)
+          self.btagTool_deep = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
         self.csvv2_wp   = BTagWPs('CSVv2',year=year)
         self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
         
@@ -94,11 +105,8 @@ class EleTauProducer(Module):
         #####################################
         
         
-        # HLT_Ele32_WPTight_Gsf_L1DoubleEG
-        # HLT_Ele32_WPTight_Gsf
-        if not (event.HLT_Ele35_WPTight_Gsf or event.HLT_Ele32_WPTight_Gsf):
+        if not self.trigger(event):
             return False
-        
         
         #####################################
         self.out.cutflow.Fill(self.Trigger)
@@ -119,7 +127,6 @@ class EleTauProducer(Module):
         if len(idx_goodelectrons)==0:
             return False
         
-        
         #####################################
         self.out.cutflow.Fill(self.GoodElectrons)
         #####################################
@@ -134,11 +141,11 @@ class EleTauProducer(Module):
             if abs(event.Tau_charge[itau])!=1: continue
             #if ord(event.Tau_idAntiEle[itau])<1: continue
             #if ord(event.Tau_idAntiMu[itau])<1: continue
+            if not self.vlooseIso(event,itau): continue
             idx_goodtaus.append(itau)
         
         if len(idx_goodtaus)==0:
             return False
-        
         
         #####################################
         self.out.cutflow.Fill(self.GoodTaus)
@@ -164,7 +171,6 @@ class EleTauProducer(Module):
         #print 'chosen tau1 (idx, pt) = ', ltau.id1, ltau.tau1_pt, 'check', taus[ltau.id1].p4().Pt()
         #print 'chosen tau2 (idx, pt) = ', ltau.id2, ltau.tau2_pt, 'check', taus[ltau.id2].p4().Pt()
         
-        
         #####################################
         self.out.cutflow.Fill(self.GoodDiLepton)
         #####################################
@@ -184,7 +190,6 @@ class EleTauProducer(Module):
             dR = taus[ltau.id2].p4().DeltaR(jets[ijet].p4())
             if dR < 0.5: continue
             
-            #print '#', ijet, 'pt = ', jets[ijet].p4().Pt(), event.Jet_pt[ijet]
             jetIds.append(ijet)
             
             if abs(event.Jet_eta[ijet]) > 2.4:
@@ -196,7 +201,7 @@ class EleTauProducer(Module):
               nbtag += 1
               bjetIds.append(ijet)
         
-        if not self.isData:
+        if not self.isData and self.vlooseIso(event,ltau.id2) and event.Electron_pfRelIso03_all[ltau.id1]<0.50:
           self.btagTool.fillEfficiencies(event,jetIds)
           self.btagTool_deep.fillEfficiencies(event,jetIds)
         
