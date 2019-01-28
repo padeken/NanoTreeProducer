@@ -47,10 +47,10 @@ class MuTauProducer(Module):
         ...
 ```
 
-`BTagWeightTool` calculates b-tagging reweighting based on the SFs provided from the BTagging group and analysis-dependent efficiencies measured in MC. These are saved in `ROOT` files in [`btag`](https://github.com/IzaakWN/NanoTreeProducer/tree/master/CorrectionTools/btag).
+`BTagWeightTool` calculates b-tagging reweighting based on the [SFs provided from the BTagging group](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation#Recommendation_for_13_TeV_Data) and analysis-dependent efficiencies measured in MC. These are saved in `ROOT` files in [`btag`](https://github.com/IzaakWN/NanoTreeProducer/tree/master/CorrectionTools/btag).
 The event weight is calculated according to [this method](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagSFMethods#1a_Event_reweighting_using_scale).
 
-The efficiencies in MC can be calculated by filling histograms with `fillEfficiencies` for each selected event, after removing overlap with other selected objects, e.g. the muon and tau object in [`MuTauModule.py`](https://github.com/IzaakWN/NanoTreeProducer/blob/master/MuTauModule.py):
+The efficiencies in MC can be calculated for your particular analys by filling histograms with `fillEfficiencies` for each selected event, after removing overlap with other selected objects, e.g. the muon and tau object in [`MuTauModule.py`](https://github.com/IzaakWN/NanoTreeProducer/blob/master/MuTauModule.py):
 ```
     def analyze(self event):
     
@@ -76,5 +76,11 @@ Then use [`btag/getBTagEfficiencies.py`](https://github.com/IzaakWN/NanoTreeProd
 ## Recoil corrections
 
 `RecoilCorrectionTool.py` provides a class to calculate the Z boson four-vector, and get the reweighting of LO Drell-Yan events as a function of Z boson pT and mass. Weights are stored in [`Zpt`](https://github.com/IzaakWN/NanoTreeProducer/tree/master/CorrectionTools/Zpt).
+
+
+
+## Test SFs
+
+`testSFs.py` provides a simple and direct way of testing the correction tool classes, without running the whole framework.
 
 
