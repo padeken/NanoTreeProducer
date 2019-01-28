@@ -86,7 +86,7 @@ More [notes](https://www.evernote.com/l/Ac8PKYGpaJxJArj4eng5ed95_wvpzwSNTgc).
 ### Samples
 
 * [2016](https://www.evernote.com/l/Ac9nVeF2tcdJI7R-is1KPT2Ukv7A260zNX0)
-* [2017](https://www.evernote.com/shard/s463/nl/167937850/167cbdcc-cf1d-4cac-a766-d4b7c83a5f85/)
+* [2017](https://www.evernote.com/l/Ac8WfL3Mzx1MrKdm1LfIOl-F-j7NeScPKxs)
 * [2018](https://www.evernote.com/l/Ac9yyi7wtg9LaYgxOIz11jFyzLV0ztkemtE)
 
 ### Luminosity
