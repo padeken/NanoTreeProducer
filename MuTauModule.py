@@ -150,9 +150,6 @@ class MuTauProducer(Module):
         self.out.cutflow.Fill(self.GoodTaus)
         #####################################
         
-        
-        event.Tau_pt[idx_goodtaus[0]] *= 1.1
-        event.Tau_mass[idx_goodtaus[0]] *= 1.1
         muons = Collection(event, 'Muon')
         taus  = Collection(event, 'Tau')
         ltaus = [ ]
