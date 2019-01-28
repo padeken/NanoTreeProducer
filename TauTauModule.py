@@ -3,20 +3,11 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 from TreeProducerTauTau import *
-
-# for trigger efficiencies
 from CorrectionTools.TauTauSFs import TauTauSFs
 from CorrectionTools.PileupWeightTool import PileupWeightTool
 from CorrectionTools.LeptonTauFakeSFs import LeptonTauFakeSFs
 from CorrectionTools.BTaggingTool import BTagWeightTool, BTagWPs
 from CorrectionTools.RecoilCorrectionTool import RecoilCorrectionTool, getZPTMass
-
-
-class declareVariables(TreeProducerTauTau):
-    
-    def __init__(self, name):
-        
-        super(declareVariables, self).__init__(name)
 
 
 class TauTauProducer(Module):
@@ -30,7 +21,7 @@ class TauTauProducer(Module):
         self.name      = name
         self.year      = year
         self.tes       = tes
-        self.out       = declareVariables(name)
+        self.out       = TreeProducerTauTau(name)
         self.isData    = dataType=='data'
         self.doZpt     = 'DY' in self.name
         
@@ -306,9 +297,7 @@ class TauTauProducer(Module):
         self.out.rawMVAoldDM2017v2_1[0]        = event.Tau_rawMVAoldDM2017v2[ditau.id1]
         self.out.q_1[0]                        = event.Tau_charge[ditau.id1]
         self.out.decayMode_1[0]                = event.Tau_decayMode[ditau.id1]
-        self.out.rawAntiEleCat_1[0]            = event.Tau_rawAntiEleCat[ditau.id1]
-        #print type(event.Tau_idAntiEle[ditau.id1])
-        #print 'this is bitmask',  ord(event.Tau_idAntiEle[ditau.id1]), type(ord(event.Tau_idAntiEle[ditau.id1]))
+        ###self.out.rawAntiEleCat_1[0]            = event.Tau_rawAntiEleCat[ditau.id1]
         self.out.idAntiEle_1[0]                = ord(event.Tau_idAntiEle[ditau.id1])
         self.out.idAntiMu_1[0]                 = ord(event.Tau_idAntiMu[ditau.id1])
         self.out.idDecayMode_1[0]              = event.Tau_idDecayMode[ditau.id1]
@@ -356,21 +345,21 @@ class TauTauProducer(Module):
         self.out.puCorr_2[0]                   = event.Tau_puCorr[ditau.id2]
         self.out.rawAntiEle_2[0]               = event.Tau_rawAntiEle[ditau.id2]
         self.out.rawIso_2[0]                   = event.Tau_rawIso[ditau.id2]
-        self.out.rawMVAnewDM2017v2_2[0]        = event.Tau_rawMVAnewDM2017v2[ditau.id2]
-        self.out.rawMVAoldDM_2[0]              = event.Tau_rawMVAoldDM[ditau.id2]
-        self.out.rawMVAoldDM2017v1_2[0]        = event.Tau_rawMVAoldDM2017v1[ditau.id2]
-        self.out.rawMVAoldDM2017v2_2[0]        = event.Tau_rawMVAoldDM2017v2[ditau.id2]
         self.out.q_2[0]                        = event.Tau_charge[ditau.id2]
         self.out.decayMode_2[0]                = event.Tau_decayMode[ditau.id2]
-        self.out.rawAntiEleCat_2[0]            = event.Tau_rawAntiEleCat[ditau.id2]
+        ###self.out.rawAntiEleCat_2[0]            = event.Tau_rawAntiEleCat[ditau.id2]
         self.out.idAntiEle_2[0]                = ord(event.Tau_idAntiEle[ditau.id2])
         self.out.idAntiMu_2[0]                 = ord(event.Tau_idAntiMu[ditau.id2])
         self.out.idDecayMode_2[0]              = event.Tau_idDecayMode[ditau.id2]
         self.out.idDecayModeNewDMs_2[0]        = event.Tau_idDecayModeNewDMs[ditau.id2]
-        self.out.idMVAnewDM2017v2_2[0]         = ord(event.Tau_idMVAnewDM2017v2[ditau.id2])
+        self.out.rawMVAoldDM_2[0]              = event.Tau_rawMVAoldDM[ditau.id2]
+        self.out.rawMVAoldDM2017v1_2[0]        = event.Tau_rawMVAoldDM2017v1[ditau.id2]
+        self.out.rawMVAoldDM2017v2_2[0]        = event.Tau_rawMVAoldDM2017v2[ditau.id2]
+        self.out.rawMVAnewDM2017v2_2[0]        = event.Tau_rawMVAnewDM2017v2[ditau.id2]
         self.out.idMVAoldDM_2[0]               = ord(event.Tau_idMVAoldDM[ditau.id2])
         self.out.idMVAoldDM2017v1_2[0]         = ord(event.Tau_idMVAoldDM2017v1[ditau.id2])
         self.out.idMVAoldDM2017v2_2[0]         = ord(event.Tau_idMVAoldDM2017v2[ditau.id2])
+        self.out.idMVAnewDM2017v2_2[0]         = ord(event.Tau_idMVAnewDM2017v2[ditau.id2])
         
         
         # GENERATOR 2
@@ -412,7 +401,7 @@ class TauTauProducer(Module):
         ###self.out.MET_covXX[0]                  = event.MET_covXX
         ###self.out.MET_covXY[0]                  = event.MET_covXY
         ###self.out.MET_covYY[0]                  = event.MET_covYY
-        self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
+        ###self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
         self.out.npvs[0]                       = event.PV_npvs
         self.out.npvsGood[0]                   = event.PV_npvsGood
         

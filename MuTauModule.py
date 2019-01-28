@@ -10,14 +10,6 @@ from CorrectionTools.BTaggingTool import BTagWeightTool, BTagWPs
 from CorrectionTools.RecoilCorrectionTool import RecoilCorrectionTool, getZPTMass
 
 
-
-class declareVariables(TreeProducerMuTau):
-    
-    def __init__(self, name):
-        
-        super(declareVariables, self).__init__(name)
-
-
 class MuTauProducer(Module):
 
     def __init__(self, name, dataType, **kwargs):
@@ -29,7 +21,7 @@ class MuTauProducer(Module):
         self.name        = name
         self.year        = year
         self.tes         = tes
-        self.out         = declareVariables(name)
+        self.out         = TreeProducerMuTau(name)
         self.isData      = dataType=='data'
         self.doZpt       = 'DY' in self.name
         
@@ -83,7 +75,7 @@ class MuTauProducer(Module):
     
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
-    
+        
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):        
         pass
         
@@ -137,6 +129,10 @@ class MuTauProducer(Module):
         
         idx_goodtaus = [ ]
         for itau in range(event.nTau):
+            if self.tes!=1.0:
+              #print "before: pt_2=%2.2f, m_2=%1.3f, tau.Pt()=%2.2f, tau.M()=%1.3f"%(pt_2,m_2,tau.Pt(),tau.M())
+              event.Tau_pt[itau]   *= self.tes
+              event.Tau_mass[itau] *= self.tes
             if event.Tau_pt[itau] < self.tauCutPt: continue
             if abs(event.Tau_eta[itau]) > 2.3: continue
             if abs(event.Tau_dz[itau]) > 0.2: continue
@@ -153,10 +149,12 @@ class MuTauProducer(Module):
         #####################################
         self.out.cutflow.Fill(self.GoodTaus)
         #####################################
-
         
+        
+        event.Tau_pt[idx_goodtaus[0]] *= 1.1
+        event.Tau_mass[idx_goodtaus[0]] *= 1.1
         muons = Collection(event, 'Muon')
-        taus = Collection(event, 'Tau')
+        taus  = Collection(event, 'Tau')
         ltaus = [ ]
         for idx1 in idx_goodmuons:
           for idx2 in idx_goodtaus:
@@ -180,17 +178,6 @@ class MuTauProducer(Module):
         #####################################
         
         
-        # TAU ES
-        pt_2 = event.Tau_pt[itau]
-        m_2  = event.Tau_mass[itau]
-        if self.tes!=1.0:
-          #print "before: pt_2=%2.2f, m_2=%1.3f, tau.Pt()=%2.2f, tau.M()=%1.3f"%(pt_2,m_2,tau.Pt(),tau.M())
-          pt_2 *= self.tes
-          m_2  *= self.tes
-          tau  *= self.tes
-          #print "after:  pt_2=%2.2f, m_2=%1.3f, tau.Pt()=%2.2f, tau.M()=%1.3f"%(pt_2,m_2,tau.Pt(),tau.M())
-          if pt_2<self.tauCutPt:
-            return False
         
         # JETS
         jetIds  = [ ]
@@ -241,10 +228,10 @@ class MuTauProducer(Module):
         
         
         # TAU
-        self.out.pt_2[0]                       = pt_2
+        self.out.pt_2[0]                       = event.Tau_pt[ltau.id2]
         self.out.eta_2[0]                      = event.Tau_eta[ltau.id2]
         self.out.phi_2[0]                      = event.Tau_phi[ltau.id2]
-        self.out.mass_2[0]                     = m_2
+        self.out.mass_2[0]                     = event.Tau_mass[ltau.id2]
         self.out.dxy_2[0]                      = event.Tau_dxy[ltau.id2]
         self.out.dz_2[0]                       = event.Tau_dz[ltau.id2]         
         self.out.leadTkPtOverTauPt_2[0]        = event.Tau_leadTkPtOverTauPt[ltau.id2]
@@ -254,21 +241,21 @@ class MuTauProducer(Module):
         self.out.puCorr_2[0]                   = event.Tau_puCorr[ltau.id2]
         self.out.rawAntiEle_2[0]               = event.Tau_rawAntiEle[ltau.id2]
         self.out.rawIso_2[0]                   = event.Tau_rawIso[ltau.id2]
-        self.out.rawMVAnewDM2017v2_2[0]        = event.Tau_rawMVAnewDM2017v2[ltau.id2]
-        self.out.rawMVAoldDM_2[0]              = event.Tau_rawMVAoldDM[ltau.id2]
-        self.out.rawMVAoldDM2017v1_2[0]        = event.Tau_rawMVAoldDM2017v1[ltau.id2]
-        self.out.rawMVAoldDM2017v2_2[0]        = event.Tau_rawMVAoldDM2017v2[ltau.id2]
         self.out.q_2[0]                        = event.Tau_charge[ltau.id2]
         self.out.decayMode_2[0]                = event.Tau_decayMode[ltau.id2]
-        self.out.rawAntiEleCat_2[0]            = event.Tau_rawAntiEleCat[ltau.id2]
+        ###self.out.rawAntiEleCat_2[0]            = event.Tau_rawAntiEleCat[ltau.id2]
         self.out.idAntiEle_2[0]                = ord(event.Tau_idAntiEle[ltau.id2])
         self.out.idAntiMu_2[0]                 = ord(event.Tau_idAntiMu[ltau.id2])
         self.out.idDecayMode_2[0]              = event.Tau_idDecayMode[ltau.id2]
         self.out.idDecayModeNewDMs_2[0]        = event.Tau_idDecayModeNewDMs[ltau.id2]
-        self.out.idMVAnewDM2017v2_2[0]         = ord(event.Tau_idMVAnewDM2017v2[ltau.id2])
+        self.out.rawMVAoldDM_2[0]              = event.Tau_rawMVAoldDM[ltau.id2]
+        self.out.rawMVAoldDM2017v1_2[0]        = event.Tau_rawMVAoldDM2017v1[ltau.id2]
+        self.out.rawMVAoldDM2017v2_2[0]        = event.Tau_rawMVAoldDM2017v2[ltau.id2]
+        self.out.rawMVAnewDM2017v2_2[0]        = event.Tau_rawMVAnewDM2017v2[ltau.id2]
         self.out.idMVAoldDM_2[0]               = ord(event.Tau_idMVAoldDM[ltau.id2])
         self.out.idMVAoldDM2017v1_2[0]         = ord(event.Tau_idMVAoldDM2017v1[ltau.id2])
         self.out.idMVAoldDM2017v2_2[0]         = ord(event.Tau_idMVAoldDM2017v2[ltau.id2])
+        self.out.idMVAnewDM2017v2_2[0]         = ord(event.Tau_idMVAnewDM2017v2[ltau.id2])
         
         
         # GENERATOR
@@ -310,7 +297,7 @@ class MuTauProducer(Module):
         ###self.out.MET_covXX[0]                  = event.MET_covXX
         ###self.out.MET_covXY[0]                  = event.MET_covXY
         ###self.out.MET_covYY[0]                  = event.MET_covYY
-        self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
+        ###self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
         self.out.npvs[0]                       = event.PV_npvs
         self.out.npvsGood[0]                   = event.PV_npvsGood
         
@@ -373,7 +360,7 @@ class MuTauProducer(Module):
           self.out.beta_2[0]                   = -9.
         
         self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) )
-        self.out.pfmt_2[0]                     = math.sqrt( 2 *          pt_2    * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) )
+        self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) )
         
         self.out.m_vis[0]                      = (muon + tau).M()
         self.out.pt_tt[0]                      = (muon + tau).Pt()

@@ -8,7 +8,7 @@ class TreeProducerMuTau(TreeProducerCommon):
     def __init__(self, name):
         super(TreeProducerMuTau, self).__init__(name)
         print 'TreeProducerMuTau is called', name
-
+        
         ##################
         # trees branches #
         ##################
@@ -56,7 +56,7 @@ class TreeProducerMuTau(TreeProducerCommon):
         self.rawMVAoldDM2017v2_2            = num.zeros(1, dtype=float)
         self.q_2                            = num.zeros(1, dtype=int)
         self.decayMode_2                    = num.zeros(1, dtype=int)
-        self.rawAntiEleCat_2                = num.zeros(1, dtype=float)
+        ###self.rawAntiEleCat_2                = num.zeros(1, dtype=float)
         self.idAntiEle_2                    = num.zeros(1, dtype=int)
         self.idAntiMu_2                     = num.zeros(1, dtype=int)
         self.idDecayMode_2                  = num.zeros(1, dtype=int)
@@ -90,7 +90,7 @@ class TreeProducerMuTau(TreeProducerCommon):
         self.tree.Branch('rawMVAoldDM2017v2_2'        , self.rawMVAoldDM2017v2_2, 'rawMVAoldDM2017v2_2/D')
         self.tree.Branch('q_2'                        , self.q_2, 'q_2/I')
         self.tree.Branch('decayMode_2'                , self.decayMode_2, 'decayMode_2/I')
-        self.tree.Branch('rawAntiEleCat_2'            , self.rawAntiEleCat_2, 'rawAntiEleCat_2/D')
+        ###self.tree.Branch('rawAntiEleCat_2'            , self.rawAntiEleCat_2, 'rawAntiEleCat_2/D')
         self.tree.Branch('idAntiEle_2'                , self.idAntiEle_2, 'idAntiEle_2/I')
         self.tree.Branch('idAntiMu_2'                 , self.idAntiMu_2, 'idAntiMu_2/I')
         self.tree.Branch('idDecayMode_2'              , self.idDecayMode_2, 'idDecayMode_2/I')

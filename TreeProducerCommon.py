@@ -20,14 +20,14 @@ def getvar(obj,var):
   return getattr(obj,var_dict[var])
 
 def getVLooseTauIso(year):
-  if year==2016:
-    return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0
-  else:
-    return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0 or ord(e.Tau_idMVAnewDM2017v2[i])>1 or ord(e.Tau_idMVAoldDM2017v1[i])>1 or ord(e.Tau_idMVAoldDM2017v2[i])>0
+  #if year==2016:
+  #  return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0
+  #else:
+  return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0 or ord(e.Tau_idMVAnewDM2017v2[i])>1 or ord(e.Tau_idMVAoldDM2017v1[i])>1 or ord(e.Tau_idMVAoldDM2017v2[i])>0
   
 
 class TreeProducerCommon(object):
-
+    
     def __init__(self, name):
         
         print 'TreeProducerCommon is called', name
@@ -35,7 +35,7 @@ class TreeProducerCommon(object):
         # create file
         self.outputfile = ROOT.TFile(name, 'RECREATE')
         self.tree = ROOT.TTree('tree','tree')
-
+        
         # histogram for cutflow
         self.cutflow = ROOT.TH1F('cutflow', 'cutflow',  25, 0,  25)
         self.pileup  = ROOT.TH1F('pileup',  'pileup',  100, 0, 100)
@@ -44,7 +44,7 @@ class TreeProducerCommon(object):
         ###################
         # event variables #
         ###################
-
+        
         self.run                        = num.zeros(1, dtype=int)
         self.luminosityBlock            = num.zeros(1, dtype=int)        
         self.event                      = num.zeros(1, dtype=int)
@@ -58,11 +58,11 @@ class TreeProducerCommon(object):
         ###self.MET_covXX                  = num.zeros(1, dtype=float)
         ###self.MET_covXY                  = num.zeros(1, dtype=float)
         ###self.MET_covYY                  = num.zeros(1, dtype=float)
+        ###self.fixedGridRhoFastjetAll     = num.zeros(1, dtype=float)
         self.nPU                        = num.zeros(1, dtype=int)
         self.nTrueInt                   = num.zeros(1, dtype=int)
         self.npvs                       = num.zeros(1, dtype=int)
         self.npvsGood                   = num.zeros(1, dtype=int)
-        self.fixedGridRhoFastjetAll     = num.zeros(1, dtype=float)
         self.LHE_Njets                  = num.zeros(1, dtype=int)
         self.isData                     = num.zeros(1, dtype=int)
         self.genWeight                  = num.zeros(1, dtype=float)
@@ -88,11 +88,11 @@ class TreeProducerCommon(object):
         ###self.tree.Branch('MET_covXX'                 , self.MET_covXX, 'MET_covXX/D')
         ###self.tree.Branch('MET_covXY'                 , self.MET_covXY, 'MET_covXY/D')
         ###self.tree.Branch('MET_covYY'                 , self.MET_covYY, 'MET_covYY/D')
+        ###self.tree.Branch('fixedGridRhoFastjetAll'    , self.fixedGridRhoFastjetAll, 'fixedGridRhoFastjetAll/D')
         self.tree.Branch('nPU'                       , self.nPU, 'nPU/I')
         self.tree.Branch('nTrueInt'                  , self.nTrueInt, 'nTrueInt/I')
         self.tree.Branch('npvs'                      , self.npvs, 'npvs/I')
         self.tree.Branch('npvsGood'                  , self.npvsGood, 'npvsGood/I')
-        self.tree.Branch('fixedGridRhoFastjetAll'    , self.fixedGridRhoFastjetAll, 'fixedGridRhoFastjetAll/D')
         self.tree.Branch('LHE_Njets'                 , self.LHE_Njets, 'LHE_Njets/I')
         self.tree.Branch('isData'                    , self.isData, 'isData/I')
         self.tree.Branch('genWeight'                 , self.genWeight, 'genWeight/D')
