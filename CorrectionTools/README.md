@@ -32,19 +32,39 @@ Several classes are available to get corrections for electrons, muons and hadron
 
 ## B-tagging tools
 
-`BTaggingTool.py` provides two classes: `BTagWPs` for saving the working points (WPs) per year and type of tagger, and `BTagWeightTool` to provide b-tagging weights. These can be called during the initialization of you analysis module, e.g.:
+`BTaggingTool.py` provides two classes: `BTagWPs` for saving the working points (WPs) per year and type of tagger, and `BTagWeightTool` to provide b-tagging weights. These can be called during the initialization of you analysis module, e.g. in [`MuTauModule.py`](https://github.com/IzaakWN/NanoTreeProducer/blob/master/MuTauModule.py)::
 ```
 class MuTauProducer(Module):
     
-    def __init__(self, name, dataType, **kwargs):
+    def __init__(self, ... ):
         
         ...
         
         if not self.isData:
-          self.btagTool      = BTagWeightTool('CSVv2','medium',channel=channel,year=year)
-        self.csvv2_wp  = BTagWPs('CSVv2',year=year)
+          self.btagTool = BTagWeightTool('DeepCSV','medium',channel=channel,year=year)
+        self.deepcsv_wp = BTagWPs('DeepCSV',year=year)
         
         ...
+        
+    
+    def analyze(self, event):
+        
+        ...
+        
+        nbtag  = 0
+        jetIds = [ ]
+        for ijet in range(event.nJet):
+            ...
+            jetIds.append(ijet)
+            if event.Jet_btagDeepB[ijet] > self.deepcsv_wp.medium:
+              nbtag += 1
+        
+        ...
+        
+        if not self.isData:
+          ...
+          self.out.btagweight[0] = self.btagTool.getWeight(event,jetIds)
+        
 ```
 
 `BTagWeightTool` calculates b-tagging reweighting based on the [SFs provided from the BTagging group](https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation#Recommendation_for_13_TeV_Data) and analysis-dependent efficiencies measured in MC. These are saved in `ROOT` files in [`btag`](https://github.com/IzaakWN/NanoTreeProducer/tree/master/CorrectionTools/btag).
