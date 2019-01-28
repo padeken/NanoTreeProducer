@@ -93,14 +93,14 @@ More [notes](https://www.evernote.com/l/Ac8PKYGpaJxJArj4eng5ed95_wvpzwSNTgc).
 ### Integrated luminosity
 
 * **2016**: https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2016Analysis#DATA
-* **2017**: https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2017Analysis#DATA, [**brilcalc**](https://ineuteli.web.cern.ch/ineuteli/lumi/2017/)
-* **2018**: https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2018Analysis#DATA, [**brilcalc**](https://ineuteli.web.cern.ch/ineuteli/lumi/2018/)
+* **2017**: https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2017Analysis#DATA, [brilcalc](https://ineuteli.web.cern.ch/ineuteli/lumi/2017/)
+* **2018**: https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2018Analysis#DATA, [brilcalc](https://ineuteli.web.cern.ch/ineuteli/lumi/2018/)
 
 JSON files are copied to the [`json`](https://github.com/IzaakWN/NanoTreeProducer/tree/master/json) directory to prevent issues with connection to `/afs`.
 
 ### Pileup 
 
-* [**2017**](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/)
-* [**2018**](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/)
+* **2017**: [profiles](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/)
+* **2018**: [profiles](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/)
 
 
