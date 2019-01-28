@@ -86,18 +86,21 @@ More [notes](https://www.evernote.com/l/Ac8PKYGpaJxJArj4eng5ed95_wvpzwSNTgc).
 
 ### Samples
 
-* [2016](https://www.evernote.com/l/Ac9nVeF2tcdJI7R-is1KPT2Ukv7A260zNX0)
-* [2017](https://www.evernote.com/l/Ac8WfL3Mzx1MrKdm1LfIOl-F-j7NeScPKxs)
-* [2018](https://www.evernote.com/l/Ac9yyi7wtg9LaYgxOIz11jFyzLV0ztkemtE)
+* **2016**: [list](https://github.com/IzaakWN/NanoTreeProducer/blob/master/samples_2016.cfg), [notes](https://www.evernote.com/l/Ac9nVeF2tcdJI7R-is1KPT2Ukv7A260zNX0);
+* **2017**: [list](https://github.com/IzaakWN/NanoTreeProducer/blob/master/samples_2017.cfg), [notes]((https://www.evernote.com/l/Ac8WfL3Mzx1MrKdm1LfIOl-F-j7NeScPKxs);
+* **2018**: [list](https://github.com/IzaakWN/NanoTreeProducer/blob/master/samples_2018.cfg), [notes](https://www.evernote.com/l/Ac9yyi7wtg9LaYgxOIz11jFyzLV0ztkemtE);
 
-### Luminosity
+### Integrated luminosity
 
-* [2017](https://ineuteli.web.cern.ch/ineuteli/lumi/2017/)
-* [2018](https://ineuteli.web.cern.ch/ineuteli/lumi/2018/)
+* **2016**: https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2016Analysis#DATA
+* [**2017**](https://ineuteli.web.cern.ch/ineuteli/lumi/2017/): https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2017Analysis#DATA
+* [**2018**](https://ineuteli.web.cern.ch/ineuteli/lumi/2018/): https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmV2018Analysis#DATA
+
+JSON files are copied in [json](https://github.com/IzaakWN/NanoTreeProducer/tree/master/json) to prevent issues with connection to `/afs`.
 
 ### Pileup 
 
-* [2017](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/)
-* [2018](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/)
+* [**2017**](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/)
+* [**2018**](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/)
 
 
