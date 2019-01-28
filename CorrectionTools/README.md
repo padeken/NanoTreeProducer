@@ -21,12 +21,12 @@ and then extracted with [`pileup/getPileupProfiles.py`](https://github.com/Izaak
 Several classes are available to get corrections for electrons, muons and hadronically-decayed tau leptons:
 
 * `ScaleFactorTool.py`
-  * `ScaleFactor`: general class to get SFs from histograms;
-  * `ScaleFactorHTT`: class to get SFs from histograms, as measured by the [HTT group](https://github.com/CMS-HTT/LeptonEfficiencies);
-* `MuonSFs.py`: class to get muon trigger / identification / isolation SFs;
-* `ElectronSFs.py` class to get electron trigger / identification / isolation SFs;
-* `TauTauSFs.py` class to get ditau trigger SFs;
-* `LeptonTauFakeSFs.py` class to get lepton to tau fake SFs.
+  * `ScaleFactor`: general class to get SFs from histograms
+  * `ScaleFactorHTT`: class to get SFs from histograms, as measured by the [HTT group](https://github.com/CMS-HTT/LeptonEfficiencies)
+* `MuonSFs.py`: class to get muon trigger / identification / isolation SFs
+* `ElectronSFs.py` class to get electron trigger / identification / isolation SFs
+* `TauTauSFs.py` class to get ditau trigger SFs
+* `LeptonTauFakeSFs.py` class to get lepton to tau fake SFs
 
 `ROOT` files with efficiencies and SFs are saved in [`leptonEfficiencies`](https://github.com/IzaakWN/NanoTreeProducer/blob/master/CorrectionTools/leptonEfficiencies). In case you use lepton scale factors and efficiencies from the HTT group, you need to make sure you get them:
 ```
