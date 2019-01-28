@@ -272,7 +272,7 @@ def main(args):
               print bcolors.BOLD + bcolors.OKGREEN + '[OK] hadding %s' %(outfile) + bcolors.ENDC
               haddcmd = 'hadd -f %s %s'%(outfile,' '.join(infiles))
               print haddcmd
-              #os.system(haddcmd)
+              os.system(haddcmd)
             else:
               print bcolors.BOLD + bcolors.WARNING + "[WN] no files to hadd!" + bcolors.ENDC
             print
