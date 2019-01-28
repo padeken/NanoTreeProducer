@@ -8,7 +8,7 @@ Several tools to get corrections, efficiencies, scale factors (SFs), event weigh
 `PileupWeightTool.py` provides the pileup event weight based on the data and MC profiles in [`pileup`](https://github.com/IzaakWN/NanoTreeProducer/tree/master/CorrectionTools/pileup).
 
 The data profile can be computed with the `brilcalc` tool on `lxplus`.
-The MC profile can be taken from the all-inclusive distribution of the `Pileup_nTrueInt` variable in nanoAOD, for each event:
+The MC profile can be taken from the distribution of the `Pileup_nTrueInt` variable in nanoAOD, for each MC event:
 ```
     self.out.pileup.Fill(event.Pileup_nTrueInt)
 ```
