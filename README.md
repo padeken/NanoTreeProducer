@@ -70,6 +70,7 @@ To **resubmit failed jobs**, do:
 ```
 ./resubmit.py -c mutau -y 2017
 ```
+Note: this submission works for the Sun Grid Engine (SGE) system of PSI Tier3 with `qsub`. For other batch systems, one needs to create their own version of `submit_qsub.sh` and `psibatch_runner.sh`.
 
 
 ## Notes
