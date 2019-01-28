@@ -20,6 +20,12 @@ Then, install this `NanoTreeProducer`:
 git clone https://github.com/IzaakWN/NanoTreeProducer
 ```
 
+In case you use lepton scale factors and efficiencies from the HTT group, you will also need to get
+```
+cd CorrectionTools/leptonEfficiencies
+git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
+```
+
 
 ## Analysis
 
@@ -64,3 +70,33 @@ To **resubmit failed jobs**, do:
 ```
 ./resubmit.py -c mutau -y 2017
 ```
+
+
+## Notes
+
+### NanoAOD
+
+* **working book**: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD
+* **2016 `9_4_X`**: https://cms-nanoaod-integration.web.cern.ch/integration/master/mc94X2016_doc.html
+* **2017 `9_4_X`**: https://cms-nanoaod-integration.web.cern.ch/integration/master/mc94X_doc.html
+* **2017 `10_2_X`**: https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
+
+More [notes](https://www.evernote.com/l/Ac8PKYGpaJxJArj4eng5ed95_wvpzwSNTgc).
+
+### Samples
+
+* [2016](https://www.evernote.com/l/Ac9nVeF2tcdJI7R-is1KPT2Ukv7A260zNX0)
+* [2017](https://www.evernote.com/shard/s463/nl/167937850/167cbdcc-cf1d-4cac-a766-d4b7c83a5f85/)
+* [2018](https://www.evernote.com/l/Ac9yyi7wtg9LaYgxOIz11jFyzLV0ztkemtE)
+
+### Luminosity
+
+* [2017](https://ineuteli.web.cern.ch/ineuteli/lumi/2017/)
+* [2018](https://ineuteli.web.cern.ch/ineuteli/lumi/2018/)
+
+### Pileup 
+
+* [2017](https://ineuteli.web.cern.ch/ineuteli/pileup/2017/)
+* [2018](https://ineuteli.web.cern.ch/ineuteli/pileup/2018/)
+
+

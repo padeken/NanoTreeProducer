@@ -28,6 +28,12 @@ Several classes are available to get corrections for electrons, muons and hadron
 * `TauTauSFs.py` class to get ditau trigger SFs;
 * `LeptonTauFakeSFs.py` class to get lepton to tau fake SFs.
 
+`ROOT` files with efficiencies and SFs are saved in [`leptonEfficiencies`](https://github.com/IzaakWN/NanoTreeProducer/blob/master/CorrectionTools/leptonEfficiencies). In case you use lepton scale factors and efficiencies from the HTT group, you need to make sure you get them:
+```
+cd leptonEfficiencies
+git clone https://github.com/CMS-HTT/LeptonEfficiencies HTT
+```
+
 
 
 ## B-tagging tools
