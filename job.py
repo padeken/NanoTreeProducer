@@ -72,17 +72,14 @@ module2run = None
 
 if channel=='tautau':
     from TauTauModule import *
-    #from TauTauModule_sync import *
     module2run = lambda : TauTauProducer(postfix, dataType, **kwargs)
 
 elif channel=='mutau':
     from MuTauModule import *
-    #from MuTauModule_sync import *
     module2run = lambda : MuTauProducer(postfix, dataType, **kwargs)
 
 elif channel=='eletau':
     from EleTauModule import *
-    #from EleTauModule_sync import *
     module2run = lambda : EleTauProducer(postfix, dataType, **kwargs)
 
 elif channel=='mumu':
