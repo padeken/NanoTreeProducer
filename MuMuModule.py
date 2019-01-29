@@ -9,13 +9,6 @@ from CorrectionTools.BTaggingTool import BTagWeightTool, BTagWPs
 from CorrectionTools.RecoilCorrectionTool import RecoilCorrectionTool, getZPTMass
 
 
-class declareVariables(TreeProducerMuMu):
-    
-    def __init__(self, name):
-
-        super(declareVariables, self).__init__(name)
-
-
 class MuMuProducer(Module):
     
     def __init__(self, name, dataType, **kwargs):
@@ -26,7 +19,7 @@ class MuMuProducer(Module):
         
         self.name   = name
         self.year   = year
-        self.out    = declareVariables(name)
+        self.out    = TreeProducerMuMu(name)
         self.isData = dataType=='data'
         self.doZpt  = doZpt
         
