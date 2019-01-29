@@ -25,6 +25,7 @@ class MuTauProducer(Module):
         self.isData      = dataType=='data'
         self.doZpt       = 'DY' in self.name
         
+        
         setYear(year)
         self.vlooseIso   = getVLooseTauIso(year)
         if year==2016:
@@ -65,14 +66,14 @@ class MuTauProducer(Module):
         
     def beginJob(self):
         pass
-    
+        
     def endJob(self):
         if not self.isData:
           self.btagTool.setDirectory(self.out.outputfile,'btag')
           self.btagTool_deep.setDirectory(self.out.outputfile,'btag')
         self.out.outputfile.Write()
         self.out.outputfile.Close()
-    
+        
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
         
@@ -81,7 +82,6 @@ class MuTauProducer(Module):
         
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        
         
         #####################################
         self.out.cutflow.Fill(self.Nocut)
@@ -101,7 +101,7 @@ class MuTauProducer(Module):
         #####################################
         
         
-        if self.trigger(event):
+        if not self.trigger(event):
             return False
         
         #####################################
@@ -130,7 +130,6 @@ class MuTauProducer(Module):
         idx_goodtaus = [ ]
         for itau in range(event.nTau):
             if self.tes!=1.0:
-              #print "before: pt_2=%2.2f, m_2=%1.3f, tau.Pt()=%2.2f, tau.M()=%1.3f"%(pt_2,m_2,tau.Pt(),tau.M())
               event.Tau_pt[itau]   *= self.tes
               event.Tau_mass[itau] *= self.tes
             if event.Tau_pt[itau] < self.tauCutPt: continue
@@ -138,8 +137,8 @@ class MuTauProducer(Module):
             if abs(event.Tau_dz[itau]) > 0.2: continue
             if event.Tau_decayMode[itau] not in [0,1,10]: continue
             if abs(event.Tau_charge[itau])!=1: continue
-            #if ord(event.Tau_idAntiEle[itau])<1: continue
-            #if ord(event.Tau_idAntiMu[itau])<1: continue
+            ###if ord(event.Tau_idAntiEle[itau])<1: continue
+            ###if ord(event.Tau_idAntiMu[itau])<1: continue
             if not self.vlooseIso(event,itau): continue
             idx_goodtaus.append(itau)
         
@@ -150,17 +149,17 @@ class MuTauProducer(Module):
         self.out.cutflow.Fill(self.GoodTaus)
         #####################################
         
+        
         muons = Collection(event, 'Muon')
         taus  = Collection(event, 'Tau')
         ltaus = [ ]
         for idx1 in idx_goodmuons:
           for idx2 in idx_goodtaus:
-              dR = taus[idx2].p4().DeltaR(muons[idx1].p4())
-              if dR < 0.5: continue
+              if taus[idx2].p4().DeltaR(muons[idx1].p4())<0.5: continue
               ltau = LeptonTauPair(idx1, event.Muon_pt[idx1], event.Muon_pfRelIso04_all[idx1],
                                    idx2, event.Tau_pt[idx2],  event.Tau_rawMVAoldDM2017v2[idx2])
               ltaus.append(ltau)
-                
+        
         if len(ltaus)==0:
             return False
         
@@ -173,7 +172,6 @@ class MuTauProducer(Module):
         #####################################
         self.out.cutflow.Fill(self.GoodDiLepton)
         #####################################
-        
         
         
         # JETS
