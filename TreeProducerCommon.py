@@ -23,7 +23,7 @@ def getVLooseTauIso(year):
   #if year==2016:
   #  return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0
   #else:
-  return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0 or ord(e.Tau_idMVAnewDM2017v2[i])>1 or ord(e.Tau_idMVAoldDM2017v1[i])>1 or ord(e.Tau_idMVAoldDM2017v2[i])>0
+  return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0 or ord(e.Tau_idMVAnewDM2017v2[i])>0 or ord(e.Tau_idMVAoldDM2017v1[i])>0 or ord(e.Tau_idMVAoldDM2017v2[i])>0
   
 
 class TreeProducerCommon(object):
@@ -253,10 +253,8 @@ class DiTauPair(DiLeptonBasicClass):
 
 def bestDiLepton(diLeptons):
     """Take best dilepton pair."""
-    
     if len(diLeptons)==1:
         return diLeptons[0]
-    
     #least_iso_highest_pt = lambda dl: (-dl.tau1_pt, -dl.tau2_pt, dl.tau2_iso, -dl.tau1_iso)
     #return sorted(diLeptons, key=lambda dl: least_iso_highest_pt(dl), reverse=False)[0]
     return sorted(diLeptons, reverse=True)[0]
