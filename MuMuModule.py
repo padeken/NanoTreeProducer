@@ -55,7 +55,7 @@ class MuMuProducer(Module):
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.Trigger,             "trigger"                )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodMuons,           "muon object"            )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodSecondMuon,      "second muon object"     )
-        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodDiLepton,        "mutau pair"             )
+        self.out.cutflow.GetXaxis().SetBinLabel(1+self.GoodDiLepton,        "mumu pair"              )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted,       "no cut, weighted"       )
         self.out.cutflow.GetXaxis().SetBinLabel(1+self.TotalWeighted_no0PU, "no cut, weighted, PU>0" )
         self.out.cutflow.GetXaxis().SetLabelSize(0.041)
@@ -95,7 +95,7 @@ class MuMuProducer(Module):
         #####################################
         
         
-        if self.trigger(event):
+        if not self.trigger(event):
             return False
         
         #####################################
@@ -105,15 +105,15 @@ class MuMuProducer(Module):
         
         idx_goodmuons = [ ]
         for imuon in range(event.nMuon):
-            if event.Muon_pt[imuon] < self.muon2CutPt: continue
+            if event.Muon_pt[imuon] < self.muon2CutPt: continue # lower pT cut
             if abs(event.Muon_eta[imuon]) > 2.4: continue
             if abs(event.Muon_dz[imuon]) > 0.2: continue
             if abs(event.Muon_dxy[imuon]) > 0.045: continue
-            #if event.Muon_pfRelIso04_all[imuon]>0.50: continue
+            if event.Muon_pfRelIso04_all[imuon] > 0.15: continue
             if not event.Muon_mediumId[imuon]: continue
             idx_goodmuons.append(imuon)
         
-        if len(idx_goodmuons) < 2:
+        if len(idx_goodmuons) < 1:
             return False
         
         #####################################
@@ -121,7 +121,7 @@ class MuMuProducer(Module):
         #####################################
         
         
-        if not any(event.Muon_pt[i]>self.muon1CutPt for i in idx_goodmuons):
+        if not any(event.Muon_pt[i]>self.muon1CutPt for i in idx_goodmuons) or len(idx_goodmuons)<2: # higher pT cut
             return False
         
         #####################################
@@ -134,13 +134,13 @@ class MuMuProducer(Module):
         for idx1 in idx_goodmuons:
           for idx2 in idx_goodmuons:
               if idx1 >= idx2: continue
-              if muons[idx2].p4().DeltaR(muons[idx1].p4()) < 0.5: continue
-              
-              muon_reliso1 = event.Muon_pfRelIso04_all[idx1]
-              muon_reliso2 = event.Muon_pfRelIso04_all[idx2]
-              _dilepton = DiLeptonBasicClass(idx1, event.Muon_pt[idx1], muon_reliso1, 
-                                             idx2, event.Muon_pt[idx2], muon_reliso2)
-              dileptons.append(_dilepton)
+              muon1 = muons[idx1].p4()
+              muon2 = muons[idx2].p4()
+              if muon1.DeltaR(muon2) < 0.5: continue
+              if not (70<(muon1+muon2).M()<110): continue # Z mass
+              dilepton = DiLeptonBasicClass(idx1, event.Muon_pt[idx1], event.Muon_pfRelIso04_all[idx1], 
+                                            idx2, event.Muon_pt[idx2], event.Muon_pfRelIso04_all[idx2])
+              dileptons.append(dilepton)
         
         if len(dileptons)==0:
             return False
@@ -243,6 +243,7 @@ class MuMuProducer(Module):
           self.out.idMVAoldDM2017v1_3[0]       = ord(event.Tau_idMVAoldDM2017v1[maxId])
           self.out.idMVAoldDM2017v2_3[0]       = ord(event.Tau_idMVAoldDM2017v2[maxId])
           self.out.idMVAnewDM2017v2_3[0]       = ord(event.Tau_idMVAnewDM2017v2[maxId])
+          self.out.idIso_3[0]                  = Tau_idIso(event,maxId)
           if not self.isData:
             self.out.genPartFlav_3[0]          = ord(event.Tau_genPartFlav[maxId])
         else:
@@ -256,6 +257,7 @@ class MuMuProducer(Module):
           self.out.idMVAoldDM2017v1_3[0]       = -1
           self.out.idMVAoldDM2017v2_3[0]       = -1
           self.out.idMVAnewDM2017v2_3[0]       = -1
+          self.out.idIso_3[0]                  = -1
           self.out.genPartFlav_3[0]            = -1
         
         
@@ -272,7 +274,7 @@ class MuMuProducer(Module):
         ###self.out.MET_covXX[0]                  = event.MET_covXX
         ###self.out.MET_covXY[0]                  = event.MET_covXY
         ###self.out.MET_covYY[0]                  = event.MET_covYY
-        self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
+        ###self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
         self.out.npvs[0]                       = event.PV_npvs
         self.out.npvsGood[0]                   = event.PV_npvsGood
         
@@ -345,8 +347,7 @@ class MuMuProducer(Module):
         self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
         
         self.out.m_vis[0]                      = (muon1 + muon2).M()
-        self.out.pt_tt[0]                      = (muon1 + muon2).Pt()
-        
+        self.out.pt_ll[0]                      = (muon1 + muon2).Pt()
         self.out.dR_ll[0]                      = muon1.DeltaR(muon2)
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
         
