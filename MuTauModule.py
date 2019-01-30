@@ -358,8 +358,7 @@ class MuTauProducer(Module):
         self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) )
         
         self.out.m_vis[0]                      = (muon + tau).M()
-        self.out.pt_tt[0]                      = (muon + tau).Pt()
-        
+        self.out.pt_ll[0]                      = (muon + tau).Pt()
         self.out.dR_ll[0]                      = muon.DeltaR(tau)
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
         

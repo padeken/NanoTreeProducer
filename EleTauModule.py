@@ -77,8 +77,7 @@ class EleTauProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
-
-
+        
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):        
         pass
         
@@ -367,8 +366,7 @@ class EleTauProducer(Module):
         self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
         
         self.out.m_vis[0]                      = (electron + tau).M()
-        self.out.pt_tt[0]                      = (electron + tau).Pt()
-        
+        self.out.pt_ll[0]                      = (electron + tau).Pt()
         self.out.dR_ll[0]                      = electron.DeltaR(tau)
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
         

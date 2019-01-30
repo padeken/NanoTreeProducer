@@ -478,8 +478,7 @@ class TauTauProducer(Module):
         self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
         
         self.out.m_vis[0]                      = (tau1 + tau2).M()
-        self.out.pt_tt[0]                      = (tau1 + tau2).Pt()
-        
+        self.out.pt_ll[0]                      = (tau1 + tau2).Pt()
         self.out.dR_ll[0]                      = tau1.DeltaR(tau2)
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
         

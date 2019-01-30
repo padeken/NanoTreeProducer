@@ -24,8 +24,16 @@ def getVLooseTauIso(year):
   #  return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0
   #else:
   return lambda e,i: ord(e.Tau_idMVAoldDM[i])>0 or ord(e.Tau_idMVAnewDM2017v2[i])>0 or ord(e.Tau_idMVAoldDM2017v1[i])>0 or ord(e.Tau_idMVAoldDM2017v2[i])>0
-  
 
+def Tau_idIso(event,i):
+  raw = event.Tau_rawIso[i]
+  if   raw>4.5: return 0
+  elif raw>3.5: return 1 # VVLoose
+  elif raw>2.5: return 3 # VLoose
+  elif event.Tau_photonsOutsideSignalCone[i]/event.Tau_pt[i]<0.10:
+    return 7 if raw>1.5 else 15 if raw>0.8 else 31 # Loose, Medium, Tight
+  return 0
+  
 class TreeProducerCommon(object):
     
     def __init__(self, name):
@@ -142,7 +150,7 @@ class TreeProducerCommon(object):
         self.beta_2                     = num.zeros(1, dtype=float)
         
         self.m_vis                      = num.zeros(1, dtype=float)
-        self.pt_tt                      = num.zeros(1, dtype=float)
+        self.pt_ll                      = num.zeros(1, dtype=float)
         self.dR_ll                      = num.zeros(1, dtype=float)
         self.dphi_ll                    = num.zeros(1, dtype=float)
         
@@ -187,7 +195,7 @@ class TreeProducerCommon(object):
         self.tree.Branch('beta_2'                      , self.beta_2, 'beta_2/D')
         
         self.tree.Branch('m_vis'                       , self.m_vis, 'm_vis/D')
-        self.tree.Branch('pt_tt'                       , self.pt_tt, 'pt_tt/D')
+        self.tree.Branch('pt_ll'                       , self.pt_ll, 'pt_ll/D')
         self.tree.Branch('dR_ll'                       , self.dR_ll, 'dR_ll/D')
         self.tree.Branch('dphi_ll'                     , self.dphi_ll, 'dphi_ll/D')
         
