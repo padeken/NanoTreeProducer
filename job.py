@@ -55,6 +55,11 @@ else:
   json = JSON+'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
   #json = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
 
+ensureDir(outdir)
+
+outfile = "%s_%s_%s.root"%(outfile,nchunck,channel)
+postfix = "%s/%s"%(outdir,outfile)
+
 print '-'*80
 print "%-12s = %s"%('input files',infiles)
 print "%-12s = %s"%('output directory',outdir)
@@ -66,10 +71,7 @@ print "%-12s = %s"%('year',kwargs['year'])
 print "%-12s = %s"%('tes',kwargs['tes'])
 print '-'*80
 
-ensureDir(outdir)
-postfix = "%s/%s_%s_%s.root"%(outdir,outfile,nchunck,channel)
 module2run = None
-
 if channel=='tautau':
     from TauTauModule import *
     module2run = lambda : TauTauProducer(postfix, dataType, **kwargs)
