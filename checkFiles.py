@@ -45,7 +45,8 @@ if __name__ == '__main__':
                                             help="veto this sample" )
     parser.add_argument('-t', '--type',     dest='type', choices=['data','mc'], type=str, default=None, action='store',
                                             help="filter data or MC to submit" )
-    #parser.add_argument('-t', '--tag',      dest='tag', type=str, default="", action='store' )
+    parser.add_argument('-l', '--tag',      dest='tag', type=str, default="", action='store',
+                                            help="add a tag to the output file" )
     parser.add_argument('-v', '--verbose',  dest='verbose', default=False, action='store_true',
                                             help="set verbose" )
     args = parser.parse_args()
@@ -115,6 +116,9 @@ def main(args):
   
   years      = args.years
   channels   = args.channels
+  tag        = args.tag
+  if len(tag)>0 and '_' not in tag[0]:
+    tag = '_'+tag
   
   for year in years:
     indir      = "output_%s/"%(year)
@@ -155,7 +159,7 @@ def main(args):
             
             subdir, samplename = getSampleShortName(directory)
             outdir  = "%s/%s"%(samplesdir,subdir)
-            outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
+            outfile = "%s/%s_%s%s.root"%(outdir,samplename,channel,tag)
             infiles = '%s/*_%s.root'%(directory,channel)
             
             if args.verbose:
@@ -233,8 +237,8 @@ def main(args):
               sampleset  = [s.replace('$RUN','Run%d'%year) for s in sampleset]
             
             outdir  = "%s/%s"%(samplesdir,subdir)
-            outfile = "%s/%s_%s.root"%(outdir,samplename,channel)
-            infiles = ['%s/%s_%s.root'%(outdir,s,channel) for s in sampleset] #.replace('ele','e')
+            outfile = "%s/%s_%s%s.root"%(outdir,samplename,channel,tag)
+            infiles = ['%s/%s_%s%s.root'%(outdir,s,channel,tag) for s in sampleset] #.replace('ele','e')
             ensureDirectory(outdir)
             
             # OVERWRITE ?
@@ -341,26 +345,22 @@ def compareEventsToDAS(filenames,dasname):
       print "compareEventsToDAS: %s, %s"%(filenames,dasname)
       #start = time.time()
     if isinstance(filenames,str):
-      nfiles = 1
-      file = TFile(filenames)
-      total_processed = Double(file.Get('cutflow').GetBinContent(1))
-      #print 'Check number of events = ', total_processed
+      filenames = [filenames]
+    total_processed = 0
+    nfiles = len(filenames)
+    for filename in filenames:
+      file = TFile(filename, 'READ')
+      if file.IsZombie():
+        continue
+      hist = file.Get('cutflow')
+      if hist:
+        events_processed = hist.GetBinContent(1)
+        if args.verbose:
+          print "%12d events processed in %s "%(events_processed,filename)
+        total_processed += events_processed
+      #else:
+      #  print bcolors.FAIL + '[NG] compareEventsToDAS: no cutflow found in ' + filename + bcolors.ENDC
       file.Close()
-    else:
-      total_processed = 0
-      nfiles = len(filenames)
-      for filename in filenames:
-        file = TFile(filename, 'READ')
-        if file.IsZombie():
-          continue
-        hist = file.Get('cutflow')
-        if hist:
-          events_processed = hist.GetBinContent(1)
-          if args.verbose:
-            print "%12d events processed in %s "%(events_processed,filename)
-          total_processed += events_processed
-        #else:
-        #  print bcolors.FAIL + '[NG] compareEventsToDAS: no cutflow found in ' + filename + bcolors.ENDC
     
     instance = 'prod/phys03' if 'USER' in dasname else 'prod/global'
     dascmd   = 'das_client --limit=0 --query=\"summary dataset=/%s instance=%s\"'%(dasname,instance)
@@ -375,7 +375,7 @@ def compareEventsToDAS(filenames,dasname):
         return False
     total_das = Double(output.split('"nevents":')[1].split(',')[0])
     fraction = total_processed/total_das
-     
+    
     nfiles = ", %d files"%(nfiles) if nfiles>1 else ""
     if fraction > 1.001:
         print bcolors.BOLD + bcolors.FAIL + '   [NG] DAS entries = %d, Processed in tree = %d (frac = %.2f > 1%s)'%(total_das,total_processed,fraction,nfiles) + bcolors.ENDC
