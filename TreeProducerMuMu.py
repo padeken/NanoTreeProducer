@@ -72,6 +72,7 @@ class TreeProducerMuMu(TreeProducerCommon):
         self.idMVAoldDM2017v1_3         = num.zeros(1, dtype=int)
         self.idMVAoldDM2017v2_3         = num.zeros(1, dtype=int)
         self.idMVAnewDM2017v2_3         = num.zeros(1, dtype=int)
+        self.idIso_3                    = num.zeros(1, dtype=int)
         
         self.tree.Branch('pt_3'                , self.pt_3, 'pt_3/D')
         self.tree.Branch('eta_3'               , self.eta_3, 'eta_3/D')
@@ -86,5 +87,6 @@ class TreeProducerMuMu(TreeProducerCommon):
         self.tree.Branch('idMVAoldDM2017v1_3'  , self.idMVAoldDM2017v1_3, 'idMVAoldDM2017v1_3/I')
         self.tree.Branch('idMVAoldDM2017v2_3'  , self.idMVAoldDM2017v2_3, 'idMVAoldDM2017v2_3/I')
         self.tree.Branch('idMVAnewDM2017v2_3'  , self.idMVAnewDM2017v2_3, 'idMVAnewDM2017v2_3/I')
+        self.tree.Branch('idIso_3'             , self.idIso_3, 'idIso_3/I')
 
         

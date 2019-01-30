@@ -23,7 +23,7 @@ class TreeProducerMuTau(TreeProducerCommon):
         self.pfRelIso04_all_1               = num.zeros(1, dtype=float)
         self.q_1                            = num.zeros(1, dtype=int)
         self.genPartFlav_1                  = num.zeros(1, dtype=int)
-
+        
         self.tree.Branch('pt_1'                       , self.pt_1, 'pt_1/D')
         self.tree.Branch('eta_1'                      , self.eta_1, 'eta_1/D')
         self.tree.Branch('phi_1'                      , self.phi_1, 'phi_1/D')
@@ -65,6 +65,7 @@ class TreeProducerMuTau(TreeProducerCommon):
         self.idMVAoldDM_2                   = num.zeros(1, dtype=int)
         self.idMVAoldDM2017v1_2             = num.zeros(1, dtype=int)
         self.idMVAoldDM2017v2_2             = num.zeros(1, dtype=int)
+        self.idIso_2                        = num.zeros(1, dtype=int)
         self.genPartFlav_2                  = num.zeros(1, dtype=int)
         self.gendecayMode_2                 = num.zeros(1, dtype=int)
         self.genvistaupt_2                  = num.zeros(1, dtype=float)
@@ -99,6 +100,7 @@ class TreeProducerMuTau(TreeProducerCommon):
         self.tree.Branch('idMVAoldDM_2'               , self.idMVAoldDM_2, 'idMVAoldDM_2/I')
         self.tree.Branch('idMVAoldDM2017v1_2'         , self.idMVAoldDM2017v1_2, 'idMVAoldDM2017v1_2/I')
         self.tree.Branch('idMVAoldDM2017v2_2'         , self.idMVAoldDM2017v2_2, 'idMVAoldDM2017v2_2/I')
+        self.tree.Branch('idIso_2'                    , self.idIso_2, 'idIso_2/I')
         self.tree.Branch('genPartFlav_2'              , self.genPartFlav_2, 'genPartFlav_2/I')
         self.tree.Branch('gendecayMode_2'             , self.gendecayMode_2, 'gendecayMode_2/I')
         self.tree.Branch('genvistaupt_2'              , self.genvistaupt_2, 'genvistaupt_2/D')
