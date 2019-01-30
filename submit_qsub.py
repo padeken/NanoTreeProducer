@@ -115,7 +115,8 @@ def createJobs(jobsfile, filelist, outdir, name, nchunks, channel, year):
       if 'LQ' in file:
           infiles.append("dcap://t3se01.psi.ch:22125/"+file)
       else:
-          infiles.append("root://cms-xrd-global.cern.ch/"+file)
+          #infiles.append("root://cms-xrd-global.cern.ch/"+file)
+          infiles.append("root://xrootd-cms.infn.it/"+file)
   cmd = 'python job.py -i %s -o %s -N %s -n %i -c %s -y %s \n'%(','.join(infiles),outdir,name,nchunks,channel,year)
   if args.verbose:
     print cmd
