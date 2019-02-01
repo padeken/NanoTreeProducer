@@ -57,7 +57,7 @@ def main():
             # NFILESPERJOBS CHECKS
             # Diboson (WW, WZ, ZZ) have very large files and acceptance,
             # and the jet-binned DY and WJ files need to be run separately because of a bug affecting LHE_Njets
-            if nFilesPerJob>1 and any(vv in jobName[:4] for vv in [ 'WW', 'WZ', 'ZZ', 'DY', 'WJ', 'W1J', 'W2J', 'W3J', 'W4J' ]):
+            if nFilesPerJob>1 and any(vv in jobName[:8] for vv in [ 'WW', 'WZ', 'ZZ', 'DY', 'WJ', 'W1J', 'W2J', 'W3J', 'W4J', 'Single', 'Tau' ]):
               print bcolors.BOLD + bcolors.WARNING + "[WN] setting number of files per job from %s to 1 for %s"%(nFilesPerJob,jobName) + bcolors.ENDC
               nFilesPerJob = 1
             
