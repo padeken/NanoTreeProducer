@@ -12,7 +12,11 @@ from ROOT import TFile, TTree
 argv = sys.argv
 description = '''This script make some checks.'''
 parser = ArgumentParser(prog="pileup",description=description,epilog="Succes!")
-parser.add_argument( "-v", "--verbose", dest="verbose", default=False, action='store_true', 
+parser.add_argument('-y', '--year',     dest='years', choices=[2016,2017,2018], type=int, nargs='+', default=[2018], action='store',
+                                        help="select year" )
+parser.add_argument('-c', '--channel',  dest='channel', choices=['mutau','etau'], type=str, default='mutau', action='store',
+                                        help="select channel" )
+parser.add_argument('-v', '--verbose',  dest='verbose', default=False, action='store_true', 
                                         help="print verbose" )
 args = parser.parse_args()
 
@@ -24,7 +28,7 @@ def getMCProfile(outfilename,indir,samples,channel,year):
     nprofiles = 0
     histname  = 'pileup'
     tothist   = None    
-    for subdir, samplename, sampletitle in samples:
+    for subdir, samplename in samples:
       filename = "%s/%s/%s_%s.root"%(indir,subdir,samplename,channel)
       print ">>>   %s"%(filename)
       file = TFile(filename,'READ')
@@ -132,51 +136,103 @@ def getGenProfile(outfilename,year):
     file = TFile(outfilename,'RECREATE')
     hist.Write('pileup')
     file.Close()
-
+    
 
 
 def main():
     
-    samples = [
-      ( 'TT', "TTTo2L2Nu",         "ttbar 2l2#nu",       ),
-      ( 'TT', "TTToHadronic",      "ttbar hadronic",     ),
-      #( 'TT', "TTToSemiLeptonic",  "ttbar semileptonic", ),
-      ( 'DY', "DYJetsToLL_M-50",   "Drell-Yan 50",       ),
-      ( 'DY', "DY1JetsToLL_M-50",  "Drell-Yan 1J 50",    ),
-      ( 'DY', "DY2JetsToLL_M-50",  "Drell-Yan 2J 50",    ),
-      ( 'DY', "DY3JetsToLL_M-50",  "Drell-Yan 3J 50",    ),
-      #( 'WJ', "WJetsToLNu",        "W + jets",           ),
-      #( 'WJ', "W1JetsToLNu",       "W + 1J",             ),
-      ( 'WJ', "W2JetsToLNu",       "W + 2J",             ),
-      ( 'WJ', "W3JetsToLNu",       "W + 3J",             ),
-      ( 'WJ', "W4JetsToLNu",       "W + 4J",             ),
-      ( 'ST', "ST_s-channel",      "ST s-channel",       ),
-      ( 'ST', "ST_tW_top",         "ST tW",              ),
-      ( 'ST', "ST_tW_antitop",     "ST atW",             ),
-      ( 'VV', "WW",                "WW",                 ),
-      #( 'VV', "WZ",                "WZ",                 ),
-      ( 'VV', "ZZ",                "ZZ",                 ),
-    ]
-    
-    filename  = "MC_PileUp_2018_Autumn18.root"
-    indir     = "/scratch/ineuteli/analysis/LQ_2018"
-    channel   = 'mutau'
-    year      = 2018
-    getMCProfile(filename,indir,samples,channel,year)
-    
-    if year==2017:
-      JSON    = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt"
-      pileup  = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/pileup_latest.txt"    
-    else:
-      JSON    = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
-      pileup  = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/pileup_latest.txt"
-    bins      = 100
-    minbiases = [ 69.2, ] # 80.0 ]
-    
-    for minbias in minbiases:
-      filename = "Data_PileUp_2018_%s_test.root"%(str(minbias).replace('.','p'))
-      getDataProfile(filename,JSON,pileup,bins,minbias)
-    
+    channel = args.channel
+    for year in args.years:
+      filename  = "MC_PileUp_%d.root"%(year)
+      indir     = "/scratch/ineuteli/analysis/LQ_%d"%(year)
+      if year==2016:
+        samples = [
+          ( 'TT', "TT",                   ),
+          ( 'DY', "DYJetsToLL_M-10to50",  ),
+          ( 'DY', "DYJetsToLL_M-50_reg",  ),
+          ( 'DY', "DY1JetsToLL_M-50",     ),
+          ( 'DY', "DY2JetsToLL_M-50",     ),
+          #( 'DY', "DY3JetsToLL_M-50",     ),
+          ( 'WJ', "WJetsToLNu",           ),
+          ( 'WJ', "W1JetsToLNu",          ),
+          ( 'WJ', "W2JetsToLNu",          ),
+          ( 'WJ', "W3JetsToLNu",          ),
+          #( 'WJ', "W4JetsToLNu",          ),
+          ( 'ST', "ST_tW_top",            ),
+          ( 'ST', "ST_tW_antitop",        ),
+          #( 'ST', "ST_t-channel_top",     ),
+          ( 'ST', "ST_t-channel_antitop", ),
+          #( 'ST', "ST_s-channel",         ),
+          ( 'VV', "WW",                   ),
+          ( 'VV', "WZ",                   ),
+          ( 'VV', "ZZ",                   ),
+        ]
+        JSON    = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt"
+        pileup  = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt"
+      elif year==2017:
+        JSON    = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt"
+        pileup  = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/pileup_latest.txt"    
+        samples = [ 
+          ( 'TT', "TTTo2L2Nu",            ),
+          ( 'TT', "TTToHadronic",         ),
+          ( 'TT', "TTToSemiLeptonic",     ),
+          ( 'DY', "DYJetsToLL_M-10to50",  ),
+          ( 'DY', "DYJetsToLL_M-50",      ),
+          ( 'DY', "DY1JetsToLL_M-50",     ),
+          ( 'DY', "DY2JetsToLL_M-50",     ),
+          ( 'DY', "DY3JetsToLL_M-50",     ),
+          ( 'DY', "DY4JetsToLL_M-50",     ),
+          ( 'WJ', "WJetsToLNu",           ),
+          ( 'WJ', "W1JetsToLNu",          ),
+          ( 'WJ', "W2JetsToLNu",          ),
+          ( 'WJ', "W3JetsToLNu",          ),
+          ( 'WJ', "W4JetsToLNu",          ),
+          ( 'ST', "ST_tW_top",            ),
+          ( 'ST', "ST_tW_antitop",        ),
+          ( 'ST', "ST_t-channel_top",     ),
+          ( 'ST', "ST_t-channel_antitop", ),
+          #( 'ST', "ST_s-channel",         ),
+          ( 'VV', "WW",                   ),
+          ( 'VV', "WZ",                   ),
+          ( 'VV', "ZZ",                   ),
+        ]
+      else:
+        JSON    = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
+        pileup  = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/pileup_latest.txt"
+        samples = [
+          ( 'TT', "TTTo2L2Nu",            ),
+          ( 'TT', "TTToHadronic",         ),
+          ( 'TT', "TTToSemiLeptonic",     ),
+          ( 'DY', "DYJetsToLL_M-10to50",  ),
+          ( 'DY', "DYJetsToLL_M-50",      ),
+          ( 'DY', "DY1JetsToLL_M-50",     ),
+          ( 'DY', "DY2JetsToLL_M-50",     ),
+          ( 'DY', "DY3JetsToLL_M-50",     ),
+          #( 'DY', "DY4JetsToLL_M-50",     ),
+          ( 'WJ', "WJetsToLNu",           ),
+          ( 'WJ', "W1JetsToLNu",          ),
+          ( 'WJ', "W2JetsToLNu",          ),
+          ( 'WJ', "W3JetsToLNu",          ),
+          ( 'WJ', "W4JetsToLNu",          ),
+          ( 'ST', "ST_tW_top",            ),
+          ( 'ST', "ST_tW_antitop",        ),
+          #( 'ST', "ST_t-channel_top",     ),
+          #( 'ST', "ST_t-channel_antitop", ),
+          ( 'ST', "ST_s-channel",         ),
+          ( 'VV', "WW",                   ),
+          ( 'VV', "WZ",                   ),
+          ( 'VV', "ZZ",                   ),
+        ]
+      
+      # MC
+      getMCProfile(filename,indir,samples,channel,year)
+      
+      # DATA
+      minbiases = [ 69.2, ] # 80.0 ] #66156, 72.383
+      for minbias in minbiases:
+        filename = "Data_PileUp_%d_%s_new.root"%(year,str(minbias).replace('.','p'))
+        getDataProfile(filename,JSON,pileup,100,minbias)
+      
 
 
 if __name__ == '__main__':
