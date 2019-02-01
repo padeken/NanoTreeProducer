@@ -230,7 +230,7 @@ class MuEleProducer(Module):
         self.out.run[0]                        = event.run
         self.out.luminosityBlock[0]            = event.luminosityBlock
         self.out.event[0]                      = event.event & 0xffffffffffffffff
-        self.out.MET_pt[0]                     = event.MET_pt
+        self.out.MET[0]                        = event.MET_pt
         self.out.MET_phi[0]                    = event.MET_phi
         self.out.PuppiMET_pt[0]                = event.PuppiMET_pt
         self.out.PuppiMET_phi[0]               = event.PuppiMET_phi
@@ -247,7 +247,7 @@ class MuEleProducer(Module):
             self.out.GenMET_phi[0]             = event.GenMET_phi
             self.out.nPU[0]                    = event.Pileup_nPU
             self.out.nTrueInt[0]               = event.Pileup_nTrueInt
-            self.out.genWeight[0]              = event.genWeight
+            self.out.genweight[0]              = event.genWeight
             self.out.LHE_Njets[0]              = event.LHE_Njets
 
 
@@ -277,56 +277,44 @@ class MuEleProducer(Module):
             self.out.jphi_2[0]                 = event.Jet_phi[jetIds[1]]
             self.out.jcsvv2_2[0]               = event.Jet_btagCSVV2[jetIds[1]]
             self.out.jdeepb_2[0]               = event.Jet_btagDeepB[jetIds[1]]
-
-
+        
         self.out.njets[0]                      = len(jetIds)
         self.out.nfjets[0]                     = nfjets
         self.out.ncjets[0]                     = ncjets
         self.out.nbtag[0]                      = nbtag
 
-        self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) );
-        self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
+        self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) );
+        self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) );
 
         self.out.m_vis[0]                      = (muons[dilepton.tau1_idx].p4() + electrons[dilepton.tau2_idx].p4()).M()
         self.out.pt_ll[0]                      = (muons[dilepton.tau1_idx].p4() + electrons[dilepton.tau2_idx].p4()).Pt()
         
         self.out.dR_ll[0]                      = muons[dilepton.tau1_idx].p4().DeltaR(electrons[dilepton.tau2_idx].p4())
         self.out.dphi_ll[0]                    = deltaPhi(self.out.phi_1[0], self.out.phi_2[0])
-
-
-        # pzeta calculation
-
+        
+        
+        # PZETA
         leg1 = ROOT.TVector3(muons[dilepton.tau1_idx].p4().Px(), muons[dilepton.tau1_idx].p4().Py(), 0.)
         leg2 = ROOT.TVector3(electrons[dilepton.tau2_idx].p4().Px(), electrons[dilepton.tau2_idx].p4().Py(), 0.)
         
-#        print 'leg1 px,py,pz = ', taus[dilepton.tau1_idx].p4().Px(), taus[dilepton.tau1_idx].p4().Py(), '0'
-#        print 'leg2 px,py,pz = ', taus[dilepton.tau2_idx].p4().Px(), taus[dilepton.tau2_idx].p4().Py(), '0'
-
         met_tlv = ROOT.TLorentzVector()
-        met_tlv.SetPxPyPzE(self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), 
-                           self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]),
+        met_tlv.SetPxPyPzE(self.out.MET[0]*math.cos(self.out.MET_phi[0]), 
+                           self.out.MET[0]*math.cos(self.out.MET_phi[0]),
                            0, 
-                           self.out.MET_pt[0])
-
-#        print self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), '0', self.out.MET_pt[0]
-
-        metleg = met_tlv.Vect()
+                           self.out.MET[0])
+        metleg   = met_tlv.Vect()
         zetaAxis = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
-        pZetaVis_ = leg1*zetaAxis + leg2*zetaAxis
-        pZetaMET_ = metleg*zetaAxis
+        pZetaVis = leg1*zetaAxis + leg2*zetaAxis
+        pZetaMET = metleg*zetaAxis
+        self.out.pzetamiss[0]  = pZetaMET
+        self.out.pzetavis[0]   = pZetaVis
+        self.out.pzeta_disc[0] = pZetaMET - 0.5*pZetaVis
         
-#        print 'pZetaVis = ', pZetaVis_, ' pZetaMET = ', pZetaMET_                                                                                           
-
-        self.out.pzetamiss[0]  = pZetaMET_
-        self.out.pzetavis[0]   = pZetaVis_
-        self.out.pzeta_disc[0] = pZetaMET_ - 0.5*pZetaVis_
-
-
-        # extra lepton vetos
+        
+        # VETOS
         self.out.extramuon_veto[0], self.out.extraelec_veto[0], self.out.dilepton_veto[0]  = extraLeptonVetos(event, [dilepton.tau1_idx], [dilepton.tau2_idx], self.name)
-
+        
         self.out.isData[0] = self.isData
-
+        
         self.out.tree.Fill() 
-
         return True

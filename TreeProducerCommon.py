@@ -4,16 +4,20 @@ import numpy as num
 
 
 var_dict = {
-  'Electron_mvaFall17Iso_WP90': 'Electron_mvaFall17Iso_WP90',
+  'Electron_mvaFall17Iso':      'Electron_mvaFall17Iso',
   'Electron_mvaFall17Iso_WPL':  'Electron_mvaFall17Iso_WPL',
+  'Electron_mvaFall17Iso_WP80': 'Electron_mvaFall17Iso_WP80',
+  'Electron_mvaFall17Iso_WP90': 'Electron_mvaFall17Iso_WP90',
 }
 
 def setYear(year):
   """Help function to change the name of some variables that depend on the year."""
-  if year==2018:
+  if year==2018 or year==2016:
     print "setYear: setting var_dict to year %s"%(year)
-    var_dict['Electron_mvaFall17Iso_WPL']  = 'Electron_mvaFall17V1Iso_WPL'
-    var_dict['Electron_mvaFall17Iso_WP90'] = 'Electron_mvaFall17V1Iso_WP90'
+    var_dict['Electron_mvaFall17Iso']      = 'Electron_mvaFall17V2Iso'
+    var_dict['Electron_mvaFall17Iso_WPL']  = 'Electron_mvaFall17V2Iso_WPL'
+    var_dict['Electron_mvaFall17Iso_WP80'] = 'Electron_mvaFall17V2Iso_WP80'
+    var_dict['Electron_mvaFall17Iso_WP90'] = 'Electron_mvaFall17V2Iso_WP90'
 
 def getvar(obj,var):
   """Help function to get some variable's real name from the dictionary."""
@@ -27,12 +31,9 @@ def getVLooseTauIso(year):
 
 def Tau_idIso(event,i):
   raw = event.Tau_rawIso[i]
-  if   raw>4.5: return 0
-  elif raw>3.5: return 1 # VVLoose
-  elif raw>2.5: return 3 # VLoose
-  elif event.Tau_photonsOutsideSignalCone[i]/event.Tau_pt[i]<0.10:
-    return 7 if raw>1.5 else 15 if raw>0.8 else 31 # Loose, Medium, Tight
-  return 0
+  if event.Tau_photonsOutsideSignalCone[i]/event.Tau_pt[i]<0.10:
+    return 0 if raw>4.5 else 1 if raw>3.5 else 3 if raw>2.5 else 7 if raw>1.5 else 15 if raw>0.8 else 31 # VVLoose, VLoose, Loose, Medium, Tight
+  return 0 if raw>4.5 else 1 if raw>3.5 else 3 # VVLoose, VLoose
   
 class TreeProducerCommon(object):
     
@@ -56,24 +57,24 @@ class TreeProducerCommon(object):
         self.run                        = num.zeros(1, dtype=int)
         self.luminosityBlock            = num.zeros(1, dtype=int)        
         self.event                      = num.zeros(1, dtype=int)
-        self.MET_pt                     = num.zeros(1, dtype=float)
-        self.MET_phi                    = num.zeros(1, dtype=float)
-        self.GenMET_pt                  = num.zeros(1, dtype=float)
-        self.GenMET_phi                 = num.zeros(1, dtype=float)
-        self.PuppiMET_pt                = num.zeros(1, dtype=float)
-        self.PuppiMET_phi               = num.zeros(1, dtype=float)
-        ###self.MET_significance           = num.zeros(1, dtype=float)
-        ###self.MET_covXX                  = num.zeros(1, dtype=float)
-        ###self.MET_covXY                  = num.zeros(1, dtype=float)
-        ###self.MET_covYY                  = num.zeros(1, dtype=float)
-        ###self.fixedGridRhoFastjetAll     = num.zeros(1, dtype=float)
+        self.met                        = num.zeros(1, dtype=float)
+        self.metphi                     = num.zeros(1, dtype=float)
+        self.genmet                     = num.zeros(1, dtype=float)
+        self.genmetphi                  = num.zeros(1, dtype=float)
+        ###self.puppimet                  = num.zeros(1, dtype=float)
+        ###self.puppimetphi               = num.zeros(1, dtype=float)
+        ###self.metsignificance           = num.zeros(1, dtype=float)
+        ###self.metcovXX                  = num.zeros(1, dtype=float)
+        ###self.metcovXY                  = num.zeros(1, dtype=float)
+        ###self.metcovYY                  = num.zeros(1, dtype=float)
+        ###self.fixedGridRhoFastjetAll    = num.zeros(1, dtype=float)
         self.nPU                        = num.zeros(1, dtype=int)
         self.nTrueInt                   = num.zeros(1, dtype=int)
         self.npvs                       = num.zeros(1, dtype=int)
         self.npvsGood                   = num.zeros(1, dtype=int)
         self.LHE_Njets                  = num.zeros(1, dtype=int)
         self.isData                     = num.zeros(1, dtype=int)
-        self.genWeight                  = num.zeros(1, dtype=float)
+        self.genweight                  = num.zeros(1, dtype=float)
         self.weight                     = num.zeros(1, dtype=float)
         self.trigweight                 = num.zeros(1, dtype=float)
         self.puweight                   = num.zeros(1, dtype=float)
@@ -86,24 +87,24 @@ class TreeProducerCommon(object):
         self.tree.Branch('run'                       , self.run, 'run/I')
         self.tree.Branch('luminosityBlock'           , self.luminosityBlock, 'luminosityBlock/I')
         self.tree.Branch('event'                     , self.event, 'event/I')
-        self.tree.Branch('MET_pt'                    , self.MET_pt, 'MET_pt/D')
-        self.tree.Branch('MET_phi'                   , self.MET_phi, 'MET_phi/D')
-        self.tree.Branch('GenMET_pt'                 , self.GenMET_pt, 'GenMET_pt/D')
-        self.tree.Branch('GenMET_phi'                , self.GenMET_phi, 'GenMET_phi/D')
-        self.tree.Branch('PuppiMET_pt'               , self.PuppiMET_pt, 'PuppiMET_pt/D')
-        self.tree.Branch('PuppiMET_phi'              , self.PuppiMET_phi, 'PuppiMET_phi/D')
-        ###self.tree.Branch('MET_significance'          , self.MET_significance, 'MET_significance/D')
-        ###self.tree.Branch('MET_covXX'                 , self.MET_covXX, 'MET_covXX/D')
-        ###self.tree.Branch('MET_covXY'                 , self.MET_covXY, 'MET_covXY/D')
-        ###self.tree.Branch('MET_covYY'                 , self.MET_covYY, 'MET_covYY/D')
-        ###self.tree.Branch('fixedGridRhoFastjetAll'    , self.fixedGridRhoFastjetAll, 'fixedGridRhoFastjetAll/D')
+        self.tree.Branch('met'                       , self.met, 'met/D')
+        self.tree.Branch('metphi'                    , self.metphi, 'metphi/D')
+        self.tree.Branch('genmet'                    , self.genmet, 'genmet/D')
+        self.tree.Branch('genmetphi'                 , self.genmetphi, 'genmetphi/D')
+        ###self.tree.Branch('puppimet'                  , self.puppimet, 'puppimet/D')
+        ###self.tree.Branch('puppimetphi'               , self.puppimetphi, 'puppimetphi/D')
+        ###self.tree.Branch('metsignificance'          , self.metsignificance, 'metsignificance/D')
+        ###self.tree.Branch('metcovXX'                 , self.metcovXX, 'metcovXX/D')
+        ###self.tree.Branch('metcovXY'                 , self.metcovXY, 'metcovXY/D')
+        ###self.tree.Branch('metcovYY'                 , self.metcovYY, 'metcovYY/D')
+        ###self.tree.Branch('fixedGridRhoFastjetAll'   , self.fixedGridRhoFastjetAll, 'fixedGridRhoFastjetAll/D')
         self.tree.Branch('nPU'                       , self.nPU, 'nPU/I')
         self.tree.Branch('nTrueInt'                  , self.nTrueInt, 'nTrueInt/I')
         self.tree.Branch('npvs'                      , self.npvs, 'npvs/I')
         self.tree.Branch('npvsGood'                  , self.npvsGood, 'npvsGood/I')
         self.tree.Branch('LHE_Njets'                 , self.LHE_Njets, 'LHE_Njets/I')
         self.tree.Branch('isData'                    , self.isData, 'isData/I')
-        self.tree.Branch('genWeight'                 , self.genWeight, 'genWeight/D')
+        self.tree.Branch('genweight'                 , self.genweight, 'genweight/D')
         self.tree.Branch('weight'                    , self.weight, 'weight/D')
         self.tree.Branch('trigweight'                , self.trigweight, 'trigweight/D')
         self.tree.Branch('puweight'                  , self.puweight, 'puweight/D')
@@ -114,7 +115,7 @@ class TreeProducerCommon(object):
         self.tree.Branch('btagweight_deep'           , self.btagweight_deep, 'btagweight_deep/D')
         
         self.weight[0]          = 1.
-        self.genWeight[0]       = 1.
+        self.genweight[0]       = 1.
         self.trigweight[0]      = 1.
         self.puweight[0]        = 1.
         self.idisoweight_1[0]   = 1.
@@ -122,6 +123,8 @@ class TreeProducerCommon(object):
         self.btagweight[0]      = 1.
         self.btagweight_deep[0] = 1.
         self.zptweight[0]       = 1.
+        self.genmet[0]          = -1
+        self.genmetphi[0]       = -9
         
         self.njets                      = num.zeros(1, dtype=int)
         self.njets50                    = num.zeros(1, dtype=int)
@@ -156,7 +159,7 @@ class TreeProducerCommon(object):
         
         self.pzetamiss                  = num.zeros(1, dtype=float)
         self.pzetavis                   = num.zeros(1, dtype=float)
-        self.pzeta_disc                 = num.zeros(1, dtype=float)
+        self.dzeta                      = num.zeros(1, dtype=float)
         
         self.dilepton_veto              = num.zeros(1, dtype=int)
         self.extraelec_veto             = num.zeros(1, dtype=int)
@@ -201,7 +204,7 @@ class TreeProducerCommon(object):
         
         self.tree.Branch('pzetamiss'                   , self.pzetamiss, 'pzetamiss/D')
         self.tree.Branch('pzetavis'                    , self.pzetavis, 'pzetavis/D')
-        self.tree.Branch('pzeta_disc'                  , self.pzeta_disc, 'pzeta_disc/D')
+        self.tree.Branch('dzeta'                       , self.dzeta, 'dzeta/D')
         
         self.tree.Branch('dilepton_veto'               , self.dilepton_veto, 'dilepton_veto/I')
         self.tree.Branch('extraelec_veto'              , self.extraelec_veto, 'extraelec_veto/I')
@@ -212,8 +215,6 @@ class TreeProducerCommon(object):
         self.tree.Branch('m_genboson'                  , self.m_genboson, 'm_genboson/I')
         self.tree.Branch('pt_genboson'                 , self.pt_genboson, 'pt_genboson/I')
         
-        self.GenMET_pt[0]   = -1
-        self.GenMET_phi[0]  = -9
         self.nPU[0]         = -1
         self.nTrueInt[0]    = -1
         self.LHE_Njets[0]   = -1
@@ -316,7 +317,7 @@ def extraLeptonVetos(event, muon_idxs, electron_idxs, name):
         #if event.Electron_convVeto[ielectron] ==1 and ord(event.Electron_lostHits[ielectron]) <= 1 and event.Electron_mvaFall17Iso_WP90[ielectron] > 0.5 and (ielectron not in electron_idxs):
         if event.Electron_convVeto[ielectron] ==1 and ord(event.Electron_lostHits[ielectron]) <= 1 and getvar(event,'Electron_mvaFall17Iso_WP90')[ielectron] > 0.5 and (ielectron not in electron_idxs):
             b_extraelec_veto_ = True
-        if event.Electron_pt[ielectron] > 15 and getvar(event,'Electron_mvaFall17Iso_WPL') > 0.5:
+        if event.Electron_pt[ielectron] > 15 and getvar(event,'Electron_mvaFall17Iso_WPL')[ielectron] > 0.5:
             LooseElectrons.append(ielectron)
     
     if name.find('mutau')!=-1:

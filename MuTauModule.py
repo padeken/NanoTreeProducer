@@ -215,7 +215,7 @@ class MuTauProducer(Module):
         self.out.pt_1[0]                       = event.Muon_pt[ltau.id1]
         self.out.eta_1[0]                      = event.Muon_eta[ltau.id1]
         self.out.phi_1[0]                      = event.Muon_phi[ltau.id1]
-        self.out.mass_1[0]                     = event.Muon_mass[ltau.id1]
+        self.out.m_1[0]                        = event.Muon_mass[ltau.id1]
         self.out.dxy_1[0]                      = event.Muon_dxy[ltau.id1]
         self.out.dz_1[0]                       = event.Muon_dz[ltau.id1]         
         self.out.q_1[0]                        = event.Muon_charge[ltau.id1]
@@ -226,7 +226,7 @@ class MuTauProducer(Module):
         self.out.pt_2[0]                       = event.Tau_pt[ltau.id2]
         self.out.eta_2[0]                      = event.Tau_eta[ltau.id2]
         self.out.phi_2[0]                      = event.Tau_phi[ltau.id2]
-        self.out.mass_2[0]                     = event.Tau_mass[ltau.id2]
+        self.out.m_2[0]                        = event.Tau_mass[ltau.id2]
         self.out.dxy_2[0]                      = event.Tau_dxy[ltau.id2]
         self.out.dz_2[0]                       = event.Tau_dz[ltau.id2]         
         self.out.leadTkPtOverTauPt_2[0]        = event.Tau_leadTkPtOverTauPt[ltau.id2]
@@ -284,21 +284,21 @@ class MuTauProducer(Module):
         self.out.run[0]                        = event.run
         self.out.luminosityBlock[0]            = event.luminosityBlock
         self.out.event[0]                      = event.event & 0xffffffffffffffff
-        self.out.MET_pt[0]                     = event.MET_pt
-        self.out.MET_phi[0]                    = event.MET_phi
-        self.out.PuppiMET_pt[0]                = event.PuppiMET_pt
-        self.out.PuppiMET_phi[0]               = event.PuppiMET_phi
-        ###self.out.MET_significance[0]           = event.MET_significance
-        ###self.out.MET_covXX[0]                  = event.MET_covXX
-        ###self.out.MET_covXY[0]                  = event.MET_covXY
-        ###self.out.MET_covYY[0]                  = event.MET_covYY
-        ###self.out.fixedGridRhoFastjetAll[0]     = event.fixedGridRhoFastjetAll
+        self.out.met[0]                        = event.MET_pt
+        self.out.metphi[0]                     = event.MET_phi
+        ###self.out.puppimetpt[0]                = event.PuppiMET_pt
+        ###self.out.puppimetphi[0]               = event.PuppiMET_phi
+        ###self.out.metsignificance[0]           = event.MET_significance
+        ###self.out.metcovXX[0]                  = event.MET_covXX
+        ###self.out.metcovXY[0]                  = event.MET_covXY
+        ###self.out.metcovYY[0]                  = event.MET_covYY
+        ###self.out.fixedGridRhoFastjetAll[0]    = event.fixedGridRhoFastjetAll
         self.out.npvs[0]                       = event.PV_npvs
         self.out.npvsGood[0]                   = event.PV_npvsGood
         
         if not self.isData:
-          self.out.GenMET_pt[0]                = event.GenMET_pt
-          self.out.GenMET_phi[0]               = event.GenMET_phi
+          self.out.genmet[0]                   = event.GenMET_pt
+          self.out.genmetphi[0]                = event.GenMET_phi
           self.out.nPU[0]                      = event.Pileup_nPU
           self.out.nTrueInt[0]                 = event.Pileup_nTrueInt
           try:
@@ -354,8 +354,8 @@ class MuTauProducer(Module):
           self.out.bpt_2[0]                    = -9.
           self.out.beta_2[0]                   = -9.
         
-        self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.MET_phi[0])) ) )
-        self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.MET_pt[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.MET_phi[0])) ) )
+        self.out.pfmt_1[0]                     = math.sqrt( 2 * self.out.pt_1[0] * self.out.met[0] * ( 1 - math.cos(deltaPhi(self.out.phi_1[0], self.out.metphi[0])) ) )
+        self.out.pfmt_2[0]                     = math.sqrt( 2 * self.out.pt_2[0] * self.out.met[0] * ( 1 - math.cos(deltaPhi(self.out.phi_2[0], self.out.metphi[0])) ) )
         
         self.out.m_vis[0]                      = (muon + tau).M()
         self.out.pt_ll[0]                      = (muon + tau).Pt()
@@ -367,17 +367,14 @@ class MuTauProducer(Module):
         leg1     = ROOT.TVector3(muon.Px(), muon.Py(), 0.)
         leg2     = ROOT.TVector3(tau.Px(),  tau.Py(),  0.)
         met_tlv  = ROOT.TLorentzVector()
-        met_tlv.SetPxPyPzE(self.out.MET_pt[0]*math.cos(self.out.MET_phi[0]), 
-                           self.out.MET_pt[0]*math.sin(self.out.MET_phi[0]),
-                           0, 
-                           self.out.MET_pt[0])
+        met_tlv.SetPxPyPzE(self.out.met[0]*math.cos(self.out.metphi[0]), self.out.met[0]*math.cos(self.out.metphi[0]), 0, self.out.met[0])
         metleg   = met_tlv.Vect()
         zetaAxis = ROOT.TVector3(leg1.Unit() + leg2.Unit()).Unit()
         pzetaVis = leg1*zetaAxis + leg2*zetaAxis
         pzetaMET = metleg*zetaAxis
         self.out.pzetamiss[0]  = pzetaMET
         self.out.pzetavis[0]   = pzetaVis
-        self.out.pzeta_disc[0] = pzetaMET - 0.5*pzetaVis
+        self.out.dzeta[0]      = pzetaMET - 0.85*pzetaVis
         
         
         # VETOS
@@ -391,14 +388,14 @@ class MuTauProducer(Module):
             self.out.m_genboson[0]    = zboson.M()
             self.out.pt_genboson[0]   = zboson.Pt()
             self.out.zptweight[0]     = self.recoilTool.getZptWeight(zboson.Pt(),zboson.M())
-          self.out.genWeight[0]       = event.genWeight
+          self.out.genweight[0]       = event.genWeight
           self.out.puweight[0]        = self.puTool.getWeight(event.Pileup_nTrueInt)
           self.out.trigweight[0]      = self.muSFs.getTriggerSF(self.out.pt_1[0],self.out.eta_1[0])
           self.out.idisoweight_1[0]   = self.muSFs.getIdIsoSF(self.out.pt_1[0],self.out.eta_1[0])
           self.out.idisoweight_2[0]   = self.ltfSFs.getSF(self.out.genPartFlav_2[0],self.out.eta_2[0])
           self.out.btagweight[0]      = self.btagTool.getWeight(event,jetIds)
           self.out.btagweight_deep[0] = self.btagTool_deep.getWeight(event,jetIds)
-          self.out.weight[0]          = self.out.genWeight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0]*self.out.idisoweight_2[0]
+          self.out.weight[0]          = self.out.genweight[0]*self.out.puweight[0]*self.out.trigweight[0]*self.out.idisoweight_1[0]*self.out.idisoweight_2[0]
         
         
         self.out.tree.Fill()
