@@ -86,9 +86,9 @@ More [notes](https://www.evernote.com/l/Ac8PKYGpaJxJArj4eng5ed95_wvpzwSNTgc).
 
 ### Samples
 
-* **2016**: [list](https://github.com/IzaakWN/NanoTreeProducer/blob/master/samples_2016.cfg), [notes](https://www.evernote.com/l/Ac9nVeF2tcdJI7R-is1KPT2Ukv7A260zNX0)
+* **2016**: [list](https://github.com/IzaakWN/NanoTreeProducer/blob/master/samples_2016.cfg), [DAS](https://cmsweb.cern.ch/das/request?view=plain&limit=50&instance=prod%2Fglobal&input=dataset%3D%2F*%2FRunIISummer16NanoAODv4-PUMoriond17_Nano14Dec2018_102X_mcRun2_asymptotic*%2FNANOAODSIM), [notes](https://www.evernote.com/l/Ac9nVeF2tcdJI7R-is1KPT2Ukv7A260zNX0)
 * **2017**: [list](https://github.com/IzaakWN/NanoTreeProducer/blob/master/samples_2017.cfg), [notes](https://www.evernote.com/l/Ac8WfL3Mzx1MrKdm1LfIOl-F-j7NeScPKxs)
-* **2018**: [list](https://github.com/IzaakWN/NanoTreeProducer/blob/master/samples_2018.cfg), [notes](https://www.evernote.com/l/Ac9yyi7wtg9LaYgxOIz11jFyzLV0ztkemtE)
+* **2018**: [list](https://github.com/IzaakWN/NanoTreeProducer/blob/master/samples_2018.cfg), [DAS](https://cmsweb.cern.ch/das/request?view=plain&limit=50&instance=prod%2Fglobal&input=dataset+dataset%3D%2F*%2F*102X_upgrade2018_realistic_v15*%2FNANOAOD*), [notes](https://www.evernote.com/l/Ac9yyi7wtg9LaYgxOIz11jFyzLV0ztkemtE)
 
 ### Integrated luminosity
 
