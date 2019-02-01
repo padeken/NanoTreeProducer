@@ -268,7 +268,7 @@ class MuMuProducer(Module):
         self.out.event[0]                      = event.event & 0xffffffffffffffff
         self.out.met[0]                        = event.MET_pt
         self.out.metphi[0]                     = event.MET_phi
-        ###self.out.puppimetpt[0]                = event.PuppiMET_pt
+        ###self.out.puppimet[0]                  = event.PuppiMET_pt
         ###self.out.puppimetphi[0]               = event.PuppiMET_phi
         ###self.out.metsignificance[0]           = event.MET_significance
         ###self.out.metcovXX[0]                  = event.MET_covXX
